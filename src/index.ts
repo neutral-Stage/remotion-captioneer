@@ -176,6 +176,13 @@ export {
   toWordLevelVTT,
 } from "./exporters.js";
 
+// Emoji Reactions
+export {
+  EmojiReactions,
+  autoGenerateReactions,
+  type EmojiReaction,
+} from "./emoji.js";
+
 // Config
 export { loadConfig } from "./config.js";
 export type { CaptioneerConfig } from "./config.js";

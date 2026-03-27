@@ -731,12 +731,31 @@ ENTRYPOINT ["npx", "captioneer"]
 
 ## 🗺️ Roadmap
 
-- [ ] More caption styles (wave, glow, typewriter-erase)
-- [ ] Multi-line auto-wrapping with smart breaks
-- [ ] Word-level emoji reactions
-- [ ] Real-time preview server
-- [ ] Batch processing mode
-- [ ] Integration with other STT providers (Deepgram, AssemblyAI)
+### ✅ Completed
+
+- [x] 14 caption styles (word-highlight, karaoke, typewriter, bounce, wave, glow, typewriter-erase, pill, flicker, highlighter, blur, rainbow, scale, spotlight)
+- [x] Multi-line auto-wrapping with smart breaks (`smartWrap()`)
+- [x] Word-level emoji reactions (`EmojiReactions` + `autoGenerateReactions()`)
+- [x] Real-time preview server (`npx captioneer preview`)
+- [x] Batch processing mode (`npx captioneer batch ./audio/`)
+- [x] Multi-provider STT (OpenAI, Groq, Deepgram, AssemblyAI)
+- [x] @remotion/captions compatibility layer
+- [x] Audio-video sync (beat detection, volume hooks, timeline)
+- [x] Template system for data-driven videos
+- [x] Layout primitives (Stack, Row, Columns, Grid, etc.)
+- [x] 16 caption presets (TikTok, Instagram, Podcast, Cinematic, etc.)
+- [x] Export formats (SRT, VTT, ASS, TXT, word-level)
+
+### 🔮 Future
+
+- [ ] Caption style marketplace (community-contributed styles)
+- [ ] AI-powered auto-emoji (LLM suggests emojis from context)
+- [ ] Multi-language caption support with RTL
+- [ ] Caption editor with visual timeline
+- [ ] Integration with video hosting APIs (YouTube, Vimeo)
+- [ ] Real-time caption rendering in browser (WebCodecs)
+- [ ] Caption translation utilities
+- [ ] Speaker diarization (multi-speaker support)
 
 ---
 

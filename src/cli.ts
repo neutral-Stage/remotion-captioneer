@@ -160,6 +160,15 @@ program
   });
 
 program
+  .command("preview")
+  .description("Start a real-time preview server")
+  .option("-p, --port <port>", "Port number", "3456")
+  .action(async (opts: any) => {
+    const { startPreviewServer } = await import("./preview-server.js");
+    startPreviewServer(parseInt(opts.port));
+  });
+
+program
   .command("presets")
   .description("List available caption presets")
   .action(async () => {
