@@ -150,6 +150,26 @@ export {
   frameToMs,
 } from "./utils.js";
 
+// Presets
+export {
+  presets,
+  getPreset,
+  getPresetCategories,
+  applyPreset,
+  type CaptionPreset,
+} from "./presets/index.js";
+
+// Exporters
+export {
+  toSRT,
+  toVTT,
+  toASS,
+  toPlainText,
+  toJSON,
+  toWordLevelSRT,
+  toWordLevelVTT,
+} from "./exporters.js";
+
 // Config
 export { loadConfig } from "./config.js";
 export type { CaptioneerConfig } from "./config.js";

@@ -154,6 +154,88 @@ program
   });
 
 program
+  .command("presets")
+  .description("List available caption presets")
+  .action(async () => {
+    const { getPresetCategories, presets } = await import("./presets/index.js");
+    const categories = getPresetCategories();
+
+    console.log("\n🎨 Available Caption Presets:\n");
+    for (const [category, names] of Object.entries(categories)) {
+      console.log(`  ${category}:`);
+      for (const name of names) {
+        const p = presets[name];
+        console.log(`    ${name.padEnd(22)} ${p.style.padEnd(18)} ${p.description}`);
+      }
+      console.log();
+    }
+  });
+
+program
+  .command("export")
+  .description("Export captions to different formats")
+  .argument("<caption-file>", "Path to caption JSON file")
+  .option("-f, --format <format>", "Output format: srt, vtt, ass, txt, srt-words, vtt-words", "srt")
+  .option("-o, --output <path>", "Output file path")
+  .action(async (captionFile: string, opts: any) => {
+    const { readFileSync, writeFileSync: wfs } = await import("fs");
+    const { resolve, basename, extname } = await import("path");
+
+    const filePath = resolve(captionFile);
+    if (!existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      process.exit(1);
+    }
+
+    const captions = JSON.parse(readFileSync(filePath, "utf-8"));
+
+    const { toSRT, toVTT, toASS, toPlainText, toWordLevelSRT, toWordLevelVTT } = await import("./exporters.js");
+
+    let output: string;
+    let ext: string;
+
+    switch (opts.format) {
+      case "srt":
+        output = toSRT(captions);
+        ext = ".srt";
+        break;
+      case "vtt":
+        output = toVTT(captions);
+        ext = ".vtt";
+        break;
+      case "ass":
+        output = toASS(captions);
+        ext = ".ass";
+        break;
+      case "txt":
+        output = toPlainText(captions);
+        ext = ".txt";
+        break;
+      case "srt-words":
+        output = toWordLevelSRT(captions);
+        ext = ".srt";
+        break;
+      case "vtt-words":
+        output = toWordLevelVTT(captions);
+        ext = ".vtt";
+        break;
+      default:
+        console.error(`❌ Unknown format: ${opts.format}`);
+        console.error(`   Available: srt, vtt, ass, txt, srt-words, vtt-words`);
+        process.exit(1);
+    }
+
+    const outputPath = opts.output ?? resolve(
+      process.cwd(),
+      `${basename(filePath, extname(filePath))}${ext}`
+    );
+
+    wfs(outputPath, output);
+    console.log(`✅ Exported to ${opts.format.toUpperCase()}: ${outputPath}`);
+    console.log(`📊 ${captions.segments.length} segments`);
+  });
+
+program
   .command("batch")
   .description("Process multiple audio files at once")
   .argument("<directory>", "Directory containing audio files")

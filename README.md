@@ -194,6 +194,71 @@ Choose your speech-to-text backend. Supports 5 providers out of the box:
 | **Deepgram** | `DEEPGRAM_API_KEY` | ⭐⭐⭐⭐ | ❌ | Real-time capable |
 | **AssemblyAI** | `ASSEMBLYAI_API_KEY` | ⭐⭐⭐ | ❌ | Rich features |
 
+---
+
+## 🎭 Caption Presets
+
+Apply a professional look instantly with one of 16 built-in presets:
+
+```tsx
+import { AnimatedCaptions, applyPreset } from "remotion-captioneer";
+
+// Use a preset
+<AnimatedCaptions
+  captions={captions}
+  {...applyPreset("tiktok")}
+/>
+
+// Or spread individual props
+const tiktokStyle = applyPreset("cinematic-gold");
+<AnimatedCaptions captions={captions} {...tiktokStyle} />
+```
+
+### Available Presets
+
+| Category | Presets |
+|----------|---------|
+| **Social Media** | `tiktok`, `instagram-reels`, `youtube-shorts`, `twitter-clips` |
+| **Podcast** | `podcast-clean`, `podcast-bold` |
+| **Cinematic** | `cinematic-gold`, `cinematic-white`, `cinematic-neon` |
+| **Music** | `music-karaoke`, `music-wave` |
+| **Tutorial** | `tutorial-typewriter`, `tutorial-erase` |
+| **Minimal** | `minimal-white`, `minimal-subtle` |
+
+```bash
+# List presets from CLI
+npx captioneer presets
+```
+
+---
+
+## 📤 Export Formats
+
+Export captions to standard subtitle formats:
+
+```ts
+import { toSRT, toVTT, toASS, toPlainText } from "remotion-captioneer";
+
+const srt = toSRT(captionData);       // SubRip (.srt)
+const vtt = toVTT(captionData);       // WebVTT (.vtt)
+const ass = toASS(captionData);       // SubStation Alpha (.ass)
+const txt = toPlainText(captionData); // Plain text
+
+// Word-level exports (for custom timing)
+const srtWords = toWordLevelSRT(captionData);
+const vttWords = toWordLevelVTT(captionData);
+```
+
+```bash
+# Export from CLI
+npx captioneer export captions.json --format srt
+npx captioneer export captions.json --format vtt --output subtitles.vtt
+npx captioneer export captions.json --format ass
+npx captioneer export captions.json --format srt-words
+```
+
+**Formats:** `srt`, `vtt`, `ass`, `txt`, `srt-words`, `vtt-words`
+
 ### Auto-Detection
 
 The CLI auto-detects available providers from environment variables:
