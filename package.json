@@ -1,6 +1,6 @@
 {
   "name": "remotion-captioneer",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Drop-in animated captions for Remotion. Audio to word-level synced subtitle components. Supports OpenAI, Groq, Deepgram, AssemblyAI.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
