@@ -5,7 +5,7 @@
 import React from "react";
 import { Composition } from "remotion";
 import { CaptionShowcase } from "./CaptionShowcase.js";
-import type { CaptionData } from "./types.js";
+import type { CaptionData, CaptionStyle } from "./types.js";
 
 // Demo captions for preview
 const demoCaptions: CaptionData = {
@@ -49,56 +49,57 @@ const demoCaptions: CaptionData = {
   ],
 };
 
+// Wrapper to satisfy Remotion's component type
+const WordHighlightDemo: React.FC<Record<string, unknown>> = (props) => (
+  <CaptionShowcase captions={demoCaptions} style="word-highlight" {...props} />
+);
+
+const KaraokeDemo: React.FC<Record<string, unknown>> = (props) => (
+  <CaptionShowcase captions={demoCaptions} style="karaoke" {...props} />
+);
+
+const TypewriterDemo: React.FC<Record<string, unknown>> = (props) => (
+  <CaptionShowcase captions={demoCaptions} style="typewriter" {...props} />
+);
+
+const BounceDemo: React.FC<Record<string, unknown>> = (props) => (
+  <CaptionShowcase captions={demoCaptions} style="bounce" {...props} />
+);
+
 export const RemotionRoot: React.FC = () => {
   return (
     <>
       <Composition
         id="WordHighlightDemo"
-        component={CaptionShowcase}
+        component={WordHighlightDemo}
         durationInFrames={240}
         fps={30}
         width={1920}
         height={1080}
-        defaultProps={{
-          captions: demoCaptions,
-          style: "word-highlight" as const,
-        }}
       />
       <Composition
         id="KaraokeDemo"
-        component={CaptionShowcase}
+        component={KaraokeDemo}
         durationInFrames={240}
         fps={30}
         width={1920}
         height={1080}
-        defaultProps={{
-          captions: demoCaptions,
-          style: "karaoke" as const,
-        }}
       />
       <Composition
         id="TypewriterDemo"
-        component={CaptionShowcase}
+        component={TypewriterDemo}
         durationInFrames={240}
         fps={30}
         width={1920}
         height={1080}
-        defaultProps={{
-          captions: demoCaptions,
-          style: "typewriter" as const,
-        }}
       />
       <Composition
         id="BounceDemo"
-        component={CaptionShowcase}
+        component={BounceDemo}
         durationInFrames={240}
         fps={30}
         width={1920}
         height={1080}
-        defaultProps={{
-          captions: demoCaptions,
-          style: "bounce" as const,
-        }}
       />
     </>
   );
