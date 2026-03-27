@@ -44,6 +44,7 @@
     "url": "https://github.com/neutral-Stage/remotion-captioneer.git"
   },
   "dependencies": {
+    "@remotion/captions": "4.0.261",
     "@remotion/cli": "4.0.261",
     "@remotion/install-whisper-cpp": "4.0.261",
     "remotion": "4.0.261",

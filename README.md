@@ -14,6 +14,35 @@ Feed it audio. Get word-level synced, beautifully animated captions. Four styles
 
 ---
 
+## 🤝 Works With `@remotion/captions`
+
+Our types are **fully compatible** with the official [`@remotion/captions`](https://www.remotion.dev/docs/captions/api) package. You can convert freely between them:
+
+```ts
+import { createTikTokStyleCaptions } from "@remotion/captions";
+import { toCaptionArray, fromCaptionArray } from "remotion-captioneer";
+
+// Convert our CaptionData → flat Caption[] for @remotion/captions
+const flatCaptions = toCaptionArray(myCaptionData);
+const { pages } = createTikTokStyleCaptions({
+  captions: flatCaptions,
+  combineTokensWithinMilliseconds: 1200,
+});
+
+// Or go the other way: Caption[] → CaptionData
+const captionData = fromCaptionArray(flatCaptions);
+```
+
+| | `@remotion/captions` (official) | `remotion-captioneer` (this) |
+|---|---|---|
+| **Caption types** | ✅ `Caption` type | ✅ Compatible + `CaptionData` with segments |
+| **Page segmentation** | ✅ `createTikTokStyleCaptions()` | ❌ Use official package |
+| **Animated components** | ❌ Build yourself | ✅ 4 ready-to-use styles |
+| **STT/transcription** | ❌ Separate package | ✅ 5 providers built-in |
+| **CLI tool** | ❌ | ✅ `npx captioneer process` |
+
+---
+
 ## 🎥 Caption Styles Preview
 
 <table>

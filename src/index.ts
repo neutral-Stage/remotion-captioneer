@@ -6,8 +6,10 @@
  * Supports: Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
  */
 
-// Types
+// Types (compatible with @remotion/captions)
 export type {
+  Caption,
+  TikTokPage,
   Word,
   CaptionSegment,
   CaptionData,
@@ -16,6 +18,8 @@ export type {
   WhisperOptions,
   ProcessAudioOptions,
 } from "./types.js";
+
+export { toCaptionArray, fromCaptionArray } from "./types.js";
 
 // Components
 export {
