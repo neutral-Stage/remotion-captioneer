@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.captioneer-cache/
+whisper.cpp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Env
+.env
+.env.local
+
+# Build
+*.tsbuildinfo

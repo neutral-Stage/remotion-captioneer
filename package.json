@@ -1,0 +1,53 @@
+{
+  "name": "remotion-captioneer",
+  "version": "0.1.0",
+  "description": "Drop-in animated captions for Remotion. Audio to word-level synced subtitle components.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "captioneer": "./dist/cli.js"
+  },
+  "scripts": {
+    "start": "remotion studio",
+    "build": "tsc",
+    "render": "remotion render",
+    "preview": "remotion preview",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "keywords": [
+    "remotion",
+    "captions",
+    "subtitles",
+    "video",
+    "whisper",
+    "animation",
+    "programmatic-video",
+    "react"
+  ],
+  "author": "Shuvo Roy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neutral-Stage/remotion-captioneer.git"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.261",
+    "@remotion/install-whisper-cpp": "4.0.261",
+    "remotion": "4.0.261",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "commander": "^12.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "prettier": "^3.3.3",
+    "@remotion/eslint-config": "4.0.261"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
