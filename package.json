@@ -1,6 +1,6 @@
 {
   "name": "remotion-captioneer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Drop-in animated captions for Remotion. Audio to word-level synced subtitle components. Supports OpenAI, Groq, Deepgram, AssemblyAI.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,6 @@
     "README.md",
     "LICENSE"
   ],
-  "types": "dist/index.d.ts",
   "bin": {
     "captioneer": "./dist/cli.js"
   },
@@ -41,13 +40,17 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/neutral-Stage/remotion-captioneer.git"
+    "url": "git+https://github.com/neutral-Stage/remotion-captioneer.git"
   },
+  "bugs": {
+    "url": "https://github.com/neutral-Stage/remotion-captioneer/issues"
+  },
+  "homepage": "https://neutral-stage.github.io/remotion-captioneer/",
   "dependencies": {
-    "@remotion/captions": "4.0.261",
-    "@remotion/cli": "4.0.261",
-    "@remotion/install-whisper-cpp": "4.0.261",
-    "remotion": "4.0.261",
+    "@remotion/captions": "4.0.438",
+    "@remotion/cli": "4.0.438",
+    "@remotion/install-whisper-cpp": "4.0.438",
+    "remotion": "4.0.438",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "commander": "^12.1.0",
@@ -59,7 +62,7 @@
     "@types/react-dom": "^18.3.1",
     "typescript": "^5.6.3",
     "prettier": "^3.3.3",
-    "@remotion/eslint-config": "4.0.261"
+    "@remotion/eslint-config": "4.0.438"
   },
   "engines": {
     "node": ">=18.0.0"
