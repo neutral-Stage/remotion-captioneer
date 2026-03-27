@@ -71,7 +71,7 @@ Active word bounces up with spring physics.
 
 ## ✨ Features
 
-- 🎙️ **Audio → Captions** — Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp) for offline, word-level transcription
+- 🎙️ **5 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
 - 🎨 **4 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce
 - ⚡ **Drop-in Components** — `<AnimatedCaptions>` works out of the box
 - 🔧 **CLI Tool** — `npx captioneer process audio.mp4` to generate caption data
@@ -142,23 +142,112 @@ That's it. Render with `npx remotion render` as usual.
 
 ---
 
+## 📡 STT Providers
+
+Choose your speech-to-text backend. Supports 5 providers out of the box:
+
+| Provider | Env Variable | Speed | Offline | Best For |
+|----------|-------------|-------|---------|----------|
+| **Local Whisper** | — | ⭐⭐ | ✅ | Privacy, no API costs |
+| **OpenAI** | `OPENAI_API_KEY` | ⭐⭐⭐ | ❌ | Best accuracy |
+| **Groq** | `GROQ_API_KEY` | ⭐⭐⭐⭐⭐ | ❌ | Ultra-fast inference |
+| **Deepgram** | `DEEPGRAM_API_KEY` | ⭐⭐⭐⭐ | ❌ | Real-time capable |
+| **AssemblyAI** | `ASSEMBLYAI_API_KEY` | ⭐⭐⭐ | ❌ | Rich features |
+
+### Auto-Detection
+
+The CLI auto-detects available providers from environment variables:
+
+```bash
+# Groq is fastest — set this first if you have a key
+export GROQ_API_KEY="gsk_..."
+
+# Or OpenAI
+export OPENAI_API_KEY="sk-..."
+
+# Then just run — it picks the best available
+npx captioneer process audio.mp4
+```
+
+### Explicit Provider
+
+```bash
+npx captioneer process audio.mp4 --provider groq
+npx captioneer process audio.mp4 --provider openai --model whisper-1
+npx captioneer process audio.mp4 --provider deepgram --model nova-2
+npx captioneer process audio.mp4 --provider assemblyai
+npx captioneer process audio.mp4 --provider local --model base
+```
+
+### Check Provider Status
+
+```bash
+npx captioneer providers
+```
+
+```
+📡 Available STT Providers:
+
+  local           ✅ ready
+                  models: tiny, base, small, medium, large
+
+  groq            ✅ ready
+                  models: whisper-large-v3, whisper-large-v3-turbo, distil-whisper-large-v3-en
+
+  openai          ⚪ not configured
+                  models: whisper-1
+```
+
+### Programmatic Usage
+
+```ts
+import { GroqProvider, OpenAIProvider } from "remotion-captioneer";
+
+// Groq — ultra-fast
+const groq = new GroqProvider("gsk_...");
+const captions = await groq.transcribe("audio.mp4", {
+  model: "whisper-large-v3-turbo",
+  language: "en",
+});
+
+// OpenAI
+const openai = new OpenAIProvider("sk-...");
+const captions = await openai.transcribe("audio.mp4");
+
+// Auto-detect from env
+import { detectProvider } from "remotion-captioneer";
+const detected = detectProvider();
+if (detected) {
+  const captions = await detected.provider.transcribe("audio.mp4");
+}
+```
+
+---
+
 ## 🎙️ CLI Reference
 
 ### Process Audio
 
 ```bash
-# Basic usage
+# Basic usage (auto-detects provider from env vars)
 npx captioneer process audio.mp4
 
-# With options
-npx captioneer process audio.mp4 --model base --language en --output captions.json
+# Specify provider
+npx captioneer process audio.mp4 --provider groq
+npx captioneer process audio.mp4 --provider openai --model whisper-1
 
-# Verbose mode
-npx captioneer process audio.mp4 -v
+# With options
+npx captioneer process audio.mp4 --provider groq --language en --output captions.json
+npx captioneer process audio.mp4 --provider local --model base
+
+# Pass API key directly
+npx captioneer process audio.mp4 --provider groq --api-key gsk_...
 ```
 
 **Options:**
-- `-m, --model <model>` — Whisper model: `tiny`, `base`, `small`, `medium`, `large` (default: `base`)
+- `-p, --provider <provider>` — STT provider: `local`, `openai`, `groq`, `deepgram`, `assemblyai`
+- `-m, --model <model>` — Model name (provider-specific)
+- `-k, --api-key <key>` — API key (or use env vars)
 - `-l, --language <lang>` — Language code: `en`, `es`, `fr`, `de`, etc.
 - `-o, --output <path>` — Output JSON path
 - `-v, --verbose` — Verbose output
@@ -166,7 +255,10 @@ npx captioneer process audio.mp4 -v
 ### Other Commands
 
 ```bash
-# List available styles
+# List available providers and their status
+npx captioneer providers
+
+# List available caption styles
 npx captioneer styles
 
 # Open Remotion Studio with demos

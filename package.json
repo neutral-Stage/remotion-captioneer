@@ -1,7 +1,7 @@
 {
   "name": "remotion-captioneer",
-  "version": "0.1.0",
-  "description": "Drop-in animated captions for Remotion. Audio to word-level synced subtitle components.",
+  "version": "0.2.0",
+  "description": "Drop-in animated captions for Remotion. Audio to word-level synced subtitle components. Supports OpenAI, Groq, Deepgram, AssemblyAI.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -20,9 +20,16 @@
     "subtitles",
     "video",
     "whisper",
+    "openai",
+    "groq",
+    "deepgram",
+    "assemblyai",
+    "speech-to-text",
     "animation",
     "programmatic-video",
-    "react"
+    "react",
+    "karaoke",
+    "typewriter"
   ],
   "author": "Shuvo Roy",
   "license": "MIT",

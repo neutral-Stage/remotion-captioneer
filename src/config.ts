@@ -5,10 +5,15 @@
 
 import { existsSync, readFileSync } from "fs";
 import { resolve } from "path";
+import type { ProviderName } from "./providers/base.js";
 
 export interface CaptioneerConfig {
+  // Local whisper settings
   whisperPath?: string;
   modelPath?: string;
+
+  // Provider settings
+  defaultProvider?: ProviderName;
   defaultModel?: string;
   defaultLanguage?: string;
   defaultStyle?: string;
