@@ -49,7 +49,13 @@ export type CaptionStyle =
   | "wave"
   | "glow"
   | "typewriter-erase"
-  | "pill";
+  | "pill"
+  | "flicker"
+  | "highlighter"
+  | "blur"
+  | "rainbow"
+  | "scale"
+  | "spotlight";
 
 /**
  * Props for AnimatedCaptions component

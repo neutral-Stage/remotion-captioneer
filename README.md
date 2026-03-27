@@ -101,12 +101,14 @@ Active word bounces up with spring physics.
 ## ✨ Features
 
 - 🎙️ **5 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
-- 🎨 **4 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce
+- 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
+- 🎭 **16 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal
 - 🎵 **Audio-Video Sync** — Beat detection, volume-reactive animations, timeline keyframes
 - 📦 **Template System** — Data-driven video generation from JSON config
 - 🧱 **Layout Primitives** — Stack, Row, Columns, Grid, Center, FadeIn, SlideUp
+- 📤 **7 Export Formats** — SRT, VTT, ASS, TXT, word-level SRT & VTT
 - ⚡ **Drop-in Components** — `<AnimatedCaptions>` works out of the box
-- 🔧 **CLI Tool** — `npx captioneer process audio.mp4` to generate caption data
+- 🔧 **CLI Tool** — process, batch, export, presets, providers, styles
 - 📐 **Zero Config** — Works with sensible defaults, customizable everything
 - 🔷 **TypeScript** — Full type definitions included
 - 🐳 **Docker Ready** — Deploy rendering at scale
@@ -156,18 +158,24 @@ That's it. Render with `npx remotion render` as usual.
 
 ## 🎨 Caption Styles
 
-| Style | Description | Best For |
-|-------|-------------|----------|
-| `word-highlight` | Each word lights up as it's spoken with a scale animation | Podcasts, interviews |
-| `karaoke` | Progressive color fill — left-to-right like karaoke | Music, singing |
-| `typewriter` | Character-by-character reveal with a blinking cursor | Tutorials, code demos |
-| `bounce` | Active word bounces up with a spring animation | Social media, reels |
-| `wave` | Words animate in a wave pattern | Music, rhythmic content |
-| `glow` | Neon glow pulsing on the active word | Cinematic, dramatic |
-| `typewriter-erase` | Types text then erases word-by-word | Transitions, reveals |
-| `pill` | Active word sits inside a colored pill/badge | Clean, modern look |
+14 animated styles, each with a unique visual feel:
 
-### Style Examples
+| Style | Effect | Best For |
+|-------|--------|----------|
+| `word-highlight` | Each word lights up with scale animation | Podcasts, interviews |
+| `karaoke` | Progressive left-to-right color fill | Music, singing |
+| `typewriter` | Character-by-character reveal + cursor | Tutorials, code demos |
+| `bounce` | Active word bounces with spring physics | Social media, reels |
+| `wave` | Words animate in a wave pattern | Music, rhythmic content |
+| `glow` | Neon glow pulsing on active word | Cinematic, dramatic |
+| `typewriter-erase` | Types then erases word-by-word | Transitions, reveals |
+| `pill` | Active word in a colored pill/badge | Clean, modern look |
+| `flicker` | Flickers in like a neon sign | Retro, neon aesthetic |
+| `highlighter` | Yellow highlighter behind active word | Study, educational |
+| `blur` | Future words blur, active word sharpens | Dramatic reveals |
+| `rainbow` | Cycling rainbow colors on active word | Fun, playful content |
+| `scale` | Words grow from small to full size | Energetic, bold |
+| `spotlight` | Radial spotlight effect behind active word | Theatrical, stage |
 
 ```tsx
 <AnimatedCaptions captions={captions} style="word-highlight" />
@@ -178,6 +186,12 @@ That's it. Render with `npx remotion render` as usual.
 <AnimatedCaptions captions={captions} style="glow" />
 <AnimatedCaptions captions={captions} style="typewriter-erase" />
 <AnimatedCaptions captions={captions} style="pill" />
+<AnimatedCaptions captions={captions} style="flicker" />
+<AnimatedCaptions captions={captions} style="highlighter" />
+<AnimatedCaptions captions={captions} style="blur" />
+<AnimatedCaptions captions={captions} style="rainbow" />
+<AnimatedCaptions captions={captions} style="scale" />
+<AnimatedCaptions captions={captions} style="spotlight" />
 ```
 
 ---

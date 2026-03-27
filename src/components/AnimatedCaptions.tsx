@@ -13,6 +13,12 @@ import { Wave } from "./Wave.js";
 import { Glow } from "./Glow.js";
 import { TypewriterErase } from "./TypewriterErase.js";
 import { Pill } from "./Pill.js";
+import { Flicker } from "./Flicker.js";
+import { Highlighter } from "./Highlighter.js";
+import { Blur } from "./Blur.js";
+import { Rainbow } from "./Rainbow.js";
+import { Scale } from "./Scale.js";
+import { Spotlight } from "./Spotlight.js";
 
 const styleMap: Record<CaptionStyle, React.FC<any>> = {
   "word-highlight": WordHighlight,
@@ -23,6 +29,12 @@ const styleMap: Record<CaptionStyle, React.FC<any>> = {
   glow: Glow,
   "typewriter-erase": TypewriterErase,
   pill: Pill,
+  flicker: Flicker,
+  highlighter: Highlighter,
+  blur: Blur,
+  rainbow: Rainbow,
+  scale: Scale,
+  spotlight: Spotlight,
 };
 
 export const AnimatedCaptions: React.FC<CaptionComponentProps> = ({
@@ -60,6 +72,10 @@ export const AnimatedCaptions: React.FC<CaptionComponentProps> = ({
       waveColor={highlightColor}
       glowColor={highlightColor}
       pillColor={highlightColor}
+      flickerColor={highlightColor}
+      focusColor={highlightColor}
+      scaleColor={highlightColor}
+      spotlightColor={highlightColor}
       fillColor={highlightColor}
       bounceColor={highlightColor}
       cursorColor={highlightColor}

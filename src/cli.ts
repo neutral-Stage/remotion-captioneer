@@ -142,7 +142,7 @@ program
   .command("styles")
   .description("List available caption styles")
   .action(() => {
-    console.log("\n🎨 Available Caption Styles:\n");
+    console.log("\n🎨 Available Caption Styles (14):\n");
     console.log("  word-highlight    — Each word lights up as spoken");
     console.log("  karaoke           — Progressive left-to-right fill");
     console.log("  typewriter        — Character-by-character reveal");
@@ -150,7 +150,13 @@ program
     console.log("  wave              — Words animate in a wave pattern");
     console.log("  glow              — Neon glow on active word");
     console.log("  typewriter-erase  — Type then erase word-by-word");
-    console.log("  pill              — Active word in a pill/badge\n");
+    console.log("  pill              — Active word in a pill/badge");
+    console.log("  flicker           — Flickers in like a neon sign");
+    console.log("  highlighter       — Yellow highlighter behind word");
+    console.log("  blur              — Words come into focus from blur");
+    console.log("  rainbow           — Cycling rainbow colors");
+    console.log("  scale             — Words grow from small to full");
+    console.log("  spotlight         — Radial spotlight behind word\n");
   });
 
 program

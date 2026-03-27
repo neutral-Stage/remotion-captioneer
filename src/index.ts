@@ -34,6 +34,12 @@ export {
   Glow,
   TypewriterErase,
   Pill,
+  Flicker,
+  Highlighter,
+  Blur,
+  Rainbow,
+  Scale,
+  Spotlight,
 } from "./components/index.js";
 
 // Whisper integration (local)
