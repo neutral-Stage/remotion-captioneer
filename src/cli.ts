@@ -160,6 +160,15 @@ program
   });
 
 program
+  .command("init")
+  .description("Scaffold a new Remotion caption project")
+  .argument("[name]", "Project name", "my-captioned-video")
+  .action(async (name: string) => {
+    const { scaffoldProject } = await import("./scaffold.js");
+    scaffoldProject(name);
+  });
+
+program
   .command("preview")
   .description("Start a real-time preview server")
   .option("-p, --port <port>", "Port number", "3456")

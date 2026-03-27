@@ -102,7 +102,7 @@ Active word bounces up with spring physics.
 
 - 🎙️ **5 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
 - 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
-- 🎭 **16 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal
+- 🎭 **24 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun
 - 🎵 **Audio-Video Sync** — Beat detection, volume-reactive animations, timeline keyframes
 - 📦 **Template System** — Data-driven video generation from JSON config
 - 🧱 **Layout Primitives** — Stack, Row, Columns, Grid, Center, FadeIn, SlideUp
@@ -117,13 +117,34 @@ Active word bounces up with spring physics.
 
 ## 🚀 Quick Start
 
-### 1. Install
+### Option 1: Scaffold a Project
+
+```bash
+npx captioneer init my-video
+cd my-video
+npm install
+npm start
+```
+
+This creates a ready-to-use Remotion project with captions.
+
+### Option 2: Add to Existing Project
+
+#### 1. Install
 
 ```bash
 npm install remotion-captioneer
 ```
 
-### 2. Generate Captions from Audio
+### Option 2: Add to Existing Project
+
+#### 1. Install
+
+```bash
+npm install remotion-captioneer
+```
+
+#### 2. Generate Captions from Audio
 
 ```bash
 npx captioneer process my-audio.mp4
@@ -131,7 +152,7 @@ npx captioneer process my-audio.mp4
 
 This creates `my-audio-captions.json` with word-level timestamps.
 
-### 3. Use in Your Remotion Project
+#### 3. Use in Your Remotion Project
 
 ```tsx
 import { AbsoluteFill } from "remotion";
@@ -586,15 +607,28 @@ npx captioneer process audio.mp4 --provider groq --api-key gsk_...
 ### Other Commands
 
 ```bash
+# Scaffold a new project
+npx captioneer init my-video
+
 # List available providers and their status
 npx captioneer providers
 
 # List available caption styles
 npx captioneer styles
 
+# List available presets
+npx captioneer presets
+
+# Export captions to SRT/VTT/ASS
+npx captioneer export captions.json --format srt
+npx captioneer export captions.json --format vtt --output subs.vtt
+
 # Batch process a directory of audio files
 npx captioneer batch ./audio-files/
 npx captioneer batch ./audio-files/ --provider groq --output-dir ./captions/
+
+# Start real-time preview server
+npx captioneer preview
 
 # Open Remotion Studio with demos
 npx captioneer demo
@@ -730,6 +764,22 @@ ENTRYPOINT ["npx", "captioneer"]
 | `fontColor` | `string` | `"rgba(255,255,255,0.5)"` | Inactive text color |
 | `highlightColor` | `string` | `"#FFD700"` | Active/highlight color |
 | `position` | `"top" \| "center" \| "bottom"` | `"bottom"` | Vertical position |
+
+---
+
+## 📚 Examples
+
+See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/main/examples) directory for complete working examples:
+
+| File | What it shows |
+|------|---------------|
+| `01-basic.tsx` | Simplest captioned video |
+| `02-presets.tsx` | Using presets (TikTok, Cinematic, Gaming) |
+| `03-audio-sync.tsx` | Beat-reactive animations |
+| `04-template.tsx` | Multi-scene template (intro → content → outro) |
+| `05-layouts.tsx` | Custom layouts with primitives |
+| `06-export.ts` | Export to SRT, VTT, ASS formats |
+| `07-emoji.tsx` | Emoji reactions at word timestamps |
 
 ---
 
