@@ -162,6 +162,10 @@ That's it. Render with `npx remotion render` as usual.
 | `karaoke` | Progressive color fill — left-to-right like karaoke | Music, singing |
 | `typewriter` | Character-by-character reveal with a blinking cursor | Tutorials, code demos |
 | `bounce` | Active word bounces up with a spring animation | Social media, reels |
+| `wave` | Words animate in a wave pattern | Music, rhythmic content |
+| `glow` | Neon glow pulsing on the active word | Cinematic, dramatic |
+| `typewriter-erase` | Types text then erases word-by-word | Transitions, reveals |
+| `pill` | Active word sits inside a colored pill/badge | Clean, modern look |
 
 ### Style Examples
 
@@ -170,6 +174,10 @@ That's it. Render with `npx remotion render` as usual.
 <AnimatedCaptions captions={captions} style="karaoke" />
 <AnimatedCaptions captions={captions} style="typewriter" />
 <AnimatedCaptions captions={captions} style="bounce" />
+<AnimatedCaptions captions={captions} style="wave" />
+<AnimatedCaptions captions={captions} style="glow" />
+<AnimatedCaptions captions={captions} style="typewriter-erase" />
+<AnimatedCaptions captions={captions} style="pill" />
 ```
 
 ---
@@ -500,6 +508,10 @@ npx captioneer providers
 
 # List available caption styles
 npx captioneer styles
+
+# Batch process a directory of audio files
+npx captioneer batch ./audio-files/
+npx captioneer batch ./audio-files/ --provider groq --output-dir ./captions/
 
 # Open Remotion Studio with demos
 npx captioneer demo

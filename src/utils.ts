@@ -83,3 +83,134 @@ export function msToFrame(ms: number, fps: number): number {
 export function frameToMs(frame: number, fps: number): number {
   return (frame / fps) * 1000;
 }
+
+/**
+ * Smart word wrapping — groups words into lines based on
+ * timing gaps, punctuation, and max words per line.
+ *
+ * Unlike dumb chunking, this respects natural sentence breaks.
+ */
+export function smartWrap(
+  words: Word[],
+  options: {
+    maxWordsPerLine?: number;
+    maxGapMs?: number;
+    breakOnPunctuation?: boolean;
+  } = {}
+): Word[][] {
+  const {
+    maxWordsPerLine = 6,
+    maxGapMs = 800,
+    breakOnPunctuation = true,
+  } = options;
+
+  const lines: Word[][] = [];
+  let currentLine: Word[] = [];
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const prevWord = i > 0 ? words[i - 1] : null;
+
+    // Decide if we should break
+    const gapTooBig =
+      prevWord && word.startMs - prevWord.endMs > maxGapMs;
+    const lineTooLong = currentLine.length >= maxWordsPerLine;
+    const punctuationBreak =
+      breakOnPunctuation &&
+      prevWord &&
+      /[.!?,;:]/.test(prevWord.word.trim().slice(-1));
+
+    if (currentLine.length > 0 && (gapTooBig || lineTooLong || punctuationBreak)) {
+      lines.push(currentLine);
+      currentLine = [];
+    }
+
+    currentLine.push(word);
+  }
+
+  if (currentLine.length > 0) {
+    lines.push(currentLine);
+  }
+
+  return lines;
+}
+
+/**
+ * Estimate reading time for text (for timing animations)
+ */
+export function estimateReadingTimeMs(
+  text: string,
+  wordsPerMinute: number = 200
+): number {
+  const words = text.trim().split(/\s+/).length;
+  return Math.round((words / wordsPerMinute) * 60 * 1000);
+}
+
+/**
+ * Split long captions into pages for subtitle display
+ */
+export function paginateCaptions(
+  captionData: CaptionData,
+  options: {
+    wordsPerPage?: number;
+    maxDurationMs?: number;
+  } = {}
+): CaptionData[] {
+  const { wordsPerPage = 10, maxDurationMs = 5000 } = options;
+
+  const pages: CaptionData[] = [];
+  let currentPage: CaptionSegment[] = [];
+  let currentWords: Word[] = [];
+
+  for (const segment of captionData.segments) {
+    for (const word of segment.words) {
+      currentWords.push(word);
+
+      // Check if we should paginate
+      const pageDuration =
+        currentWords.length > 1
+          ? word.endMs - currentWords[0].startMs
+          : 0;
+
+      if (
+        currentWords.length >= wordsPerPage ||
+        pageDuration >= maxDurationMs
+      ) {
+        currentPage.push({
+          text: currentWords.map((w) => w.word).join(" "),
+          startMs: currentWords[0].startMs,
+          endMs: currentWords[currentWords.length - 1].endMs,
+          words: [...currentWords],
+        });
+
+        pages.push({
+          segments: currentPage,
+          language: captionData.language,
+          durationMs: pageDuration,
+        });
+
+        currentPage = [];
+        currentWords = [];
+      }
+    }
+  }
+
+  // Remaining words
+  if (currentWords.length > 0) {
+    currentPage.push({
+      text: currentWords.map((w) => w.word).join(" "),
+      startMs: currentWords[0].startMs,
+      endMs: currentWords[currentWords.length - 1].endMs,
+      words: [...currentWords],
+    });
+
+    pages.push({
+      segments: currentPage,
+      language: captionData.language,
+      durationMs:
+        currentWords[currentWords.length - 1].endMs - currentWords[0].startMs,
+    });
+  }
+
+  return pages;
+}

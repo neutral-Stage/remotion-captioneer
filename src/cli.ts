@@ -143,10 +143,102 @@ program
   .description("List available caption styles")
   .action(() => {
     console.log("\n🎨 Available Caption Styles:\n");
-    console.log("  word-highlight  — Each word lights up as spoken");
-    console.log("  karaoke         — Progressive left-to-right fill");
-    console.log("  typewriter      — Character-by-character reveal");
-    console.log("  bounce          — Active word bounces with spring\n");
+    console.log("  word-highlight    — Each word lights up as spoken");
+    console.log("  karaoke           — Progressive left-to-right fill");
+    console.log("  typewriter        — Character-by-character reveal");
+    console.log("  bounce            — Active word bounces with spring");
+    console.log("  wave              — Words animate in a wave pattern");
+    console.log("  glow              — Neon glow on active word");
+    console.log("  typewriter-erase  — Type then erase word-by-word");
+    console.log("  pill              — Active word in a pill/badge\n");
+  });
+
+program
+  .command("batch")
+  .description("Process multiple audio files at once")
+  .argument("<directory>", "Directory containing audio files")
+  .option("-p, --provider <provider>", "STT provider")
+  .option("-m, --model <model>", "Model name")
+  .option("-k, --api-key <key>", "API key")
+  .option("-l, --language <lang>", "Language code")
+  .option("-o, --output-dir <dir>", "Output directory")
+  .option("-e, --extensions <exts>", "File extensions (comma-separated)", "mp3,wav,m4a,mp4,ogg,flac")
+  .action(async (directory: string, opts: any) => {
+    const { readdirSync, statSync } = await import("fs");
+    const { join, resolve, basename, extname } = await import("path");
+
+    const dirPath = resolve(directory);
+    if (!existsSync(dirPath)) {
+      console.error(`❌ Directory not found: ${dirPath}`);
+      process.exit(1);
+    }
+
+    const extensions = opts.extensions.split(",").map((e: string) => `.${e.trim().toLowerCase()}`);
+
+    const files = readdirSync(dirPath)
+      .filter((f) => extensions.includes(extname(f).toLowerCase()))
+      .map((f) => join(dirPath, f));
+
+    if (files.length === 0) {
+      console.error(`❌ No audio files found in ${dirPath}`);
+      console.error(`   Looking for: ${extensions.join(", ")}`);
+      process.exit(1);
+    }
+
+    console.log(`📁 Found ${files.length} audio file(s) in ${dirPath}\n`);
+
+    const { loadConfig } = await import("./config.js");
+    const config = await loadConfig();
+
+    const providerName = opts.provider ?? config?.defaultProvider ?? detectDefaultProvider();
+    const outputDir = resolve(opts.outputDir ?? dirPath);
+
+    let success = 0;
+    let failed = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileName = basename(file);
+      console.log(`\n[${i + 1}/${files.length}] Processing: ${fileName}`);
+
+      try {
+        let captions: any;
+
+        if (providerName === "local" || !providerName) {
+          const { processAudio } = await import("./whisper.js");
+          captions = await processAudio(file, {
+            model: opts.model ?? config?.defaultModel ?? "base",
+            language: opts.language ?? config?.defaultLanguage,
+            whisperPath: config?.whisperPath,
+            modelPath: config?.modelPath,
+          });
+        } else {
+          const { createProvider } = await import("./providers/registry.js");
+          const apiKey = opts.apiKey ?? getApiKeyForProvider(providerName);
+          const provider = createProvider(providerName as any, apiKey);
+          captions = await provider.transcribe(file, {
+            model: opts.model,
+            language: opts.language,
+          });
+        }
+
+        const outputPath = join(
+          outputDir,
+          `${basename(file, extname(file))}-captions.json`
+        );
+
+        const { writeFileSync: wfs } = await import("fs");
+        wfs(outputPath, JSON.stringify(captions, null, 2));
+        console.log(`  ✅ ${captions.segments.length} segments → ${basename(outputPath)}`);
+        success++;
+      } catch (error: any) {
+        console.error(`  ❌ Failed: ${error.message}`);
+        failed++;
+      }
+    }
+
+    console.log(`\n${"─".repeat(40)}`);
+    console.log(`📊 Done: ${success} succeeded, ${failed} failed out of ${files.length} files`);
   });
 
 // Helpers

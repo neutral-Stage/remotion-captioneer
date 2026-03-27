@@ -45,7 +45,11 @@ export type CaptionStyle =
   | "word-highlight"
   | "karaoke"
   | "typewriter"
-  | "bounce";
+  | "bounce"
+  | "wave"
+  | "glow"
+  | "typewriter-erase"
+  | "pill";
 
 /**
  * Props for AnimatedCaptions component

@@ -30,6 +30,10 @@ export {
   Karaoke,
   Typewriter,
   Bounce,
+  Wave,
+  Glow,
+  TypewriterErase,
+  Pill,
 } from "./components/index.js";
 
 // Whisper integration (local)
@@ -139,6 +143,9 @@ export {
   getActiveWordIndex,
   getWordProgress,
   groupWordsIntoLines,
+  smartWrap,
+  paginateCaptions,
+  estimateReadingTimeMs,
   msToFrame,
   frameToMs,
 } from "./utils.js";
