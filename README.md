@@ -4,9 +4,68 @@
 
 Feed it audio. Get word-level synced, beautifully animated captions. Four styles. Zero hassle.
 
-![npm](https://img.shields.io/npm/v/remotion-captioneer)
-![license](https://img.shields.io/github/license/neutral-Stage/remotion-captioneer)
-![remotion](https://img.shields.io/badge/remotion-4.x-blue)
+[![CI](https://github.com/neutral-Stage/remotion-captioneer/actions/workflows/ci.yml/badge.svg)](https://github.com/neutral-Stage/remotion-captioneer/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/remotion-captioneer)](https://www.npmjs.com/package/remotion-captioneer)
+[![license](https://img.shields.io/github/license/neutral-Stage/remotion-captioneer)](LICENSE)
+[![remotion](https://img.shields.io/badge/remotion-4.x-blue)](https://remotion.dev)
+[![CodeQL](https://github.com/neutral-Stage/remotion-captioneer/actions/workflows/codeql.yml/badge.svg)](https://github.com/neutral-Stage/remotion-captioneer/actions/workflows/codeql.yml)
+
+### 🌐 [Live Demo →](https://neutral-stage.github.io/remotion-captioneer/)
+
+---
+
+## 🎥 Caption Styles Preview
+
+<table>
+<tr>
+<td width="50%">
+
+### Word Highlight
+Each word lights up as it's spoken with a scale animation.
+```
+"Hello world this is"
+  dim  dim  GOLD  dim
+```
+
+</td>
+<td width="50%">
+
+### Karaoke
+Progressive color fill — left-to-right like karaoke.
+```
+"Hello world this is"
+ RED   red  ░░░░  ░░░
+```
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Typewriter
+Character-by-character reveal with blinking cursor.
+```
+┌─────────────────────┐
+│ Hello world th|      │
+└─────────────────────┘
+```
+
+</td>
+<td width="50%">
+
+### Bounce
+Active word bounces up with spring physics.
+```
+"Hello  world  this  is"
+  ↓     ↑      ↓     ↓
+       bounce!
+```
+
+</td>
+</tr>
+</table>
+
+👉 **See them animated live at the [demo page](https://neutral-stage.github.io/remotion-captioneer/).**
 
 ---
 
@@ -17,6 +76,7 @@ Feed it audio. Get word-level synced, beautifully animated captions. Four styles
 - ⚡ **Drop-in Components** — `<AnimatedCaptions>` works out of the box
 - 🔧 **CLI Tool** — `npx captioneer process audio.mp4` to generate caption data
 - 📦 **Zero Config** — Works with sensible defaults, customizable everything
+- 🔷 **TypeScript** — Full type definitions included
 - 🐳 **Docker Ready** — Deploy rendering at scale
 
 ---
@@ -64,12 +124,12 @@ That's it. Render with `npx remotion render` as usual.
 
 ## 🎨 Caption Styles
 
-| Style | Description |
-|-------|-------------|
-| `word-highlight` | Each word lights up as it's spoken with a scale animation |
-| `karaoke` | Progressive color fill — left-to-right like karaoke |
-| `typewriter` | Character-by-character reveal with a blinking cursor |
-| `bounce` | Active word bounces up with a spring animation |
+| Style | Description | Best For |
+|-------|-------------|----------|
+| `word-highlight` | Each word lights up as it's spoken with a scale animation | Podcasts, interviews |
+| `karaoke` | Progressive color fill — left-to-right like karaoke | Music, singing |
+| `typewriter` | Character-by-character reveal with a blinking cursor | Tutorials, code demos |
+| `bounce` | Active word bounces up with a spring animation | Social media, reels |
 
 ### Style Examples
 
@@ -279,8 +339,8 @@ MIT © [Shuvo Roy](https://github.com/neutral-Stage)
 
 Everyone using Remotion for captioned videos ends up rebuilding the same thing:
 
-1. Get audio → run Whisper → parse output → sync to frames → animate words
+> Get audio → run Whisper → parse output → sync to frames → animate words
 
 This package handles steps 2-5 so you can focus on your content, not plumbing.
 
-**Star ⭐ this repo if it helps you!**
+**⭐ Star this repo if it helps you!**
