@@ -284,6 +284,49 @@
       100% { transform: translateY(0); }
     }
 
+    /* Wave */
+    .wv-word { color: rgba(255,255,255,0.35); }
+    .wv-word.active { color: #00D4FF; text-shadow: 0 0 15px rgba(0,212,255,0.4); }
+    .wv-word.wave-up { animation: waveUp 0.4s ease; }
+
+    @keyframes waveUp {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-18px); }
+      100% { transform: translateY(0); }
+    }
+
+    /* Glow */
+    .gl-word { color: rgba(255,255,255,0.3); }
+    .gl-word.active {
+      color: #fff;
+      text-shadow: 0 0 15px #A855F7, 0 0 30px #A855F780, 0 0 45px #A855F740;
+      animation: glowPulse 1s ease infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { text-shadow: 0 0 15px #A855F7, 0 0 30px #A855F780; }
+      50% { text-shadow: 0 0 25px #A855F7, 0 0 50px #A855F780, 0 0 75px #A855F740; }
+    }
+
+    /* Typewriter Erase */
+    .te-text { color: #fff; }
+    .te-erase { color: #FF4444; }
+
+    /* Pill */
+    .pl-word { color: rgba(255,255,255,0.4); }
+    .pl-word.active {
+      color: #fff;
+      background: #6366F1;
+      padding: 4px 12px;
+      border-radius: 999px;
+      animation: pillPop 0.3s ease;
+    }
+
+    @keyframes pillPop {
+      0% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
     /* ─── Code Example ─── */
     .code-section {
       max-width: 800px;
@@ -428,6 +471,40 @@
     </div>
   </section>
 
+  <!-- More Styles -->
+  <section class="styles-section">
+    <h2>More Styles</h2>
+    <div class="style-grid">
+
+      <!-- Wave -->
+      <div class="style-card">
+        <div class="style-label">wave</div>
+        <div class="caption-line" id="demo-wv"></div>
+      </div>
+
+      <!-- Glow -->
+      <div class="style-card">
+        <div class="style-label">glow</div>
+        <div class="caption-line" id="demo-gl"></div>
+      </div>
+
+      <!-- Typewriter Erase -->
+      <div class="style-card">
+        <div class="style-label">typewriter-erase</div>
+        <div class="tw-container">
+          <span class="tw-text" id="demo-te"></span><span class="tw-cursor">|</span>
+        </div>
+      </div>
+
+      <!-- Pill -->
+      <div class="style-card">
+        <div class="style-label">pill</div>
+        <div class="caption-line" id="demo-pl"></div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Code Example -->
   <section class="code-section">
     <h2>Usage</h2>
@@ -534,6 +611,98 @@
         });
         idx = (idx + 1) % demoWords.length;
       }, 700);
+    })();
+
+    // Wave
+    (function() {
+      const el = document.getElementById('demo-wv');
+      demoWords.forEach((w) => {
+        const span = document.createElement('span');
+        span.className = 'word wv-word';
+        span.textContent = w;
+        el.appendChild(span);
+      });
+
+      let idx = 0;
+      setInterval(() => {
+        el.querySelectorAll('.wv-word').forEach((s, i) => {
+          s.classList.toggle('active', i === idx);
+          const dist = i - idx;
+          if (dist >= 0 && dist <= 3) {
+            s.style.transform = `translateY(${-15 * Math.sin((dist / 3) * Math.PI)}px)`;
+          } else {
+            s.style.transform = 'translateY(0)';
+          }
+        });
+        idx = (idx + 1) % demoWords.length;
+      }, 700);
+    })();
+
+    // Glow
+    (function() {
+      const el = document.getElementById('demo-gl');
+      demoWords.forEach((w) => {
+        const span = document.createElement('span');
+        span.className = 'word gl-word';
+        span.textContent = w;
+        el.appendChild(span);
+      });
+
+      let idx = 0;
+      setInterval(() => {
+        el.querySelectorAll('.gl-word').forEach((s, i) => {
+          s.classList.toggle('active', i === idx);
+        });
+        idx = (idx + 1) % demoWords.length;
+      }, 900);
+    })();
+
+    // Typewriter Erase
+    (function() {
+      const el = document.getElementById('demo-te');
+      const fullText = demoWords.join(' ');
+      let phase = 'typing';
+      let charIdx = 0;
+      let eraseIdx = fullText.length;
+
+      setInterval(() => {
+        if (phase === 'typing') {
+          if (charIdx <= fullText.length) {
+            el.textContent = fullText.slice(0, charIdx);
+            charIdx++;
+          } else {
+            phase = 'pause';
+            setTimeout(() => { phase = 'erasing'; eraseIdx = fullText.length; }, 1000);
+          }
+        } else if (phase === 'erasing') {
+          if (eraseIdx > 0) {
+            el.textContent = fullText.slice(0, eraseIdx);
+            eraseIdx--;
+          } else {
+            phase = 'typing';
+            charIdx = 0;
+          }
+        }
+      }, 80);
+    })();
+
+    // Pill
+    (function() {
+      const el = document.getElementById('demo-pl');
+      demoWords.forEach((w) => {
+        const span = document.createElement('span');
+        span.className = 'word pl-word';
+        span.textContent = w;
+        el.appendChild(span);
+      });
+
+      let idx = 0;
+      setInterval(() => {
+        el.querySelectorAll('.pl-word').forEach((s, i) => {
+          s.classList.toggle('active', i === idx);
+        });
+        idx = (idx + 1) % demoWords.length;
+      }, 800);
     })();
   </script>
 
