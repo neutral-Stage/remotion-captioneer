@@ -102,9 +102,12 @@ Active word bounces up with spring physics.
 
 - 🎙️ **5 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
 - 🎨 **4 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce
+- 🎵 **Audio-Video Sync** — Beat detection, volume-reactive animations, timeline keyframes
+- 📦 **Template System** — Data-driven video generation from JSON config
+- 🧱 **Layout Primitives** — Stack, Row, Columns, Grid, Center, FadeIn, SlideUp
 - ⚡ **Drop-in Components** — `<AnimatedCaptions>` works out of the box
 - 🔧 **CLI Tool** — `npx captioneer process audio.mp4` to generate caption data
-- 📦 **Zero Config** — Works with sensible defaults, customizable everything
+- 📐 **Zero Config** — Works with sensible defaults, customizable everything
 - 🔷 **TypeScript** — Full type definitions included
 - 🐳 **Docker Ready** — Deploy rendering at scale
 
@@ -249,6 +252,214 @@ const detected = detectProvider();
 if (detected) {
   const captions = await detected.provider.transcribe("audio.mp4");
 }
+```
+
+---
+
+## 🎵 Audio-Video Sync
+
+**Frame-perfect animations synchronized to audio.** No more manually timing keyframes.
+
+### Pre-analyze Audio
+
+```ts
+import { analyzeAudio } from "remotion-captioneer";
+
+const analysis = await analyzeAudio("my-audio.mp4");
+// Returns: beats, volumeFrames, bpm, energy levels
+```
+
+### Beat-Reactive Hooks
+
+```tsx
+import {
+  AudioSyncProvider,
+  useBeatPulse,
+  useVolume,
+  useEnergy,
+} from "remotion-captioneer";
+
+// Wrap your composition
+const MyVideo = () => (
+  <AudioSyncProvider analysis={audioAnalysis}>
+    <BeatReactiveContent />
+  </AudioSyncProvider>
+);
+
+// Use in any child component
+const BeatReactiveContent = () => {
+  const pulse = useBeatPulse();       // 0→1 spring on each beat
+  const volume = useVolume();          // Current volume 0-1
+  const energy = useEnergy();          // Smoothed energy 0-1
+
+  return (
+    <div style={{
+      transform: `scale(${1 + pulse * 0.2})`,
+      opacity: 0.5 + volume * 0.5,
+    }}>
+      🎵 Synced to the beat!
+    </div>
+  );
+};
+```
+
+### Timeline Keyframes
+
+```tsx
+import { useTimelineValue, fadeInOut } from "remotion-captioneer";
+
+// Map animation to audio timestamps (in ms)
+const opacity = useTimelineValue({
+  keyframes: [
+    { timeMs: 0, value: 0 },
+    { timeMs: 1000, value: 1, easing: "easeOut" },
+    { timeMs: 5000, value: 1 },
+    { timeMs: 6000, value: 0, easing: "easeIn" },
+  ],
+  defaultValue: 0,
+});
+
+// Or use the helper
+const fadeOpacity = useTimelineValue(
+  fadeInOut(0, 1000, 5000, 6000)
+);
+```
+
+### Available Hooks
+
+| Hook | Returns | Use For |
+|------|---------|---------|
+| `useVolume()` | `number` (0-1) | Opacity, scale, size |
+| `useBeat()` | `BeatInfo \| null` | Flash effects, pulses |
+| `useBeatPulse()` | `number` (0-1 spring) | Bounce, scale on beat |
+| `useEnergy()` | `number` (0-1) | Background intensity |
+| `useIsOnBeat()` | `boolean` | Conditional rendering |
+| `useTimelineValue()` | `number` | Keyframe animations |
+| `useTimelineProgress()` | `number` (0-1) | Progress bars |
+
+---
+
+## 📦 Template System
+
+**Build videos from JSON config.** No code needed for simple videos.
+
+### Quick Template
+
+```ts
+import { buildTemplate, TemplateComposition } from "remotion-captioneer";
+
+const template = buildTemplate({
+  name: "My Captioned Video",
+  intro: {
+    title: "Episode 1",
+    subtitle: "Getting Started",
+    logo: "/logo.png",
+  },
+  captions: [
+    { captions: myCaptions, captionStyle: "word-highlight" },
+  ],
+  outro: {
+    heading: "Thanks for watching!",
+    cta: "Subscribe for more",
+    logo: "/logo.png",
+  },
+});
+
+// Use as Remotion composition
+<TemplateComposition template={template} />
+```
+
+### Preset Scenes
+
+```ts
+import {
+  createIntroScene,
+  createCaptionScene,
+  createOutroScene,
+  createDividerScene,
+} from "remotion-captioneer";
+
+const intro = createIntroScene({
+  title: "My Video",
+  subtitle: "A demo",
+  durationSec: 3,
+});
+
+const content = createCaptionScene({
+  captions: myCaptions,
+  captionStyle: "karaoke",
+  highlightColor: "#FF6B6B",
+});
+
+const outro = createOutroScene({
+  heading: "The End",
+  cta: "Like & Subscribe",
+  logo: "/logo.png",
+});
+```
+
+### Design Tokens
+
+Customize the entire look with a single config:
+
+```ts
+const template = buildTemplate({
+  name: "Brand Video",
+  tokens: {
+    colors: {
+      primary: "#6366F1",
+      accent: "#FFD700",
+      background: "#0a0a0a",
+      text: "#FFFFFF",
+    },
+    typography: {
+      headingFont: "Poppins, sans-serif",
+      bodyFont: "Inter, sans-serif",
+    },
+  },
+  // ...
+});
+```
+
+---
+
+## 🧱 Layout Primitives
+
+**Composable layout building blocks** for any Remotion video:
+
+```tsx
+import {
+  Stack, Row, Columns, Grid,
+  Center, FadeIn, SlideUp,
+  GradientBg, Overlay, Positioned,
+} from "remotion-captioneer";
+
+// Vertical stack
+<Stack gap={24}>
+  <FadeIn delayMs={0}>Title</FadeIn>
+  <FadeIn delayMs={200}>Subtitle</FadeIn>
+</Stack>
+
+// Horizontal columns
+<Columns ratios={[2, 1]} gap={32}>
+  <div>Main content</div>
+  <div>Sidebar</div>
+</Columns>
+
+// Grid layout
+<Grid columns={3} gap={16}>
+  {items.map(item => <Card key={item.id} />)}
+</Grid>
+
+// Animated entrance
+<SlideUp delayMs={500} durationMs={800}>
+  <div>Slides up with delay</div>
+</SlideUp>
+
+// Gradient background
+<GradientBg from="#0a0a0a" to="#1a1a2e">
+  <Center>Content here</Center>
+</GradientBg>
 ```
 
 ---

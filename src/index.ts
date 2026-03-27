@@ -4,6 +4,8 @@
  * Drop-in animated captions for Remotion.
  * Audio → word-level synced subtitle components.
  * Supports: Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
+ *
+ * Also includes: Audio-video sync, templates, and layout primitives.
  */
 
 // Types (compatible with @remotion/captions)
@@ -55,6 +57,80 @@ export {
   detectProvider,
   listProviders,
 } from "./providers/index.js";
+
+// ─── Audio-Video Sync ─────────────────────────────────────────────
+
+export {
+  analyzeAudio,
+  type AudioAnalysis,
+  type BeatInfo,
+  type VolumeFrame,
+  type AnalyzeOptions,
+  AudioSyncProvider,
+  useAudioAnalysis,
+  useVolume,
+  useBeat,
+  useEnergy,
+  useBeatPulse,
+  useIsOnBeat,
+  useTimeToNextBeat,
+  volumeScale,
+  energyOpacity,
+  useTimelineValue,
+  useTimelineTrigger,
+  useTimelineProgress,
+  fadeInOut,
+  type Keyframe,
+  type TimelineAnimation,
+} from "./sync/index.js";
+
+// ─── Templates ────────────────────────────────────────────────────
+
+export type {
+  VideoTemplate,
+  Scene,
+  Block,
+  BlockType,
+  DesignTokens,
+  ColorTokens,
+  TypographyTokens,
+  AnimationConfig,
+  TextBlock,
+  ImageBlock,
+  VideoBlock,
+  AudioBlock,
+  CaptionsBlock,
+  DividerBlock,
+  SpacerBlock,
+  ColumnsBlock,
+  GridBlock,
+  LogoBlock,
+} from "./templates/index.js";
+
+export {
+  createIntroScene,
+  createCaptionScene,
+  createOutroScene,
+  createDividerScene,
+  buildTemplate,
+  TemplateComposition,
+} from "./templates/index.js";
+
+// ─── Layout Primitives ────────────────────────────────────────────
+
+export {
+  Container,
+  Stack,
+  Row,
+  Columns,
+  Grid,
+  Center,
+  Positioned,
+  Overlay,
+  GradientBg,
+  FadeIn,
+  SlideUp,
+} from "./layouts/index.js";
 
 // Utilities
 export {
