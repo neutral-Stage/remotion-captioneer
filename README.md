@@ -238,6 +238,10 @@ const tiktokStyle = applyPreset("cinematic-gold");
 | **Music** | `music-karaoke`, `music-wave` |
 | **Tutorial** | `tutorial-typewriter`, `tutorial-erase` |
 | **Minimal** | `minimal-white`, `minimal-subtle` |
+| **Gaming** | `gaming-neon`, `gaming-bold` |
+| **News & Documentary** | `news-ticker`, `documentary` |
+| **Education** | `education-highlighter`, `education-scale` |
+| **Fun & Creative** | `fun-rainbow`, `retro-flicker` |
 
 ```bash
 # List presets from CLI

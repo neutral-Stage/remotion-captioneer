@@ -192,6 +192,98 @@ export const presets: Record<string, CaptionPreset> = {
     highlightColor: "rgba(255,255,255,0.8)",
     position: "bottom",
   },
+
+  // ─── Gaming ──────────────────────────────────────────────────
+  "gaming-neon": {
+    name: "Gaming Neon",
+    description: "Neon glow style for gaming content and streams",
+    style: "glow",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 54,
+    fontColor: "rgba(255,255,255,0.3)",
+    highlightColor: "#00FF88",
+    position: "bottom",
+  },
+
+  "gaming-bold": {
+    name: "Gaming Bold",
+    description: "Big bold bounce for high-energy gaming clips",
+    style: "bounce",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 64,
+    fontColor: "rgba(255,255,255,0.4)",
+    highlightColor: "#FF0055",
+    position: "bottom",
+  },
+
+  // ─── News / Professional ────────────────────────────────────
+  "news-ticker": {
+    name: "News Ticker",
+    description: "Clean typewriter for news and professional content",
+    style: "typewriter",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 44,
+    fontColor: "#FFFFFF",
+    highlightColor: "#00BCD4",
+    position: "center",
+  },
+
+  "documentary": {
+    name: "Documentary",
+    description: "Elegant spotlight for documentary narration",
+    style: "spotlight",
+    fontFamily: "Playfair Display, serif",
+    fontSize: 52,
+    fontColor: "rgba(255,255,255,0.3)",
+    highlightColor: "#D4AF37",
+    position: "bottom",
+  },
+
+  // ─── Educational ────────────────────────────────────────────
+  "education-highlighter": {
+    name: "Education Highlighter",
+    description: "Yellow highlighter for study and educational content",
+    style: "highlighter",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 52,
+    fontColor: "rgba(255,255,255,0.4)",
+    highlightColor: "#FFEB3B",
+    position: "bottom",
+  },
+
+  "education-scale": {
+    name: "Education Scale",
+    description: "Words scale up to emphasize key points",
+    style: "scale",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 52,
+    fontColor: "rgba(255,255,255,0.3)",
+    highlightColor: "#34D399",
+    position: "bottom",
+  },
+
+  // ─── Fun / Creative ─────────────────────────────────────────
+  "fun-rainbow": {
+    name: "Fun Rainbow",
+    description: "Cycling rainbow colors for fun, playful content",
+    style: "rainbow",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 60,
+    fontColor: "rgba(255,255,255,0.3)",
+    highlightColor: "#FF00FF",
+    position: "bottom",
+  },
+
+  "retro-flicker": {
+    name: "Retro Flicker",
+    description: "Neon sign flicker for retro/vintage content",
+    style: "flicker",
+    fontFamily: "Inter, sans-serif",
+    fontSize: 56,
+    fontColor: "rgba(255,255,255,0.2)",
+    highlightColor: "#FF9500",
+    position: "bottom",
+  },
 };
 
 /**
@@ -212,6 +304,10 @@ export function getPresetCategories(): Record<string, string[]> {
     "Music": ["music-karaoke", "music-wave"],
     "Tutorial": ["tutorial-typewriter", "tutorial-erase"],
     "Minimal": ["minimal-white", "minimal-subtle"],
+    "Gaming": ["gaming-neon", "gaming-bold"],
+    "News & Documentary": ["news-ticker", "documentary"],
+    "Education": ["education-highlighter", "education-scale"],
+    "Fun & Creative": ["fun-rainbow", "retro-flicker"],
   };
 }
 
