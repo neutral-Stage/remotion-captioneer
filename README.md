@@ -809,11 +809,11 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 ### 🔮 Future
 
 - [ ] Caption style marketplace (community-contributed styles)
-- [ ] AI-powered auto-emoji (LLM suggests emojis from context)
+- [x] ~~AI-powered auto-emoji~~ (`autoGenerateReactions()` — keyword-based emoji generation from 60+ word→emoji mappings)
 - [ ] Multi-language caption support with RTL
-- [ ] Caption editor with visual timeline
+- [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)
 - [ ] Integration with video hosting APIs (YouTube, Vimeo)
-- [ ] Real-time caption rendering in browser (WebCodecs)
+- [x] ~~Real-time caption rendering in browser~~ (`npx captioneer preview` — live browser-based caption rendering with audio sync)
 - [ ] Caption translation utilities
 - [ ] Speaker diarization (multi-speaker support)
 
