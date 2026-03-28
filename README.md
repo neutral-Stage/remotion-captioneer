@@ -788,17 +788,23 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 ### ✅ Completed
 
 - [x] 14 caption styles (word-highlight, karaoke, typewriter, bounce, wave, glow, typewriter-erase, pill, flicker, highlighter, blur, rainbow, scale, spotlight)
+- [x] 24 caption presets across 10 categories (Social, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun)
 - [x] Multi-line auto-wrapping with smart breaks (`smartWrap()`)
 - [x] Word-level emoji reactions (`EmojiReactions` + `autoGenerateReactions()`)
 - [x] Real-time preview server (`npx captioneer preview`)
 - [x] Batch processing mode (`npx captioneer batch ./audio/`)
-- [x] Multi-provider STT (OpenAI, Groq, Deepgram, AssemblyAI)
+- [x] Multi-provider STT (OpenAI, Groq, Deepgram, AssemblyAI, Local Whisper)
 - [x] @remotion/captions compatibility layer
-- [x] Audio-video sync (beat detection, volume hooks, timeline)
+- [x] Audio-video sync (beat detection, volume hooks, timeline keyframes)
 - [x] Template system for data-driven videos
-- [x] Layout primitives (Stack, Row, Columns, Grid, etc.)
-- [x] 16 caption presets (TikTok, Instagram, Podcast, Cinematic, etc.)
-- [x] Export formats (SRT, VTT, ASS, TXT, word-level)
+- [x] Layout primitives (Stack, Row, Columns, Grid, FadeIn, SlideUp, etc.)
+- [x] Export formats (SRT, VTT, ASS, TXT, word-level SRT & VTT)
+- [x] Project scaffolder (`npx captioneer init`)
+- [x] 7 working examples covering all features
+- [x] 10 CLI commands (init, process, batch, export, preview, presets, providers, styles, demo)
+- [x] GitHub Pages demo with all 14 styles animated
+- [x] GitHub Actions CI/CD (build, test, release to npm, CodeQL)
+- [x] 0 vulnerabilities in npm audit
 
 ### 🔮 Future
 
