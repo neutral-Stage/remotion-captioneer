@@ -5,9 +5,9 @@
 import React from "react";
 import { Composition } from "remotion";
 import { CaptionShowcase } from "./CaptionShowcase.js";
-import { CAPTION_STYLES, styleToCompositionId } from "./caption-styles.js";
+import { CAPTION_STYLES, styleToCompositionId } from "../caption-styles.js";
 import { demoCaptions } from "./demo/captions.js";
-import type { CaptionStyle } from "./types.js";
+import type { CaptionStyle } from "../types.js";
 
 const DEMO_FPS = 30;
 const DEMO_DURATION_FRAMES = 240;

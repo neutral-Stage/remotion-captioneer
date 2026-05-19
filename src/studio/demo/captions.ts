@@ -1,4 +1,4 @@
-import type { CaptionData } from "../types.js";
+import type { CaptionData } from "../../types.js";
 
 /** Shared demo caption data for Remotion Studio and examples. */
 export const demoCaptions: CaptionData = {

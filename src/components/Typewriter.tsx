@@ -10,10 +10,11 @@ import {
   useVideoConfig,
   interpolate,
 } from "remotion";
+import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment } from "../utils.js";
 
-interface TypewriterProps {
+interface TypewriterProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -29,6 +30,9 @@ export const Typewriter: React.FC<TypewriterProps> = ({
   fontColor = "#FFFFFF",
   cursorColor = "#00FF88",
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -66,7 +70,7 @@ export const Typewriter: React.FC<TypewriterProps> = ({
     >
       <div
         style={{
-          maxWidth: "80%",
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
           background: "rgba(0,0,0,0.6)",
           borderRadius: "12px",

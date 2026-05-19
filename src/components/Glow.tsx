@@ -5,10 +5,11 @@
 
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
-interface GlowProps {
+interface GlowProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -26,6 +27,9 @@ export const Glow: React.FC<GlowProps> = ({
   glowColor = "#A855F7",
   glowIntensity = 30,
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -60,7 +64,7 @@ export const Glow: React.FC<GlowProps> = ({
           justifyContent: "center",
           alignItems: "center",
           gap: "8px 14px",
-          maxWidth: "80%",
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
         }}
       >

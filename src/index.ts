@@ -155,6 +155,7 @@ export {
   getActiveWordIndex,
   getWordProgress,
   groupWordsIntoLines,
+  getSegmentDisplayLines,
   smartWrap,
   paginateCaptions,
   estimateReadingTimeMs,
@@ -200,3 +201,11 @@ export {
   assertCaptionDataShape,
   type TranslateCaptionsOptions,
 } from "./translate.js";
+
+// Node / CLI helpers (also available from remotion-captioneer/node)
+export {
+  transcribeMediaFile,
+  transcribeWithWhisper,
+  defaultCaptionOutputPath,
+  type TranscribeMediaOptions,
+} from "./transcribe-media.js";

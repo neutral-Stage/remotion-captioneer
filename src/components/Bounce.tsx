@@ -10,10 +10,11 @@ import {
   useVideoConfig,
   spring,
 } from "remotion";
+import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
-interface BounceProps {
+interface BounceProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -31,6 +32,9 @@ export const Bounce: React.FC<BounceProps> = ({
   bounceColor = "#FF4081",
   bounceHeight = 30,
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -62,7 +66,7 @@ export const Bounce: React.FC<BounceProps> = ({
           justifyContent: "center",
           alignItems: "baseline",
           gap: "8px 12px",
-          maxWidth: "80%",
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
         }}
       >

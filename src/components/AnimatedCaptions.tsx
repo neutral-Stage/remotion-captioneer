@@ -38,60 +38,70 @@ const styleMap: Record<CaptionStyle, React.FC<any>> = {
   spotlight: Spotlight,
 };
 
-export const AnimatedCaptions: React.FC<CaptionComponentProps> = ({
-  captions,
-  style = "word-highlight",
-  fontFamily,
-  fontSize,
-  fontColor,
-  highlightColor,
-  position = "bottom",
-  textDirection,
-}) => {
+const sharedStyleProps = (
+  props: CaptionComponentProps
+): Record<string, unknown> => ({
+  captions: props.captions,
+  fontFamily: props.fontFamily,
+  fontSize: props.fontSize,
+  fontColor: props.fontColor,
+  highlightColor: props.highlightColor,
+  position: props.position,
+  maxWidth: props.maxWidth,
+  wordsPerLine: props.wordsPerLine,
+  useSmartWrap: props.useSmartWrap,
+});
+
+export const AnimatedCaptions: React.FC<CaptionComponentProps> = (props) => {
+  const {
+    style = "word-highlight",
+    highlightColor,
+    backgroundColor,
+    textDirection,
+  } = props;
+
   const dirStyle: React.CSSProperties | undefined =
     textDirection && textDirection !== "auto"
       ? { direction: textDirection }
       : undefined;
 
+  const fillStyle: React.CSSProperties = {
+    ...dirStyle,
+    ...(backgroundColor ? { backgroundColor } : {}),
+  };
+
+  const childProps = {
+    ...sharedStyleProps(props),
+    highlightColor,
+    waveColor: highlightColor,
+    glowColor: highlightColor,
+    pillColor: highlightColor,
+    flickerColor: highlightColor,
+    focusColor: highlightColor,
+    scaleColor: highlightColor,
+    spotlightColor: highlightColor,
+    fillColor: highlightColor,
+    bounceColor: highlightColor,
+    cursorColor: highlightColor,
+    eraseColor: "#FF4444",
+  };
+
   const Component = styleMap[style];
 
   if (!Component) {
-    console.warn(`Unknown caption style: "${style}". Falling back to "word-highlight".`);
+    console.warn(
+      `Unknown caption style: "${style}". Falling back to "word-highlight".`
+    );
     return (
-      <AbsoluteFill style={dirStyle}>
-        <WordHighlight
-          captions={captions}
-          fontFamily={fontFamily}
-          fontSize={fontSize}
-          fontColor={fontColor}
-          highlightColor={highlightColor}
-          position={position}
-        />
+      <AbsoluteFill style={fillStyle}>
+        <WordHighlight {...(childProps as any)} />
       </AbsoluteFill>
     );
   }
 
   return (
-    <AbsoluteFill style={dirStyle}>
-      <Component
-        captions={captions}
-        fontFamily={fontFamily}
-        fontSize={fontSize}
-        fontColor={fontColor}
-        highlightColor={highlightColor}
-        waveColor={highlightColor}
-        glowColor={highlightColor}
-        pillColor={highlightColor}
-        flickerColor={highlightColor}
-        focusColor={highlightColor}
-        scaleColor={highlightColor}
-        spotlightColor={highlightColor}
-        fillColor={highlightColor}
-        bounceColor={highlightColor}
-        cursorColor={highlightColor}
-        eraseColor="#FF4444"
-        position={position}
-      />
+    <AbsoluteFill style={fillStyle}>
+      <Component {...childProps} />
     </AbsoluteFill>
   );
 };

@@ -5,9 +5,15 @@
  * Upload audio and see captions render instantly.
  */
 
-import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync } from "fs";
-import { resolve, extname, join } from "path";
+import { createServer, type IncomingMessage, type ServerResponse } from "http";
+import { existsSync } from "fs";
+import { writeFile, unlink } from "fs/promises";
+import { tmpdir } from "os";
+import { basename, join } from "path";
+import { presets } from "./presets/index.js";
+import { transcribeMediaFile } from "./transcribe-media.js";
+import { CAPTION_STYLES, styleToCompositionId } from "./caption-styles.js";
+import type { CaptionStyle } from "./types.js";
 
 const PORT = 3456;
 
@@ -212,7 +218,8 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         <option value="scale">Scale</option>
         <option value="spotlight">Spotlight</option>
       </select>
-      <button id="presets-btn">Presets</button>
+      <button id="presets-btn" title="Cycle presets">Presets</button>
+      <a id="studio-link" href="#" target="_blank" rel="noopener" style="padding:8px 16px;border-radius:8px;border:1px solid #333;color:#FFD700;text-decoration:none;font-size:0.9rem;display:none">Studio ↗</a>
     </div>
   </div>
   <div class="main">
@@ -281,14 +288,22 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     let captions = null;
     let currentStyle = 'word-highlight';
     let animFrame = null;
-    const PRESET_ACCENTS = ['#FFD700', '#FF6B6B', '#00FF88', '#FF4081', '#6c5ce7', '#00cec9'];
-    let presetAccentIdx = 0;
-    let activeAccent = PRESET_ACCENTS[0];
+    const PRESET_LIST = __PRESETS_JSON__;
+    const STUDIO_MAP = __STUDIO_MAP__;
+    let presetIdx = 0;
+    let activeAccent = '#FFD700';
 
     document.getElementById('presets-btn').addEventListener('click', () => {
-      presetAccentIdx = (presetAccentIdx + 1) % PRESET_ACCENTS.length;
-      activeAccent = PRESET_ACCENTS[presetAccentIdx];
-      document.getElementById('presets-btn').textContent = 'Accent ' + (presetAccentIdx + 1);
+      const keys = Object.keys(PRESET_LIST);
+      if (!keys.length) return;
+      presetIdx = (presetIdx + 1) % keys.length;
+      const p = PRESET_LIST[keys[presetIdx]];
+      activeAccent = p.highlightColor || '#FFD700';
+      currentStyle = p.style || currentStyle;
+      styleSelect.value = currentStyle;
+      document.getElementById('stat-style').textContent = keys[presetIdx];
+      document.getElementById('presets-btn').textContent = p.name || keys[presetIdx];
+      renderCaptions();
     });
 
     // Upload handlers
@@ -332,8 +347,24 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
       } else {
         const url = URL.createObjectURL(file);
         audioPlayer.src = url;
-        // Demo timings until wired to captioneer process API
-        captions = generateDemoCaptions(file.name);
+        document.getElementById('json-output').textContent = 'Transcribing via STT (set API keys or use local whisper)...';
+        try {
+          const res = await fetch('/api/process', {
+            method: 'POST',
+            headers: {
+              'X-Filename': file.name,
+              'Content-Type': file.type || 'application/octet-stream'
+            },
+            body: file
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || res.statusText);
+          captions = data;
+        } catch (err) {
+          document.getElementById('json-output').textContent =
+            'Transcribe failed: ' + (err.message || err) + ' — using demo timings.';
+          captions = generateDemoCaptions(file.name);
+        }
       }
 
       // Update UI
@@ -375,6 +406,9 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     styleSelect.addEventListener('change', e => {
       currentStyle = e.target.value;
       document.getElementById('stat-style').textContent = currentStyle;
+      const studio = document.getElementById('studio-link');
+      studio.style.display = 'inline-block';
+      studio.href = 'http://localhost:3000/' + (STUDIO_MAP[currentStyle] || 'WordHighlightDemo');
       renderCaptions();
     });
 
@@ -473,18 +507,95 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
 </body>
 </html>`;
 
+const STUDIO_COMPOSITION_MAP = Object.fromEntries(
+  CAPTION_STYLES.map((s) => [s, styleToCompositionId(s as CaptionStyle)])
+) as Record<string, string>;
+
+function buildPresetPayload(): Record<
+  string,
+  { name: string; style: string; highlightColor: string }
+> {
+  const out: Record<string, { name: string; style: string; highlightColor: string }> =
+    {};
+  for (const [key, p] of Object.entries(presets)) {
+    out[key] = {
+      name: p.name,
+      style: p.style,
+      highlightColor: p.highlightColor,
+    };
+  }
+  return out;
+}
+
+function buildHtml(): string {
+  const presetJson = JSON.stringify(buildPresetPayload());
+  const studioMap = JSON.stringify(STUDIO_COMPOSITION_MAP);
+  return HTML_TEMPLATE.replace("__PRESETS_JSON__", presetJson).replace(
+    "__STUDIO_MAP__",
+    studioMap
+  );
+}
+
+async function readRequestBody(req: IncomingMessage): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  try {
+    const body = await readRequestBody(req);
+    const filename =
+      (typeof req.headers["x-filename"] === "string"
+        ? req.headers["x-filename"]
+        : "upload.bin") || "upload.bin";
+    const tmpPath = join(tmpdir(), `captioneer-${Date.now()}-${basename(filename)}`);
+    await writeFile(tmpPath, body);
+    try {
+      const captions = await transcribeMediaFile(tmpPath, {
+        onProgress: (m) => console.log(`   ${m}`),
+      });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(captions));
+    } finally {
+      await unlink(tmpPath).catch(() => undefined);
+    }
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    res.writeHead(500, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: message }));
+  }
+}
+
 /**
  * Start the preview server
  */
 export function startPreviewServer(port: number = PORT): void {
-  const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+  const html = buildHtml();
+
+  const server = createServer((req, res) => {
+    const url = req.url?.split("?")[0] ?? "/";
+
+    if (req.method === "POST" && url === "/api/process") {
+      void handleProcess(req, res);
+      return;
+    }
+
+    if (req.method === "GET" && url === "/api/presets") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(buildPresetPayload()));
+      return;
+    }
+
     res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(HTML_TEMPLATE);
+    res.end(html);
   });
 
   server.listen(port, () => {
     console.log(`\n🎬 Captioneer Preview Server`);
     console.log(`   Local: http://localhost:${port}\n`);
-    console.log(`   Upload audio to preview captions in real-time.\n`);
+    console.log(`   Upload audio (STT) or caption JSON. POST /api/process for transcription.\n`);
   });
 }

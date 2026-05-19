@@ -14,6 +14,10 @@ export type TranslateCaptionsOptions = {
   model?: string;
   /** OpenAI request timeout in ms (default 120_000) */
   timeoutMs?: number;
+  /** Set `language` on returned CaptionData (default true) */
+  updateLanguage?: boolean;
+  /** Progress callback for batched translation */
+  onProgress?: (message: string) => void;
 };
 
 /** Segments per OpenAI request to avoid huge prompts and truncated JSON. */
@@ -211,8 +215,13 @@ export async function translateCaptionData(
   }));
 
   const translatedLists: string[][] = [];
+  const totalBatches = Math.ceil(input.length / SEGMENT_BATCH_SIZE) || 1;
   for (let i = 0; i < input.length; i += SEGMENT_BATCH_SIZE) {
     const batch = input.slice(i, i + SEGMENT_BATCH_SIZE);
+    const batchNum = Math.floor(i / SEGMENT_BATCH_SIZE) + 1;
+    opts.onProgress?.(
+      `Translating batch ${batchNum}/${totalBatches} (${batch.length} segments)...`
+    );
     const batchOut = await translateWordListsBatch(
       batch,
       safeTargetLanguage,
@@ -245,5 +254,11 @@ export async function translateCaptionData(
     return { ...seg, text, words };
   });
 
-  return { ...captionData, segments };
+  const updateLanguage = opts.updateLanguage !== false;
+
+  return {
+    ...captionData,
+    language: updateLanguage ? safeTargetLanguage : captionData.language,
+    segments,
+  };
 }

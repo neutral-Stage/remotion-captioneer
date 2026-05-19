@@ -19,4 +19,4 @@ Config.overrideWebpackConfig((current: WebpackConfiguration) => {
   };
 });
 
-Config.setEntryPoint("src/remotion-entry.tsx");
+Config.setEntryPoint("src/studio/remotion-entry.tsx");

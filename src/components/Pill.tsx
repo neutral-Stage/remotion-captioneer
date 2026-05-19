@@ -5,10 +5,11 @@
 
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
-interface PillProps {
+interface PillProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -28,6 +29,9 @@ export const Pill: React.FC<PillProps> = ({
   pillTextColor = "#FFFFFF",
   pillPadding = 12,
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -59,7 +63,7 @@ export const Pill: React.FC<PillProps> = ({
           justifyContent: "center",
           alignItems: "center",
           gap: "6px 10px",
-          maxWidth: "80%",
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
         }}
       >

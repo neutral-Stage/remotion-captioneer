@@ -5,8 +5,8 @@
 
 import React from "react";
 import { AbsoluteFill, Audio, staticFile } from "remotion";
-import type { CaptionData, CaptionStyle } from "./types.js";
-import { AnimatedCaptions } from "./components/AnimatedCaptions.js";
+import type { CaptionData, CaptionStyle } from "../types.js";
+import { AnimatedCaptions } from "../components/AnimatedCaptions.js";
 
 interface CaptionShowcaseProps {
   captions: CaptionData;

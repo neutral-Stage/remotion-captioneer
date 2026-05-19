@@ -61,43 +61,24 @@ program
     console.log(`📡 Provider: ${providerName}`);
 
     try {
-      let captions: any;
+      const { transcribeMediaFile, defaultCaptionOutputPath } = await import(
+        "./transcribe-media.js"
+      );
 
-      if (providerName === "local") {
-        const { processAudio } = await import("./whisper.js");
-        captions = await processAudio(resolved, {
-          model: opts.model ?? config?.defaultModel ?? "base",
-          language: opts.language ?? config?.defaultLanguage,
-          whisperPath: config?.whisperPath,
-          modelPath: config?.modelPath,
-        });
-      } else {
-        const { createProvider } = await import("./providers/registry.js");
-        const apiKey = opts.apiKey ?? getApiKeyForProvider(providerName);
-        const provider = createProvider(providerName as any, apiKey);
-
-        if (!provider.isReady()) {
-          console.error(`❌ ${providerName} API key not set.`);
-          console.error(`   Use --api-key or set ${providerName.toUpperCase()}_API_KEY env var`);
-          process.exit(1);
-        }
-
-        if (opts.model) {
-          console.log(`📦 Model: ${opts.model}`);
-        }
-
-        captions = await provider.transcribe(resolved, {
-          model: opts.model,
-          language: opts.language,
-        });
+      if (opts.model) {
+        console.log(`📦 Model: ${opts.model}`);
       }
 
-      const outputPath =
-        opts.output ??
-        resolve(
-          process.cwd(),
-          `${basename(resolved, extname(resolved))}-captions.json`
-        );
+      const captions = await transcribeMediaFile(resolved, {
+        provider: providerName,
+        model: opts.model,
+        apiKey: opts.apiKey ?? getApiKeyForProvider(providerName),
+        language: opts.language ?? config?.defaultLanguage,
+        whisperPath: config?.whisperPath,
+        modelPath: config?.modelPath,
+      });
+
+      const outputPath = opts.output ?? defaultCaptionOutputPath(resolved);
 
       writeFileSync(outputPath, JSON.stringify(captions, null, 2));
       console.log(`\n✅ Captions saved to: ${outputPath}`);
@@ -308,6 +289,7 @@ program
         targetLanguage: opts.target,
         apiKey: opts.apiKey,
         model: opts.model,
+        onProgress: (msg) => console.log(`   ${msg}`),
       });
 
       const outputPath =
@@ -377,31 +359,21 @@ program
       console.log(`\n[${i + 1}/${files.length}] Processing: ${fileName}`);
 
       try {
-        let captions: any;
-
         if (!providerName) {
           console.error(`  ❌ No STT provider configured. Set API keys or use --provider local`);
           failed++;
           continue;
         }
 
-        if (providerName === "local") {
-          const { processAudio } = await import("./whisper.js");
-          captions = await processAudio(file, {
-            model: opts.model ?? config?.defaultModel ?? "base",
-            language: opts.language ?? config?.defaultLanguage,
-            whisperPath: config?.whisperPath,
-            modelPath: config?.modelPath,
-          });
-        } else {
-          const { createProvider } = await import("./providers/registry.js");
-          const apiKey = opts.apiKey ?? getApiKeyForProvider(providerName);
-          const provider = createProvider(providerName as any, apiKey);
-          captions = await provider.transcribe(file, {
-            model: opts.model,
-            language: opts.language,
-          });
-        }
+        const { transcribeMediaFile } = await import("./transcribe-media.js");
+        const captions = await transcribeMediaFile(file, {
+          provider: providerName,
+          model: opts.model,
+          apiKey: opts.apiKey ?? getApiKeyForProvider(providerName),
+          language: opts.language ?? config?.defaultLanguage,
+          whisperPath: config?.whisperPath,
+          modelPath: config?.modelPath,
+        });
 
         const outputPath = join(
           outputDir,

@@ -5,10 +5,11 @@
 
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
-interface ScaleProps {
+interface ScaleProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -26,6 +27,9 @@ export const Scale: React.FC<ScaleProps> = ({
   scaleColor = "#34D399",
   maxScale = 1.4,
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -57,7 +61,7 @@ export const Scale: React.FC<ScaleProps> = ({
           justifyContent: "center",
           alignItems: "center",
           gap: "8px 12px",
-          maxWidth: "80%",
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
         }}
       >

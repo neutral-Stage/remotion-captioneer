@@ -71,6 +71,8 @@ export interface CaptionComponentProps {
   position?: "top" | "center" | "bottom";
   maxWidth?: number;
   wordsPerLine?: number;
+  /** Use {@link smartWrap} instead of fixed-size chunks when `wordsPerLine` is set */
+  useSmartWrap?: boolean;
   /** Text direction for RTL scripts (e.g. Arabic, Hebrew). */
   textDirection?: "ltr" | "rtl" | "auto";
 }

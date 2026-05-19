@@ -14,6 +14,7 @@ import { OpenAIProvider } from "./openai.js";
 import { GroqProvider } from "./groq.js";
 import { DeepgramProvider } from "./deepgram.js";
 import { AssemblyAIProvider } from "./assemblyai.js";
+import { LocalWhisperProvider } from "./local.js";
 
 export type { STTProvider, STTProviderOptions, ProviderName, ProviderConfig } from "./base.js";
 export { OpenAIProvider } from "./openai.js";
@@ -30,9 +31,7 @@ export function createProvider(
 ): STTProvider {
   switch (name) {
     case "local":
-      throw new Error(
-        "Local whisper provider should be used via processAudio() from whisper.ts"
-      );
+      return new LocalWhisperProvider();
     case "openai":
       return new OpenAIProvider(apiKey);
     case "groq":
@@ -76,7 +75,7 @@ export function listProviders(): Array<{
   const providers: Array<{ name: ProviderName; provider: STTProvider; models: string[] }> = [
     {
       name: "local",
-      provider: { name: "local", transcribe: async () => ({ segments: [], language: "", durationMs: 0 }), isReady: () => true },
+      provider: new LocalWhisperProvider(),
       models: ["tiny", "base", "small", "medium", "large"],
     },
     {
