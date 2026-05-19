@@ -136,14 +136,6 @@ This creates a ready-to-use Remotion project with captions.
 npm install remotion-captioneer
 ```
 
-### Option 2: Add to Existing Project
-
-#### 1. Install
-
-```bash
-npm install remotion-captioneer
-```
-
 #### 2. Generate Captions from Audio
 
 ```bash

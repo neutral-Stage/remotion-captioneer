@@ -203,6 +203,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
         <option value="bounce">Bounce</option>
         <option value="wave">Wave</option>
         <option value="glow">Glow</option>
+        <option value="typewriter-erase">Typewriter Erase</option>
         <option value="pill">Pill</option>
         <option value="flicker">Flicker</option>
         <option value="highlighter">Highlighter</option>
@@ -219,9 +220,9 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
       <div class="video-frame" id="video-frame">
         <div class="upload-zone" id="upload-zone">
           <div style="font-size: 3rem; margin-bottom: 8px;">🎙️</div>
-          <strong>Drop audio file or click to upload</strong>
-          <p>MP3, WAV, M4A, MP4, OGG</p>
-          <input type="file" id="file-input" accept="audio/*,video/*" style="display:none">
+          <strong>Drop audio or caption JSON</strong>
+          <p>Audio: MP3, WAV, M4A, MP4 · Captions: JSON</p>
+          <input type="file" id="file-input" accept="audio/*,video/*,application/json,.json" style="display:none">
         </div>
         <div class="caption-line" id="caption-line" style="display:none"></div>
       </div>
@@ -238,8 +239,8 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     <div class="sidebar">
       <h3>Upload</h3>
       <div class="upload-zone" id="sidebar-upload" style="padding: 20px; margin-bottom: 20px;">
-        <strong>Upload Audio</strong>
-        <input type="file" id="sidebar-file-input" accept="audio/*,video/*" style="display:none">
+        <strong>Upload Audio / JSON</strong>
+        <input type="file" id="sidebar-file-input" accept="audio/*,video/*,application/json,.json" style="display:none">
       </div>
       <h3>Stats</h3>
       <div class="stats">
@@ -280,6 +281,15 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     let captions = null;
     let currentStyle = 'word-highlight';
     let animFrame = null;
+    const PRESET_ACCENTS = ['#FFD700', '#FF6B6B', '#00FF88', '#FF4081', '#6c5ce7', '#00cec9'];
+    let presetAccentIdx = 0;
+    let activeAccent = PRESET_ACCENTS[0];
+
+    document.getElementById('presets-btn').addEventListener('click', () => {
+      presetAccentIdx = (presetAccentIdx + 1) % PRESET_ACCENTS.length;
+      activeAccent = PRESET_ACCENTS[presetAccentIdx];
+      document.getElementById('presets-btn').textContent = 'Accent ' + (presetAccentIdx + 1);
+    });
 
     // Upload handlers
     [uploadZone, sidebarUpload].forEach(zone => {
@@ -302,12 +312,29 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     async function processFile(file) {
       document.getElementById('json-output').textContent = 'Processing...';
 
-      // Create object URL for playback
-      const url = URL.createObjectURL(file);
-      audioPlayer.src = url;
+      const isJson =
+        file.name.toLowerCase().endsWith('.json') ||
+        file.type === 'application/json';
 
-      // Generate demo captions (in real usage, this calls the API)
-      captions = generateDemoCaptions(file.name);
+      if (isJson) {
+        try {
+          const text = await file.text();
+          captions = JSON.parse(text);
+          if (!captions || !Array.isArray(captions.segments)) {
+            throw new Error('Expected { segments: [...] }');
+          }
+          audioPlayer.removeAttribute('src');
+        } catch (err) {
+          document.getElementById('json-output').textContent =
+            'Invalid caption JSON: ' + (err.message || err);
+          return;
+        }
+      } else {
+        const url = URL.createObjectURL(file);
+        audioPlayer.src = url;
+        // Demo timings until wired to captioneer process API
+        captions = generateDemoCaptions(file.name);
+      }
 
       // Update UI
       uploadZone.style.display = 'none';
@@ -418,6 +445,13 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
           const isPast = currentTimeMs > end;
 
           span.className = 'word ' + (isActive ? 'word-active' : isPast ? 'word-past' : 'word-inactive');
+          if (isActive) {
+            span.style.color = activeAccent;
+            span.style.textShadow = '0 0 20px ' + activeAccent + '80';
+          } else {
+            span.style.color = '';
+            span.style.textShadow = '';
+          }
 
           if (isActive && currentStyle === 'bounce') {
             span.style.animation = 'none';

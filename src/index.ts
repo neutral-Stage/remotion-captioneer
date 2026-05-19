@@ -9,6 +9,12 @@
  */
 
 // Types (compatible with @remotion/captions)
+export {
+  CAPTION_STYLES,
+  STYLE_LABELS,
+  styleToCompositionId,
+} from "./caption-styles.js";
+
 export type {
   Caption,
   TikTokPage,

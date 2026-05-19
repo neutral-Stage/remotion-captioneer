@@ -67,7 +67,7 @@ export const CaptionShowcase: React.FC<CaptionShowcaseProps> = ({
           textTransform: "uppercase",
         }}
       >
-        {style.replace("-", " ")}
+        {style.replace(/-/g, " ")}
       </div>
     </AbsoluteFill>
   );

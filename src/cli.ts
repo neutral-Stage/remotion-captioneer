@@ -141,7 +141,8 @@ program
   .action(async () => {
     console.log("🎬 Opening Remotion Studio with demo captions...");
     const { execSync } = await import("child_process");
-    execSync("npx remotion studio", { stdio: "inherit", cwd: process.cwd() });
+    const packageRoot = join(__dirname, "..");
+    execSync("npx remotion studio", { stdio: "inherit", cwd: packageRoot });
   });
 
 program
@@ -378,7 +379,13 @@ program
       try {
         let captions: any;
 
-        if (providerName === "local" || !providerName) {
+        if (!providerName) {
+          console.error(`  ❌ No STT provider configured. Set API keys or use --provider local`);
+          failed++;
+          continue;
+        }
+
+        if (providerName === "local") {
           const { processAudio } = await import("./whisper.js");
           captions = await processAudio(file, {
             model: opts.model ?? config?.defaultModel ?? "base",

@@ -150,13 +150,12 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
       <div class="feat"><div class="feat-icon">🎙️</div><h4>AssemblyAI</h4><p>Speaker diarization and sentiment built-in.</p></div>
     </div>
     <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { transcribe } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+<span class="kw">import</span> { GroqProvider } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="cm">// Pick any provider</span>
-<span class="kw">const</span> captions = <span class="kw">await</span> transcribe(<span class="st">'audio.mp3'</span>, {
-  provider: <span class="st">'groq'</span>,    <span class="cm">// or 'openai' | 'deepgram' | 'assemblyai' | 'local'</span>
+<span class="cm">// Or: npx captioneer process audio.mp3 --provider groq</span>
+<span class="kw">const</span> provider = <span class="kw">new</span> GroqProvider(process.env.GROQ_API_KEY!);
+<span class="kw">const</span> captions = <span class="kw">await</span> provider.transcribe(<span class="st">'audio.mp3'</span>, {
   language: <span class="st">'en'</span>,
-  wordLevel: <span class="kw">true</span>
 });
     </div>
   </div>
@@ -171,8 +170,9 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
     <div class="code" style="margin-top:14px">
 <span class="kw">import</span> { presets } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="kw">const</span> { style, font, colors, position } = presets[<span class="st">'tiktok-pop'</span>];
-<span class="cm">// → { style: 'word-highlight', font: 'Inter', colors: { ... }, position: 'bottom' }</span>
+<span class="kw">import</span> { applyPreset } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+
+&lt;AnimatedCaptions captions={captions} {...applyPreset(<span class="st">'tiktok'</span>)} /&gt;
     </div>
   </div>
 </section>
@@ -192,9 +192,10 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
       <div class="feat"><h4>@remotion/captions</h4><p>Official package compat</p></div>
     </div>
     <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { exportCaptions } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+<span class="kw">import</span> { toSRT } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="kw">await</span> exportCaptions(captions, { format: <span class="st">'srt'</span>, outputPath: <span class="st">'./out.srt'</span> });
+<span class="kw">const</span> srt = toSRT(captions);
+<span class="cm">// Or: npx captioneer export captions.json --format srt</span>
     </div>
     <div class="export-row">
       <button class="xbtn" data-f="srt">⬇ Export SRT</button>
@@ -286,7 +287,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ CLI ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>🖥 10 CLI Commands</h2>
+    <h2>🖥 CLI Commands</h2>
     <p class="sub">Everything from scaffolding to batch processing</p>
     <table class="cli-table">
       <tr><th>Command</th><th>What it does</th></tr>
@@ -294,12 +295,12 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
       <tr><td><code>npx captioneer process audio.mp3</code></td><td>Transcribe with STT</td></tr>
       <tr><td><code>npx captioneer batch ./audio-dir</code></td><td>Batch process files</td></tr>
       <tr><td><code>npx captioneer export caps.json -f srt</code></td><td>Export captions</td></tr>
+      <tr><td><code>npx captioneer translate caps.json -t es</code></td><td>Translate captions (OpenAI)</td></tr>
       <tr><td><code>npx captioneer preview</code></td><td>Live preview server</td></tr>
       <tr><td><code>npx captioneer presets</code></td><td>List all presets</td></tr>
       <tr><td><code>npx captioneer providers</code></td><td>List STT providers</td></tr>
       <tr><td><code>npx captioneer styles</code></td><td>List caption styles</td></tr>
-      <tr><td><code>npx captioneer demo</code></td><td>Generate demo video</td></tr>
-      <tr><td><code>npx captioneer info</code></td><td>System &amp; config info</td></tr>
+      <tr><td><code>npx captioneer demo</code></td><td>Open Remotion Studio (all 14 styles)</td></tr>
     </table>
   </div>
 </section>

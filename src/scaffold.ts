@@ -196,7 +196,36 @@ export const RemotionRoot = () => (
 `
   );
 
-  // Index entry point
+  // Remotion Studio entry (registerRoot)
+  writeFileSync(
+    join(projectDir, "src", "remotion-entry.tsx"),
+    `import { registerRoot } from "remotion";
+import { RemotionRoot } from "./Root";
+
+registerRoot(RemotionRoot);
+`
+  );
+
+  writeFileSync(
+    join(projectDir, "remotion.config.ts"),
+    `import type { WebpackConfiguration } from "@remotion/bundler";
+import { Config } from "@remotion/cli/config";
+
+Config.overrideWebpackConfig((current: WebpackConfiguration) => ({
+  ...current,
+  resolve: {
+    ...current.resolve,
+    extensionAlias: {
+      ".js": [".ts", ".tsx", ".js"],
+    },
+  },
+}));
+
+Config.setEntryPoint("src/remotion-entry.tsx");
+`
+  );
+
+  // Library re-exports for your app code
   writeFileSync(
     join(projectDir, "src", "index.ts"),
     `export { RemotionRoot } from "./Root";
