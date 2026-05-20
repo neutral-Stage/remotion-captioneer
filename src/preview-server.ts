@@ -371,7 +371,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
           audioPlayer.removeAttribute('src');
         } catch (err) {
           document.getElementById('json-output').textContent =
-            'Invalid caption JSON: ' + (err.message || err);
+            'Invalid caption JSON. Check file format.';
           return;
         }
       } else {
@@ -593,9 +593,9 @@ async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise
       await unlink(tmpPath).catch(() => undefined);
     }
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
+    console.error("Preview /api/process failed:", e);
     res.writeHead(500, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: message }));
+    res.end(JSON.stringify({ error: "Transcription failed" }));
   }
 }
 

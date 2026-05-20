@@ -531,7 +531,7 @@ function renderCap(cap,elapsed){
   switch(S.st){
     case 'word-highlight':el.textContent=cap.text;el.style.textShadow=`0 0 18px ${bg}`;break;
     case 'karaoke':{const pct=Math.min(p*100,100);el.textContent=cap.text;el.style.background=`linear-gradient(90deg,${bg} ${pct}%,#fff ${pct}%)`;el.style.webkitBackgroundClip='text';el.style.webkitTextFillColor='transparent';el.style.backgroundSize='100%';break;}
-    case 'typewriter':{const n=Math.floor(p*cap.text.length)+1;el.innerHTML=cap.text.substring(0,n)+'<span style="border-right:2px solid '+bg+'">​</span>';break;}
+    case 'typewriter':{const n=Math.floor(p*cap.text.length)+1;el.replaceChildren(document.createTextNode(cap.text.substring(0,n)));const caret=document.createElement('span');caret.style.borderRight='2px solid '+bg;caret.appendChild(document.createTextNode('\u200b'));el.appendChild(caret);break;}
     case 'typewriter-erase':{const n=p<.6?Math.floor((p/.6)*cap.text.length)+1:Math.max(1,Math.floor((1-(p-.6)/.4)*cap.text.length));el.textContent=cap.text.substring(0,n);break;}
     case 'bounce':el.textContent=cap.text;el.style.transform=`scaleY(${1+Math.sin(p*Math.PI)*.25})`;el.style.textShadow=`0 0 14px ${bg}`;break;
     case 'wave':el.textContent=cap.text;el.style.transform=`translateY(${Math.sin(p*Math.PI*4)*8}px)`;break;
