@@ -1,10 +1,9 @@
 /**
  * CaptionShowcase — Showcases a caption style over a dark background
- * This is the composition that renders during preview/render
  */
 
 import React from "react";
-import { AbsoluteFill, Audio, staticFile } from "remotion";
+import { AbsoluteFill, Audio } from "remotion";
 import type { CaptionData, CaptionStyle } from "../types.js";
 import { AnimatedCaptions } from "../components/AnimatedCaptions.js";
 
@@ -14,57 +13,40 @@ interface CaptionShowcaseProps {
   audioSrc?: string;
 }
 
+const STYLE_HIGHLIGHT: Partial<Record<CaptionStyle, string>> = {
+  karaoke: "#f87171",
+  typewriter: "#34d399",
+  bounce: "#f472b6",
+};
+
 export const CaptionShowcase: React.FC<CaptionShowcaseProps> = ({
   captions,
   style,
   audioSrc,
 }) => {
+  const highlight = STYLE_HIGHLIGHT[style] ?? "#e4e4e7";
+
   return (
-    <AbsoluteFill
-      style={{
-        backgroundColor: "#0a0a0a",
-        background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)",
-      }}
-    >
-      {/* Optional audio track */}
+    <AbsoluteFill style={{ backgroundColor: "#09090b" }}>
       {audioSrc && <Audio src={audioSrc} />}
 
-      {/* Subtle animated background */}
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 70%)",
-        }}
-      />
-
-      {/* Caption overlay */}
       <AnimatedCaptions
         captions={captions}
         style={style}
         position="bottom"
-        highlightColor={
-          style === "karaoke"
-            ? "#FF6B6B"
-            : style === "typewriter"
-            ? "#00FF88"
-            : style === "bounce"
-            ? "#FF4081"
-            : "#FFD700"
-        }
+        highlightColor={highlight}
       />
 
-      {/* Style label */}
       <div
         style={{
           position: "absolute",
-          top: 40,
-          left: 40,
-          fontFamily: "Inter, sans-serif",
-          fontSize: 24,
-          fontWeight: 600,
-          color: "rgba(255,255,255,0.3)",
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
+          top: 32,
+          left: 32,
+          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+          fontSize: 13,
+          fontWeight: 500,
+          color: "rgba(255, 255, 255, 0.35)",
+          letterSpacing: "0.02em",
         }}
       >
         {style.replace(/-/g, " ")}

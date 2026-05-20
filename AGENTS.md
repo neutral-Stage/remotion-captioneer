@@ -45,6 +45,10 @@ npm run validate:docs
 
 Local whisper: `captioneer process audio.mp4 --provider local` (requires whisper.cpp setup).
 
+## Design (docs & preview UI)
+
+Marketing and preview surfaces use a neutral zinc palette with a single blue accent (`#3b82f6`). Shared tokens live in `docs/theme.css`; the preview server inlines matching CSS variables. Avoid purple/gold gradients and emoji-heavy headings in new UI.
+
 ## Architecture
 
 See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md).

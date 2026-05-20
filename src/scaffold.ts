@@ -148,11 +148,7 @@ import captions from "./captions.json";
  *   {...applyPreset("podcast-bold")}
  */
 export const CaptionedVideo = () => (
-  <AbsoluteFill
-    style={{
-      background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)",
-    }}
-  >
+  <AbsoluteFill style={{ backgroundColor: "#09090b" }}>
     {/* Uncomment to add audio:
     <Audio src={staticFile("audio.mp3")} />
     */}
@@ -161,7 +157,7 @@ export const CaptionedVideo = () => (
       captions={captions}
       style="word-highlight"
       position="bottom"
-      highlightColor="#FFD700"
+      highlightColor="#e4e4e7"
       fontSize={58}
     />
   </AbsoluteFill>
