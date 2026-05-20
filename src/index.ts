@@ -9,6 +9,12 @@
  */
 
 // Types (compatible with @remotion/captions)
+export {
+  CAPTION_STYLES,
+  STYLE_LABELS,
+  styleToCompositionId,
+} from "./caption-styles.js";
+
 export type {
   Caption,
   TikTokPage,
@@ -149,6 +155,7 @@ export {
   getActiveWordIndex,
   getWordProgress,
   groupWordsIntoLines,
+  getSegmentDisplayLines,
   smartWrap,
   paginateCaptions,
   estimateReadingTimeMs,
@@ -194,3 +201,11 @@ export {
   assertCaptionDataShape,
   type TranslateCaptionsOptions,
 } from "./translate.js";
+
+// Node / CLI helpers (also available from remotion-captioneer/node)
+export {
+  transcribeMediaFile,
+  transcribeWithWhisper,
+  defaultCaptionOutputPath,
+  type TranscribeMediaOptions,
+} from "./transcribe-media.js";

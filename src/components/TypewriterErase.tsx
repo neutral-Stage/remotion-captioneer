@@ -5,10 +5,11 @@
 
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
-interface TypewriterEraseProps {
+interface TypewriterEraseProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -26,6 +27,9 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
   cursorColor = "#00FF88",
   eraseColor = "#FF4444",
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -81,7 +85,7 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
     >
       <div
         style={{
-          maxWidth: "80%",
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
           background: "rgba(0,0,0,0.6)",
           borderRadius: "12px",

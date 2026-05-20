@@ -8,13 +8,18 @@ import {
   AbsoluteFill,
   useCurrentFrame,
   useVideoConfig,
-  interpolate,
   spring,
 } from "remotion";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
+import {
+  captionBoxMaxWidth,
+  flatWordIndex,
+  resolveDisplayLines,
+  type CaptionStyleLayoutProps,
+} from "./style-props.js";
 
-interface WordHighlightProps {
+interface WordHighlightProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -30,6 +35,9 @@ export const WordHighlight: React.FC<WordHighlightProps> = ({
   fontColor = "rgba(255,255,255,0.5)",
   highlightColor = "#FFD700",
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -39,6 +47,11 @@ export const WordHighlight: React.FC<WordHighlightProps> = ({
   if (!segment) return null;
 
   const activeWordIndex = getActiveWordIndex(segment, currentTimeMs);
+  const lines = resolveDisplayLines(segment, {
+    maxWidth,
+    wordsPerLine,
+    useSmartWrap,
+  });
 
   const positionStyle: React.CSSProperties = {
     top: position === "top" ? "10%" : position === "center" ? "50%" : undefined,
@@ -57,46 +70,62 @@ export const WordHighlight: React.FC<WordHighlightProps> = ({
       <div
         style={{
           display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
+          flexDirection: "column",
           alignItems: "center",
-          gap: "8px 12px",
-          maxWidth: "80%",
+          gap: 12,
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
         }}
       >
-        {segment.words.map((word, i) => {
-          const isActive = i === activeWordIndex;
-          const isPast = i < activeWordIndex;
+        {lines.map((line, lineIdx) => (
+          <div
+            key={lineIdx}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "8px 12px",
+            }}
+          >
+            {line.map((word, wi) => {
+              const i = flatWordIndex(lines, lineIdx, wi);
+              const isActive = i === activeWordIndex;
+              const isPast = i < activeWordIndex;
 
-          const scale = isActive
-            ? spring({
-                frame,
-                fps,
-                config: { damping: 10, stiffness: 200 },
-              })
-            : 1;
+              const scale = isActive
+                ? spring({
+                    frame,
+                    fps,
+                    config: { damping: 10, stiffness: 200 },
+                  })
+                : 1;
 
-          return (
-            <span
-              key={`${word.startMs}-${i}`}
-              style={{
-                fontFamily,
-                fontSize,
-                fontWeight: 700,
-                color: isActive ? highlightColor : isPast ? "white" : fontColor,
-                transform: `scale(${scale})`,
-                transition: "color 0.15s ease",
-                textShadow: isActive
-                  ? `0 0 20px ${highlightColor}80`
-                  : "0 2px 8px rgba(0,0,0,0.5)",
-                display: "inline-block",
-              }}
-            >
-              {word.word}
-            </span>
-          );
-        })}
+              return (
+                <span
+                  key={`${word.startMs}-${i}`}
+                  style={{
+                    fontFamily,
+                    fontSize,
+                    fontWeight: 700,
+                    color: isActive
+                      ? highlightColor
+                      : isPast
+                        ? "white"
+                        : fontColor,
+                    transform: `scale(${scale})`,
+                    transition: "color 0.15s ease",
+                    textShadow: isActive
+                      ? `0 0 20px ${highlightColor}80`
+                      : "0 2px 8px rgba(0,0,0,0.5)",
+                    display: "inline-block",
+                  }}
+                >
+                  {word.word}
+                </span>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </AbsoluteFill>
   );

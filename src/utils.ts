@@ -57,6 +57,24 @@ export function getWordProgress(
 }
 
 /**
+ * Lines to render for a segment (smart wrap or fixed words-per-line).
+ */
+export function getSegmentDisplayLines(
+  segment: CaptionSegment,
+  options?: { wordsPerLine?: number; useSmartWrap?: boolean }
+): Word[][] {
+  if (options?.useSmartWrap) {
+    return smartWrap(segment.words, {
+      maxWordsPerLine: options.wordsPerLine ?? 6,
+    });
+  }
+  if (options?.wordsPerLine && options.wordsPerLine > 0) {
+    return groupWordsIntoLines(segment.words, options.wordsPerLine);
+  }
+  return [segment.words];
+}
+
+/**
  * Group words into lines based on wordsPerLine
  */
 export function groupWordsIntoLines(

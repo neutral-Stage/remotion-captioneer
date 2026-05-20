@@ -1,5 +1,5 @@
 // Example 3: Audio-Video Sync
-// Beat-reactive animations synchronized to audio
+// Requires ffmpeg on PATH for analyzeAudio()
 
 import { AbsoluteFill, Audio, staticFile } from "remotion";
 import {
@@ -7,12 +7,17 @@ import {
   AudioSyncProvider,
   useBeatPulse,
   useVolume,
-  analyzeAudio,
 } from "remotion-captioneer";
+import type { AudioAnalysis } from "remotion-captioneer";
 import captions from "./captions.json";
 
-// Pre-analyze audio (run this once, cache the result)
-// const analysis = await analyzeAudio("my-audio.mp4");
+// Generate once in Node: import { analyzeAudio } from "remotion-captioneer";
+// const analysis = await analyzeAudio("./public/audio.mp3");
+const audioAnalysis = {
+  bpm: 120,
+  beats: [{ timeMs: 0 }, { timeMs: 500 }, { timeMs: 1000 }],
+  volumeFrames: [],
+} as unknown as AudioAnalysis;
 
 const BeatReactiveContent = () => {
   const pulse = useBeatPulse();
@@ -22,7 +27,6 @@ const BeatReactiveContent = () => {
     <AbsoluteFill
       style={{
         background: "#0a0a0a",
-        // Background pulses with the beat
         transform: `scale(${1 + pulse * 0.03})`,
       }}
     >
@@ -30,7 +34,6 @@ const BeatReactiveContent = () => {
       <AnimatedCaptions
         captions={captions}
         style="word-highlight"
-        // Caption size reacts to volume
         fontSize={Math.round(48 + volume * 16)}
         highlightColor="#FFD700"
       />
@@ -38,9 +41,8 @@ const BeatReactiveContent = () => {
   );
 };
 
-// Wrap with AudioSyncProvider (pass your pre-analyzed data)
-// export const SyncedVideo = () => (
-//   <AudioSyncProvider analysis={audioAnalysis}>
-//     <BeatReactiveContent />
-//   </AudioSyncProvider>
-// );
+export const SyncedVideo = () => (
+  <AudioSyncProvider analysis={audioAnalysis}>
+    <BeatReactiveContent />
+  </AudioSyncProvider>
+);

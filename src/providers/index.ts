@@ -9,6 +9,7 @@ export { OpenAIProvider } from "./openai.js";
 export { GroqProvider } from "./groq.js";
 export { DeepgramProvider } from "./deepgram.js";
 export { AssemblyAIProvider } from "./assemblyai.js";
+export { LocalWhisperProvider } from "./local.js";
 
 export {
   createProvider,

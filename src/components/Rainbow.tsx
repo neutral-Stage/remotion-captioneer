@@ -5,10 +5,11 @@
 
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
-interface RainbowProps {
+interface RainbowProps extends CaptionStyleLayoutProps {
   captions: CaptionData;
   fontFamily?: string;
   fontSize?: number;
@@ -24,6 +25,9 @@ export const Rainbow: React.FC<RainbowProps> = ({
   fontColor = "rgba(255,255,255,0.35)",
   speed = 3,
   position = "bottom",
+  maxWidth,
+  wordsPerLine,
+  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -55,7 +59,7 @@ export const Rainbow: React.FC<RainbowProps> = ({
           justifyContent: "center",
           alignItems: "center",
           gap: "8px 12px",
-          maxWidth: "80%",
+          maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
         }}
       >

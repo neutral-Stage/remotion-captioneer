@@ -23,15 +23,23 @@ npm start
 
 ## Project Structure
 
+See [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) for how surfaces connect.
+
 ```
 src/
-├── components/       # Caption style components
-├── types.ts          # TypeScript type definitions
-├── utils.ts          # Timing/frame utilities
-├── whisper.ts        # Whisper.cpp integration
-├── cli.ts            # CLI tool
-├── Root.tsx          # Remotion compositions
-└── index.ts          # Public exports
+├── components/       # 14 caption style components + AnimatedCaptions
+├── caption-styles.ts # CAPTION_STYLES (single list)
+├── demo/captions.ts  # Shared demo CaptionData
+├── providers/        # Cloud STT providers + registry
+├── sync/             # Audio analysis + hooks
+├── templates/        # Template builder + renderer
+├── layouts/          # Layout primitives
+├── presets/          # Style presets
+├── cli.ts            # CLI (captioneer)
+├── preview-server.ts # Browser preview (captioneer preview)
+├── remotion-entry.tsx# Remotion registerRoot entry
+├── Root.tsx          # Studio demo compositions (all styles)
+└── index.ts          # npm package exports
 ```
 
 ## Adding a New Caption Style
@@ -40,9 +48,10 @@ src/
 2. It receives `captions: CaptionData` and renders animated words
 3. Use `useCurrentFrame()` + `useVideoConfig()` to get timing
 4. Export it from `src/components/index.ts`
-5. Add it to the `styleMap` in `AnimatedCaptions.tsx`
-6. Add a demo composition in `Root.tsx`
-7. Update the README
+5. Add it to `CaptionStyle` in `types.ts` and `CAPTION_STYLES` in `caption-styles.ts`
+6. Add it to the `styleMap` in `AnimatedCaptions.tsx`
+7. Studio picks it up automatically via `Root.tsx` (no manual composition per style)
+8. Update preview-server `<select>`, README, and `docs/index.html` if user-facing
 
 ## Code Style
 

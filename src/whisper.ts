@@ -2,7 +2,7 @@
  * Whisper integration — converts audio to word-level timestamped captions
  */
 
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, resolve, basename, extname } from "path";
 import type { CaptionData, CaptionSegment, Word, WhisperOptions } from "./types.js";
@@ -146,15 +146,32 @@ export async function processAudio(
   const baseName = basename(resolvedAudio, extname(resolvedAudio));
   const jsonOutput = join(outputDir, `${baseName}.json`);
 
-  const langFlag = options.language ? `-l ${options.language}` : "";
+  const whisperArgs = [
+    "-m",
+    modelPath,
+    "-f",
+    resolvedAudio,
+    "-oj",
+    outputDir,
+    "-of",
+    baseName,
+    "--output-csv",
+    "false",
+    "--output-srt",
+    "false",
+    "--output-txt",
+    "false",
+    "--word-thold",
+    "0.5",
+  ];
+  if (options.language) {
+    whisperArgs.push("-l", options.language);
+  }
 
   console.log(`🎙️ Transcribing: ${basename(resolvedAudio)}...`);
 
   try {
-    execSync(
-      `"${mainBinary}" -m "${modelPath}" -f "${resolvedAudio}" -oj "${outputDir}" -of "${baseName}" --output-csv false --output-srt false --output-txt false --word-thold 0.5 ${langFlag}`,
-      { stdio: "inherit" }
-    );
+    execFileSync(mainBinary, whisperArgs, { stdio: "inherit" });
   } catch (error) {
     throw new Error("Whisper transcription failed");
   }

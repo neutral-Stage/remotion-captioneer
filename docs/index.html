@@ -2,22 +2,23 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="stylesheet" href="theme.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Remotion Captioneer — Live Demo</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#09090f;--sf:#111118;--sf2:#1a1a26;--bd:#262638;--tx:#e4e4f0;--tx2:#7878a0;--ac:#6c5ce7;--ac2:#a29bfe;--gn:#00cec9;--yl:#fdcb6e;--rd:#ff6b6b}
+:root{--bg:#09090b;--sf:#111113;--sf2:#18181b;--bd:#27272a;--tx:#fafafa;--tx2:#a1a1aa;--tx3:#71717a;--ac:#3b82f6;--ac2:#60a5fa;--ac-muted:rgba(59,130,246,.12);--code:#86efac;--code-dim:#52525b}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.5}
+body{background:var(--bg);color:var(--tx);font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5}
 a{color:var(--ac2);text-decoration:none}
 .w{max-width:960px;margin:0 auto;padding:0 20px}
-h2{font-size:1.4rem;margin-bottom:4px}
+h2{font-size:1.125rem;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
 h3{font-size:.95rem;margin-bottom:3px}
 .sub{color:var(--tx2);font-size:13px;margin-bottom:20px}
 
 /* Hero */
 .hero{padding:40px 20px 20px;text-align:center}
-.hero h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;background:linear-gradient(135deg,#eee,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.hero h1{font-size:clamp(1.5rem,3.5vw,2rem);font-weight:600;letter-spacing:-.03em;color:var(--tx);margin-bottom:8px}
 .hero p{color:var(--tx2);font-size:13px;max-width:480px;margin:0 auto 16px}
 .hero-links{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .bt{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:.2s}
@@ -35,17 +36,17 @@ h3{font-size:.95rem;margin-bottom:3px}
 .pprog{flex:1;height:3px;background:#222;border-radius:2px;cursor:pointer}
 .pfill{height:100%;background:var(--ac);border-radius:2px;width:0}
 .ptm{font-size:10px;color:var(--tx2);min-width:50px;text-align:right;font-variant-numeric:tabular-nums}
-.pst{font-size:9px;color:var(--ac2);padding:2px 7px;background:rgba(108,92,231,.12);border-radius:7px;white-space:nowrap}
+.pst{font-size:10px;color:var(--tx2);padding:2px 8px;background:var(--ac-muted);border-radius:6px;white-space:nowrap}
 .wave{height:36px;background:#0a0a12;display:flex;align-items:flex-end;justify-content:center;gap:1px;padding:0 6px}
 .wb{width:2px;background:var(--ac);border-radius:1px 1px 0 0;opacity:.35;transition:height .08s}
 .side-ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;justify-content:center;max-width:720px;margin-left:auto;margin-right:auto}
 .sc-btn{padding:4px 10px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;color:var(--tx2);font-size:10px;cursor:pointer;transition:.15s}
-.sc-btn:hover,.sc-btn.on{border-color:var(--ac);color:var(--ac2);background:rgba(108,92,231,.1)}
+.sc-btn:hover,.sc-btn.on{border-color:var(--ac);color:var(--tx);background:var(--ac-muted)}
 
 /* ─── STYLE SHOWCASE ─── */
 .style-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .style-card{background:var(--sf);border:1px solid var(--bd);border-radius:8px;overflow:hidden;transition:.2s;cursor:pointer}
-.style-card:hover{border-color:var(--ac);transform:translateY(-1px)}
+.style-card:hover{border-color:#3f3f46}
 .style-card canvas{width:100%;height:80px;display:block}
 .style-card .info{padding:6px 10px}
 .style-card h4{font-size:11px}.style-card small{font-size:9px;color:var(--tx2)}
@@ -54,24 +55,24 @@ h3{font-size:.95rem;margin-bottom:3px}
 .feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .feat{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px;transition:.2s}
 .feat:hover{border-color:var(--ac)}
-.feat-icon{font-size:20px;margin-bottom:4px}
+.feat-tag{font-size:10px;font-weight:500;color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
 .feat h4{font-size:12px;margin-bottom:2px}.feat p{font-size:11px;color:var(--tx2)}
 
 /* ─── PRESET GRID ─── */
 .cat{margin-bottom:14px}
-.cat-title{font-size:11px;color:var(--ac);text-transform:uppercase;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
+.cat-title{font-size:11px;color:var(--tx2);font-weight:500;letter-spacing:.03em;margin-bottom:6px}
 .cat-items{display:flex;gap:6px;flex-wrap:wrap}
 .cat-item{padding:4px 10px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;font-size:11px;color:var(--tx2);cursor:pointer;transition:.15s}
 .cat-item:hover{border-color:var(--ac);color:var(--tx)}
 
 /* ─── CODE ─── */
-.code{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px 16px;font-family:'Cascadia Code','Fira Code',monospace;font-size:11px;color:var(--gn);overflow-x:auto;line-height:1.6}
-.kw{color:var(--ac2)}.st{color:var(--gn)}.cm{color:var(--tx2)}
+.code{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:12px 16px;font-family:ui-monospace,'Cascadia Code',Menlo,monospace;font-size:11px;color:var(--tx2);overflow-x:auto;line-height:1.65}
+.kw{color:var(--tx)}.st{color:#93c5fd}.cm{color:var(--code-dim)}
 
 /* ─── EXPORT DEMO ─── */
 .export-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .xbtn{padding:6px 14px;background:var(--sf2);border:1px solid var(--bd);border-radius:6px;color:var(--tx);font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
-.xbtn:hover{border-color:var(--gn);color:var(--gn)}
+.xbtn:hover{border-color:var(--ac);color:var(--ac2)}
 
 /* ─── SYNC DEMO ─── */
 .sync-bars{display:flex;align-items:flex-end;gap:3px;height:60px;margin-top:10px}
@@ -81,20 +82,20 @@ h3{font-size:.95rem;margin-bottom:3px}
 .cli-table{width:100%;border-collapse:collapse}
 .cli-table th,.cli-table td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--bd);font-size:11px}
 .cli-table th{color:var(--tx2);font-size:10px;text-transform:uppercase}
-.cli-table code{background:var(--sf2);padding:1px 5px;border-radius:3px;font-size:10px;color:var(--gn)}
+.cli-table code{background:var(--sf2);padding:1px 5px;border-radius:3px;font-size:10px;color:var(--code)}
 
 /* ─── EMOJI DEMO ─── */
 .emoji-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
-.emoji-item{display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--sf2);border-radius:20px;font-size:13px;border:1px solid var(--bd)}
+.emoji-item{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--sf2);border-radius:6px;font-size:12px;border:1px solid var(--bd)}
 .emoji-item span{font-size:10px;color:var(--tx2)}
 
 /* ─── INSTALL ─── */
 .install-box{text-align:center;padding:24px 0}
-.install-cmd{display:inline-block;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px 20px;font-family:monospace;font-size:14px;color:var(--gn);cursor:pointer;transition:.2s}
+.install-cmd{display:inline-block;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:10px 20px;font-family:monospace;font-size:14px;color:var(--code);cursor:pointer;transition:.2s}
 .install-cmd:hover{border-color:var(--ac)}
 
 footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top:1px solid var(--bd)}
-.toast{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--sf2);border:1px solid var(--gn);color:var(--gn);padding:4px 10px;border-radius:5px;font-size:10px;z-index:99;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--sf2);border:1px solid var(--code);color:var(--code);padding:4px 10px;border-radius:5px;font-size:10px;z-index:99;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
 </style>
 </head>
@@ -102,10 +103,10 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 
 <div class="hero">
   <h1>Remotion Captioneer</h1>
-  <p>14 caption styles · 5 STT providers · 24 presets · 7 exports · audio sync · templates · layouts · emoji · CLI</p>
+  <p>Animated captions for Remotion — STT, presets, exports, sync hooks, and CLI.</p>
   <div class="hero-links">
-    <a href="https://github.com/neutral-Stage/remotion-captioneer" target="_blank" class="bt bt1">⭐ GitHub</a>
-    <a href="https://www.npmjs.com/package/remotion-captioneer" target="_blank" class="bt bt2">📦 npm</a>
+    <a href="https://github.com/neutral-Stage/remotion-captioneer" target="_blank" class="bt bt1">GitHub</a>
+    <a href="https://www.npmjs.com/package/remotion-captioneer" target="_blank" class="bt bt2">npm</a>
   </div>
 </div>
 
@@ -131,7 +132,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ 14 STYLES ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>🎬 14 Caption Styles</h2>
+    <h2>Caption styles</h2>
     <p class="sub">Each style animates differently — click to preview in the player above</p>
     <div class="style-grid" id="showGrid"></div>
   </div>
@@ -140,23 +141,22 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ 5 STT PROVIDERS ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>🎤 5 STT Providers</h2>
+    <h2>Speech-to-text</h2>
     <p class="sub">Choose your speed, accuracy, and privacy trade-off</p>
     <div class="feat-grid">
-      <div class="feat"><div class="feat-icon">🔒</div><h4>Whisper.cpp (Local)</h4><p>Free, offline, privacy-first. Runs on your machine.</p></div>
-      <div class="feat"><div class="feat-icon">🎯</div><h4>OpenAI Whisper</h4><p>Industry standard accuracy. Best for production.</p></div>
-      <div class="feat"><div class="feat-icon">⚡</div><h4>Groq</h4><p>Fastest inference — near real-time. Recommended.</p></div>
-      <div class="feat"><div class="feat-icon">🏢</div><h4>Deepgram</h4><p>Enterprise grade with word-level timestamps.</p></div>
-      <div class="feat"><div class="feat-icon">🎙️</div><h4>AssemblyAI</h4><p>Speaker diarization and sentiment built-in.</p></div>
+      <div class="feat"><div class="feat-tag">Local</div><h4>Whisper.cpp</h4><p>Offline transcription on your machine.</p></div>
+      <div class="feat"><div class="feat-tag">Cloud</div><h4>OpenAI Whisper</h4><p>Production-grade accuracy.</p></div>
+      <div class="feat"><div class="feat-tag">Fast</div><h4>Groq</h4><p>Low-latency cloud inference.</p></div>
+      <div class="feat"><div class="feat-tag">Scale</div><h4>Deepgram</h4><p>Word-level timestamps at scale.</p></div>
+      <div class="feat"><div class="feat-tag">Speakers</div><h4>AssemblyAI</h4><p>Diarization and sentiment metadata.</p></div>
     </div>
     <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { transcribe } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+<span class="kw">import</span> { GroqProvider } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="cm">// Pick any provider</span>
-<span class="kw">const</span> captions = <span class="kw">await</span> transcribe(<span class="st">'audio.mp3'</span>, {
-  provider: <span class="st">'groq'</span>,    <span class="cm">// or 'openai' | 'deepgram' | 'assemblyai' | 'local'</span>
+<span class="cm">// Or: npx captioneer process audio.mp3 --provider groq</span>
+<span class="kw">const</span> provider = <span class="kw">new</span> GroqProvider(process.env.GROQ_API_KEY!);
+<span class="kw">const</span> captions = <span class="kw">await</span> provider.transcribe(<span class="st">'audio.mp3'</span>, {
   language: <span class="st">'en'</span>,
-  wordLevel: <span class="kw">true</span>
 });
     </div>
   </div>
@@ -165,14 +165,15 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ 24 PRESETS ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>🎨 24 Presets in 10 Categories</h2>
+    <h2>Presets</h2>
     <p class="sub">One config object — ready to render</p>
     <div id="presetArea"></div>
     <div class="code" style="margin-top:14px">
 <span class="kw">import</span> { presets } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="kw">const</span> { style, font, colors, position } = presets[<span class="st">'tiktok-pop'</span>];
-<span class="cm">// → { style: 'word-highlight', font: 'Inter', colors: { ... }, position: 'bottom' }</span>
+<span class="kw">import</span> { applyPreset } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+
+&lt;AnimatedCaptions captions={captions} {...applyPreset(<span class="st">'tiktok'</span>)} /&gt;
     </div>
   </div>
 </section>
@@ -180,7 +181,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ 7 EXPORT FORMATS ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>📦 7 Export Formats</h2>
+    <h2>Export formats</h2>
     <p class="sub">From word-level timing to industry standard subtitle formats</p>
     <div class="feat-grid">
       <div class="feat"><h4>SRT</h4><p>Universal subtitle format</p></div>
@@ -192,15 +193,16 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
       <div class="feat"><h4>@remotion/captions</h4><p>Official package compat</p></div>
     </div>
     <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { exportCaptions } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+<span class="kw">import</span> { toSRT } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="kw">await</span> exportCaptions(captions, { format: <span class="st">'srt'</span>, outputPath: <span class="st">'./out.srt'</span> });
+<span class="kw">const</span> srt = toSRT(captions);
+<span class="cm">// Or: npx captioneer export captions.json --format srt</span>
     </div>
     <div class="export-row">
-      <button class="xbtn" data-f="srt">⬇ Export SRT</button>
-      <button class="xbtn" data-f="vtt">⬇ Export VTT</button>
-      <button class="xbtn" data-f="ass">⬇ Export ASS</button>
-      <button class="xbtn" data-f="json">⬇ Export JSON</button>
+      <button class="xbtn" data-f="srt">Export SRT</button>
+      <button class="xbtn" data-f="vtt">Export VTT</button>
+      <button class="xbtn" data-f="ass">Export ASS</button>
+      <button class="xbtn" data-f="json">Export JSON</button>
     </div>
   </div>
 </section>
@@ -208,7 +210,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ AUDIO SYNC ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>🎵 Audio-Video Sync</h2>
+    <h2>Audio sync</h2>
     <p class="sub">Frame-accurate hooks for reactive caption animation</p>
     <div class="sync-bars" id="syncBars"></div>
     <div class="code" style="margin-top:14px">
@@ -227,7 +229,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ TEMPLATES ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>📐 Template System</h2>
+    <h2>Templates</h2>
     <p class="sub">Data-driven video generation — define scenes, render automatically</p>
     <div class="code">
 <span class="kw">import</span> { buildTemplate, TemplateComposition } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
@@ -250,7 +252,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ LAYOUTS ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>📏 10 Layout Primitives</h2>
+    <h2>Layouts</h2>
     <p class="sub">Position captions and elements perfectly</p>
     <div class="feat-grid">
       <div class="feat"><h4>Container</h4><p>Full-frame with safe area</p></div>
@@ -262,7 +264,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
       <div class="feat"><h4>GradientBg</h4><p>Gradient backgrounds</p></div>
       <div class="feat"><h4>FadeIn</h4><p>Fade entrance animation</p></div>
       <div class="feat"><h4>SlideUp</h4><p>Slide entrance animation</p></div>
-      <div class="feat"><h4>Spacer</h4><p>Flexible spacing</p></div>
+      <div class="feat"><h4>Spacer blocks</h4><p>Template scene spacing</p></div>
     </div>
   </div>
 </section>
@@ -270,7 +272,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ EMOJI REACTIONS ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>😀 Auto Emoji Reactions</h2>
+    <h2>Emoji reactions</h2>
     <p class="sub">60+ keyword→emoji mappings — zero config needed</p>
     <div class="emoji-row" id="emojiDemo"></div>
     <div class="code" style="margin-top:14px">
@@ -286,7 +288,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 <!-- ═══ CLI ═══ -->
 <section class="sec">
   <div class="w">
-    <h2>🖥 10 CLI Commands</h2>
+    <h2>CLI</h2>
     <p class="sub">Everything from scaffolding to batch processing</p>
     <table class="cli-table">
       <tr><th>Command</th><th>What it does</th></tr>
@@ -294,12 +296,12 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
       <tr><td><code>npx captioneer process audio.mp3</code></td><td>Transcribe with STT</td></tr>
       <tr><td><code>npx captioneer batch ./audio-dir</code></td><td>Batch process files</td></tr>
       <tr><td><code>npx captioneer export caps.json -f srt</code></td><td>Export captions</td></tr>
+      <tr><td><code>npx captioneer translate caps.json -t es</code></td><td>Translate captions (OpenAI)</td></tr>
       <tr><td><code>npx captioneer preview</code></td><td>Live preview server</td></tr>
       <tr><td><code>npx captioneer presets</code></td><td>List all presets</td></tr>
       <tr><td><code>npx captioneer providers</code></td><td>List STT providers</td></tr>
       <tr><td><code>npx captioneer styles</code></td><td>List caption styles</td></tr>
-      <tr><td><code>npx captioneer demo</code></td><td>Generate demo video</td></tr>
-      <tr><td><code>npx captioneer info</code></td><td>System &amp; config info</td></tr>
+      <tr><td><code>npx captioneer demo</code></td><td>Open Remotion Studio (all 14 styles)</td></tr>
     </table>
   </div>
 </section>
@@ -398,14 +400,14 @@ function buildShowcase(){
 
 function animateShowcards(){
   const renders={
-    'word-highlight':(ctx,w,h,t)=>{ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+6);ctx.fillStyle='rgba(108,92,231,'+(0.3+Math.sin(t*3)*0.3)+')';ctx.fillText('Hello World',w/2,h/2+6)},
-    'karaoke':(ctx,w,h,t)=>{const p=((t*0.5)%1);ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillStyle='#555';ctx.fillText('Hello World',w/2,h/2+6);ctx.fillStyle='#6c5ce7';ctx.save();ctx.rect(w/2-55,0,110*p,80);ctx.clip();ctx.fillText('Hello World',w/2,h/2+6);ctx.restore()},
-    'typewriter':(ctx,w,h,t)=>{const n=Math.floor((t*2)%12)+1;ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World'.substring(0,n),w/2,h/2+6);ctx.fillStyle='#6c5ce7';ctx.fillRect(w/2-55+n*9,h/2-2,2,18)},
+    'word-highlight':(ctx,w,h,t)=>{ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+6);ctx.fillStyle='rgba(59,130,246,'+(0.3+Math.sin(t*3)*0.3)+')';ctx.fillText('Hello World',w/2,h/2+6)},
+    'karaoke':(ctx,w,h,t)=>{const p=((t*0.5)%1);ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillStyle='#555';ctx.fillText('Hello World',w/2,h/2+6);ctx.fillStyle='#3b82f6';ctx.save();ctx.rect(w/2-55,0,110*p,80);ctx.clip();ctx.fillText('Hello World',w/2,h/2+6);ctx.restore()},
+    'typewriter':(ctx,w,h,t)=>{const n=Math.floor((t*2)%12)+1;ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World'.substring(0,n),w/2,h/2+6);ctx.fillStyle='#3b82f6';ctx.fillRect(w/2-55+n*9,h/2-2,2,18)},
     'typewriter-erase':(ctx,w,h,t)=>{const p=(t*1.5)%1;const n=p<.5?Math.floor(p*2*11)+1:Math.floor((1-(p-.5)*2)*11);ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World'.substring(0,Math.max(1,n)),w/2,h/2+6)},
     'bounce':(ctx,w,h,t)=>{const sc=1+Math.abs(Math.sin(t*3))*0.3;ctx.save();ctx.translate(w/2,h/2+6);ctx.scale(1,sc);ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',0,0);ctx.restore()},
     'wave':(ctx,w,h,t)=>{ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';const txt='Hello World';for(let i=0;i<txt.length;i++){const y=h/2+6+Math.sin(t*4+i*.5)*6;ctx.fillText(txt[i],w/2-55+i*10,y)}},
-    'glow':(ctx,w,h,t)=>{const g=8+Math.sin(t*2)*8;ctx.shadowColor='#a29bfe';ctx.shadowBlur=g;ctx.fillStyle='#a29bfe';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+6);ctx.shadowBlur=0},
-    'pill':(ctx,w,h,t)=>{const p=Math.min(1,((t*0.8)%1)*1.5);ctx.fillStyle='rgba(108,92,231,'+(0.15+p*0.2)+')';ctx.beginPath();ctx.roundRect(w/2-60,h/2-12,120,28,14);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+5)},
+    'glow':(ctx,w,h,t)=>{const g=8+Math.sin(t*2)*8;ctx.shadowColor='#93c5fd';ctx.shadowBlur=g;ctx.fillStyle='#93c5fd';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+6);ctx.shadowBlur=0},
+    'pill':(ctx,w,h,t)=>{const p=Math.min(1,((t*0.8)%1)*1.5);ctx.fillStyle='rgba(59,130,246,'+(0.15+p*0.2)+')';ctx.beginPath();ctx.roundRect(w/2-60,h/2-12,120,28,14);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+5)},
     'flicker':(ctx,w,h,t)=>{ctx.fillStyle='#fdcb6e';ctx.globalAlpha=0.5+Math.random()*0.5;ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+6);ctx.globalAlpha=1},
     'highlighter':(ctx,w,h,t)=>{const p=((t*0.6)%1);ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+6);ctx.fillStyle='rgba(253,203,110,0.3)';ctx.fillRect(w/2-55,h/2+2,110*Math.min(1,p*1.5),8)},
     'blur':(ctx,w,h,t)=>{const b=Math.abs(Math.sin(t))*4;ctx.filter=`blur(${b}px)`;ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText('Hello World',w/2,h/2+6);ctx.filter='none'},
@@ -441,11 +443,6 @@ function buildEmojis(){
   EMOJIS.forEach(({w,e})=>{
     r.innerHTML+=`<div class="emoji-item">${e} <span>"${w}"</span></div>`;
   });
-  // Animate them
-  setInterval(()=>{
-    const items=r.querySelectorAll('.emoji-item');
-    items.forEach((it,i)=>{it.style.transform=`scale(${1+Math.sin(Date.now()/300+i)*.1})`});
-  },50);
 }
 
 function buildSync(){
@@ -503,7 +500,7 @@ function drawBg(t){
   c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;const w=c.width,h=c.height;
   const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#0d0d16');g.addColorStop(1,'#08080e');
   ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-  [[.3,.4,130,'108,92,231'],[.7,.55,140,'0,206,201'],[.5,.3,100,'162,155,254']].forEach(([ox,oy,r,cl])=>{
+  [[.35,.45,120,'39,39,42'],[.65,.5,100,'24,24,27']].forEach(([ox,oy,r,cl])=>{
     const x=w*ox+Math.sin(t*.5+ox*10)*50,y=h*oy+Math.cos(t*.6+oy*10)*35;
     const rg=ctx.createRadialGradient(x,y,0,x,y,r);
     rg.addColorStop(0,`rgba(${cl},.05)`);rg.addColorStop(1,'transparent');
@@ -520,7 +517,7 @@ function updateWave(t){
 // ─── Caption Renderer ───
 function renderCap(cap,elapsed){
   const el=document.getElementById('cap');
-  const bg=document.getElementById('cb')?.value||'#6c5ce7';
+  const bg=document.getElementById('cb')?.value||'#3b82f6';
   const color='#ffffff';
   const size=document.getElementById('cs')?.value||22;
   const p=(elapsed-cap.start)/(cap.end-cap.start);
@@ -534,7 +531,7 @@ function renderCap(cap,elapsed){
   switch(S.st){
     case 'word-highlight':el.textContent=cap.text;el.style.textShadow=`0 0 18px ${bg}`;break;
     case 'karaoke':{const pct=Math.min(p*100,100);el.textContent=cap.text;el.style.background=`linear-gradient(90deg,${bg} ${pct}%,#fff ${pct}%)`;el.style.webkitBackgroundClip='text';el.style.webkitTextFillColor='transparent';el.style.backgroundSize='100%';break;}
-    case 'typewriter':{const n=Math.floor(p*cap.text.length)+1;el.innerHTML=cap.text.substring(0,n)+'<span style="border-right:2px solid '+bg+'">​</span>';break;}
+    case 'typewriter':{const n=Math.floor(p*cap.text.length)+1;el.replaceChildren(document.createTextNode(cap.text.substring(0,n)));const caret=document.createElement('span');caret.style.borderRight='2px solid '+bg;caret.appendChild(document.createTextNode('\u200b'));el.appendChild(caret);break;}
     case 'typewriter-erase':{const n=p<.6?Math.floor((p/.6)*cap.text.length)+1:Math.max(1,Math.floor((1-(p-.6)/.4)*cap.text.length));el.textContent=cap.text.substring(0,n);break;}
     case 'bounce':el.textContent=cap.text;el.style.transform=`scaleY(${1+Math.sin(p*Math.PI)*.25})`;el.style.textShadow=`0 0 14px ${bg}`;break;
     case 'wave':el.textContent=cap.text;el.style.transform=`translateY(${Math.sin(p*Math.PI*4)*8}px)`;break;

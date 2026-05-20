@@ -136,14 +136,6 @@ This creates a ready-to-use Remotion project with captions.
 npm install remotion-captioneer
 ```
 
-### Option 2: Add to Existing Project
-
-#### 1. Install
-
-```bash
-npm install remotion-captioneer
-```
-
 #### 2. Generate Captions from Audio
 
 ```bash
@@ -805,7 +797,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Export formats (SRT, VTT, ASS, TXT, word-level SRT & VTT)
 - [x] Project scaffolder (`npx captioneer init`)
 - [x] 7 working examples covering all features
-- [x] 10 CLI commands (init, process, batch, export, preview, presets, providers, styles, demo)
+- [x] 11 CLI commands (init, process, batch, export, translate, preview, presets, providers, styles, demo)
 - [x] GitHub Pages demo with all 14 styles animated
 - [x] GitHub Actions CI/CD (build, test, release to npm, CodeQL)
 - [x] 0 vulnerabilities in npm audit
@@ -818,7 +810,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)
 - [ ] Integration with video hosting APIs (YouTube, Vimeo)
 - [x] ~~Real-time caption rendering in browser~~ (`npx captioneer preview` — live browser-based caption rendering with audio sync)
-- [ ] Caption translation utilities
+- [x] Caption translation utilities (`translateCaptionData`, `captioneer translate`)
 - [ ] Speaker diarization (multi-speaker support)
 
 ---
