@@ -3,7 +3,7 @@
  *
  * Drop-in animated captions for Remotion.
  * Audio → word-level synced subtitle components.
- * Supports: Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
+ * Supports: Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs
  *
  * Also includes: Audio-video sync, templates, and layout primitives.
  */
@@ -69,6 +69,7 @@ export {
   GroqProvider,
   DeepgramProvider,
   AssemblyAIProvider,
+  ElevenLabsProvider,
   createProvider,
   detectProvider,
   listProviders,

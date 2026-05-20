@@ -15,12 +15,14 @@ import { GroqProvider } from "./groq.js";
 import { DeepgramProvider } from "./deepgram.js";
 import { AssemblyAIProvider } from "./assemblyai.js";
 import { LocalWhisperProvider } from "./local.js";
+import { ElevenLabsProvider } from "./elevenlabs.js";
 
 export type { STTProvider, STTProviderOptions, ProviderName, ProviderConfig } from "./base.js";
 export { OpenAIProvider } from "./openai.js";
 export { GroqProvider } from "./groq.js";
 export { DeepgramProvider } from "./deepgram.js";
 export { AssemblyAIProvider } from "./assemblyai.js";
+export { ElevenLabsProvider } from "./elevenlabs.js";
 
 /**
  * Create a provider instance by name
@@ -40,6 +42,8 @@ export function createProvider(
       return new DeepgramProvider(apiKey);
     case "assemblyai":
       return new AssemblyAIProvider(apiKey);
+    case "elevenlabs":
+      return new ElevenLabsProvider(apiKey);
     default:
       throw new Error(`Unknown provider: ${name}`);
   }
@@ -60,6 +64,9 @@ export function detectProvider(): { name: ProviderName; provider: STTProvider } 
   }
   if (process.env.ASSEMBLYAI_API_KEY) {
     return { name: "assemblyai", provider: new AssemblyAIProvider() };
+  }
+  if (process.env.ELEVENLABS_API_KEY) {
+    return { name: "elevenlabs", provider: new ElevenLabsProvider() };
   }
   return null;
 }
@@ -97,6 +104,11 @@ export function listProviders(): Array<{
       name: "assemblyai",
       provider: new AssemblyAIProvider(),
       models: ["best"],
+    },
+    {
+      name: "elevenlabs",
+      provider: new ElevenLabsProvider(),
+      models: ["scribe_v2", "scribe_v1"],
     },
   ];
 

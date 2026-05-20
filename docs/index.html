@@ -103,7 +103,7 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
 
 <div class="hero">
   <h1>Remotion Captioneer</h1>
-  <p>Animated captions for Remotion — STT, presets, exports, sync hooks, and CLI.</p>
+  <p>Animated captions for Remotion — 6 STT providers, presets, exports, sync hooks, and CLI.</p>
   <div class="hero-links">
     <a href="https://github.com/neutral-Stage/remotion-captioneer" target="_blank" class="bt bt1">GitHub</a>
     <a href="https://www.npmjs.com/package/remotion-captioneer" target="_blank" class="bt bt2">npm</a>
@@ -138,24 +138,26 @@ footer{text-align:center;padding:20px;color:var(--tx2);font-size:11px;border-top
   </div>
 </section>
 
-<!-- ═══ 5 STT PROVIDERS ═══ -->
+<!-- ═══ 6 STT PROVIDERS ═══ -->
 <section class="sec">
   <div class="w">
     <h2>Speech-to-text</h2>
-    <p class="sub">Choose your speed, accuracy, and privacy trade-off</p>
+    <p class="sub">Six providers — choose your speed, accuracy, and privacy trade-off</p>
     <div class="feat-grid">
       <div class="feat"><div class="feat-tag">Local</div><h4>Whisper.cpp</h4><p>Offline transcription on your machine.</p></div>
       <div class="feat"><div class="feat-tag">Cloud</div><h4>OpenAI Whisper</h4><p>Production-grade accuracy.</p></div>
       <div class="feat"><div class="feat-tag">Fast</div><h4>Groq</h4><p>Low-latency cloud inference.</p></div>
       <div class="feat"><div class="feat-tag">Scale</div><h4>Deepgram</h4><p>Word-level timestamps at scale.</p></div>
       <div class="feat"><div class="feat-tag">Speakers</div><h4>AssemblyAI</h4><p>Diarization and sentiment metadata.</p></div>
+      <div class="feat"><div class="feat-tag">Scribe</div><h4>ElevenLabs</h4><p>Word-level Scribe transcription via API.</p></div>
     </div>
     <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { GroqProvider } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+<span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="cm">// Or: npx captioneer process audio.mp3 --provider groq</span>
-<span class="kw">const</span> provider = <span class="kw">new</span> GroqProvider(process.env.GROQ_API_KEY!);
+<span class="cm">// Or: npx captioneer process audio.mp3 --provider elevenlabs --model scribe_v2</span>
+<span class="kw">const</span> provider = createProvider(<span class="st">'elevenlabs'</span>);
 <span class="kw">const</span> captions = <span class="kw">await</span> provider.transcribe(<span class="st">'audio.mp3'</span>, {
+  model: <span class="st">'scribe_v2'</span>,
   language: <span class="st">'en'</span>,
 });
     </div>
@@ -334,7 +336,7 @@ const STYLES=[
 ];
 const LINES=[
   "Add beautiful animated captions to your videos","Fourteen unique styles to choose from",
-  "Word level timing powered by five STT providers","Export to SRT VTT ASS TXT and more",
+  "Word level timing powered by six STT providers","Export to SRT VTT ASS TXT and more",
   "Built for Remotion the React video framework","Audio video sync with beat detection",
   "Twenty four curated presets across ten categories","Layout primitives for perfect positioning",
   "Auto generate emoji reactions from text","Free open source MIT license forever",

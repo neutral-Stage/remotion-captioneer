@@ -42,6 +42,7 @@ npm run validate:docs
 | `OPENAI_API_KEY` | OpenAI Whisper + `captioneer translate` |
 | `DEEPGRAM_API_KEY` | Deepgram STT |
 | `ASSEMBLYAI_API_KEY` | AssemblyAI STT |
+| `ELEVENLABS_API_KEY` | ElevenLabs Scribe STT |
 
 Local whisper: `captioneer process audio.mp4 --provider local` (requires whisper.cpp setup).
 

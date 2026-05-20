@@ -38,7 +38,7 @@ const captionData = fromCaptionArray(flatCaptions);
 | **Caption types** | ✅ `Caption` type | ✅ Compatible + `CaptionData` with segments |
 | **Page segmentation** | ✅ `createTikTokStyleCaptions()` | ❌ Use official package |
 | **Animated components** | ❌ Build yourself | ✅ 4 ready-to-use styles |
-| **STT/transcription** | ❌ Separate package | ✅ 5 providers built-in |
+| **STT/transcription** | ❌ Separate package | ✅ 6 providers built-in |
 | **CLI tool** | ❌ | ✅ `npx captioneer process` |
 
 ---
@@ -100,7 +100,7 @@ Active word bounces up with spring physics.
 
 ## ✨ Features
 
-- 🎙️ **5 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI
+- 🎙️ **6 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs
 - 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
 - 🎭 **24 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun
 - 🎵 **Audio-Video Sync** — Beat detection, volume-reactive animations, timeline keyframes
@@ -211,7 +211,7 @@ That's it. Render with `npx remotion render` as usual.
 
 ## 📡 STT Providers
 
-Choose your speech-to-text backend. Supports 5 providers out of the box:
+Choose your speech-to-text backend. Supports 6 providers out of the box:
 
 | Provider | Env Variable | Speed | Offline | Best For |
 |----------|-------------|-------|---------|----------|
@@ -220,6 +220,7 @@ Choose your speech-to-text backend. Supports 5 providers out of the box:
 | **Groq** | `GROQ_API_KEY` | ⭐⭐⭐⭐⭐ | ❌ | Ultra-fast inference |
 | **Deepgram** | `DEEPGRAM_API_KEY` | ⭐⭐⭐⭐ | ❌ | Real-time capable |
 | **AssemblyAI** | `ASSEMBLYAI_API_KEY` | ⭐⭐⭐ | ❌ | Rich features |
+| **ElevenLabs** | `ELEVENLABS_API_KEY` | ⭐⭐⭐⭐ | ❌ | Scribe transcription |
 
 ---
 
@@ -301,6 +302,9 @@ export GROQ_API_KEY="gsk_..."
 # Or OpenAI
 export OPENAI_API_KEY="sk-..."
 
+# Or ElevenLabs
+export ELEVENLABS_API_KEY="..."
+
 # Then just run — it picks the best available
 npx captioneer process audio.mp4
 ```
@@ -312,6 +316,7 @@ npx captioneer process audio.mp4 --provider groq
 npx captioneer process audio.mp4 --provider openai --model whisper-1
 npx captioneer process audio.mp4 --provider deepgram --model nova-2
 npx captioneer process audio.mp4 --provider assemblyai
+npx captioneer process audio.mp4 --provider elevenlabs --model scribe_v2
 npx captioneer process audio.mp4 --provider local --model base
 ```
 
@@ -337,7 +342,7 @@ npx captioneer providers
 ### Programmatic Usage
 
 ```ts
-import { GroqProvider, OpenAIProvider } from "remotion-captioneer";
+import { ElevenLabsProvider, GroqProvider, OpenAIProvider } from "remotion-captioneer";
 
 // Groq — ultra-fast
 const groq = new GroqProvider("gsk_...");
@@ -349,6 +354,13 @@ const captions = await groq.transcribe("audio.mp4", {
 // OpenAI
 const openai = new OpenAIProvider("sk-...");
 const captions = await openai.transcribe("audio.mp4");
+
+// ElevenLabs Scribe
+const elevenlabs = new ElevenLabsProvider("...");
+const scribeCaptions = await elevenlabs.transcribe("audio.mp4", {
+  model: "scribe_v2",
+  language: "en",
+});
 
 // Auto-detect from env
 import { detectProvider } from "remotion-captioneer";
@@ -579,6 +591,7 @@ npx captioneer process audio.mp4
 # Specify provider
 npx captioneer process audio.mp4 --provider groq
 npx captioneer process audio.mp4 --provider openai --model whisper-1
+npx captioneer process audio.mp4 --provider elevenlabs --model scribe_v2
 
 # With options
 npx captioneer process audio.mp4 --provider groq --language en --output captions.json
@@ -589,7 +602,7 @@ npx captioneer process audio.mp4 --provider groq --api-key gsk_...
 ```
 
 **Options:**
-- `-p, --provider <provider>` — STT provider: `local`, `openai`, `groq`, `deepgram`, `assemblyai`
+- `-p, --provider <provider>` — STT provider: `local`, `openai`, `groq`, `deepgram`, `assemblyai`, `elevenlabs`
 - `-m, --model <model>` — Model name (provider-specific)
 - `-k, --api-key <key>` — API key (or use env vars)
 - `-l, --language <lang>` — Language code: `en`, `es`, `fr`, `de`, etc.
@@ -789,7 +802,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Word-level emoji reactions (`EmojiReactions` + `autoGenerateReactions()`)
 - [x] Real-time preview server (`npx captioneer preview`)
 - [x] Batch processing mode (`npx captioneer batch ./audio/`)
-- [x] Multi-provider STT (OpenAI, Groq, Deepgram, AssemblyAI, Local Whisper)
+- [x] Multi-provider STT (OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs, Local Whisper)
 - [x] @remotion/captions compatibility layer
 - [x] Audio-video sync (beat detection, volume hooks, timeline keyframes)
 - [x] Template system for data-driven videos

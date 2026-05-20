@@ -24,14 +24,14 @@ const pkgVersion = JSON.parse(
 
 program
   .name("captioneer")
-  .description("Drop-in animated captions for Remotion — supports local Whisper, OpenAI, Groq, Deepgram, AssemblyAI")
+  .description("Drop-in animated captions for Remotion — supports local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs")
   .version(pkgVersion);
 
 program
   .command("process")
   .description("Process an audio file and generate caption data")
   .argument("<audio>", "Path to audio or video file")
-  .option("-p, --provider <provider>", "STT provider: local, openai, groq, deepgram, assemblyai")
+  .option("-p, --provider <provider>", "STT provider: local, openai, groq, deepgram, assemblyai, elevenlabs")
   .option("-m, --model <model>", "Model name (provider-specific)")
   .option("-k, --api-key <key>", "API key (or use env vars)")
   .option("-l, --language <lang>", "Language code (e.g. en, es, fr)")
@@ -52,7 +52,7 @@ program
 
     if (!providerName) {
       console.error("❌ No STT provider available.");
-      console.error("   Set one of: OPENAI_API_KEY, GROQ_API_KEY, DEEPGRAM_API_KEY, ASSEMBLYAI_API_KEY");
+      console.error("   Set one of: OPENAI_API_KEY, GROQ_API_KEY, DEEPGRAM_API_KEY, ASSEMBLYAI_API_KEY, ELEVENLABS_API_KEY");
       console.error("   Or use --provider local with whisper.cpp installed");
       process.exit(1);
     }
@@ -113,6 +113,7 @@ program
     console.log("  GROQ_API_KEY       — Groq (ultra-fast inference)");
     console.log("  DEEPGRAM_API_KEY   — Deepgram Nova");
     console.log("  ASSEMBLYAI_API_KEY — AssemblyAI");
+    console.log("  ELEVENLABS_API_KEY — ElevenLabs Scribe");
     console.log();
   });
 
@@ -400,6 +401,7 @@ function detectDefaultProvider(): string | null {
   if (process.env.OPENAI_API_KEY) return "openai";
   if (process.env.DEEPGRAM_API_KEY) return "deepgram";
   if (process.env.ASSEMBLYAI_API_KEY) return "assemblyai";
+  if (process.env.ELEVENLABS_API_KEY) return "elevenlabs";
   return null;
 }
 
@@ -409,6 +411,7 @@ function getApiKeyForProvider(provider: string): string | undefined {
     groq: "GROQ_API_KEY",
     deepgram: "DEEPGRAM_API_KEY",
     assemblyai: "ASSEMBLYAI_API_KEY",
+    elevenlabs: "ELEVENLABS_API_KEY",
   };
   return process.env[envMap[provider]];
 }

@@ -31,7 +31,8 @@ export type ProviderName =
   | "openai"
   | "groq"
   | "deepgram"
-  | "assemblyai";
+  | "assemblyai"
+  | "elevenlabs";
 
 export interface ProviderConfig {
   provider: ProviderName;
