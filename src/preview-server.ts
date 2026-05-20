@@ -392,7 +392,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
           captions = data;
         } catch (err) {
           document.getElementById('json-output').textContent =
-            'Transcribe failed: ' + (err.message || err) + ' — using demo timings.';
+            'Transcribe failed — using demo timings.';
           captions = generateDemoCaptions(file.name);
         }
       }
