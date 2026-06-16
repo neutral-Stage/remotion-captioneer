@@ -5,12 +5,12 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { existsSync, readFileSync } from "fs";
 import { writeFile, unlink } from "fs/promises";
-import { tmpdir } from "os";
-import { basename, join, extname } from "path";
+import { join, extname, resolve, relative } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { presets } from "./presets/index.js";
 import { transcribeMediaFile } from "./transcribe-media.js";
+import { createTempUploadPath } from "./preview/temp-path.js";
 import { CAPTION_STYLES, styleToCompositionId } from "./caption-styles.js";
 import type { CaptionStyle } from "./types.js";
 
@@ -64,20 +64,19 @@ async function readRequestBody(req: IncomingMessage): Promise<Buffer> {
 async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
     const body = await readRequestBody(req);
-    const filename =
-      (typeof req.headers["x-filename"] === "string" ? req.headers["x-filename"] : "upload.bin") ||
-      "upload.bin";
     const diarize = req.headers["x-diarize"] === "true";
     const speakersHeader = req.headers["x-speakers"];
-    const numSpeakers =
+    const parsedSpeakers =
       typeof speakersHeader === "string" ? Number.parseInt(speakersHeader, 10) : undefined;
-    const tmpPath = join(tmpdir(), `captioneer-${Date.now()}-${basename(filename)}`);
+    const numSpeakers =
+      parsedSpeakers !== undefined && Number.isFinite(parsedSpeakers) ? parsedSpeakers : undefined;
+    const tmpPath = createTempUploadPath();
     await writeFile(tmpPath, body);
     try {
       const captions = await transcribeMediaFile(tmpPath, {
         onProgress: (m) => console.log(`   ${m}`),
         diarize,
-        numSpeakers: Number.isFinite(numSpeakers) ? numSpeakers : undefined,
+        numSpeakers,
       });
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(captions));
@@ -92,9 +91,21 @@ async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise
   }
 }
 
+function resolvePreviewStaticPath(requestPath: string): string | null {
+  const relativePath = requestPath === "/" ? "index.html" : requestPath.replace(/^\//, "");
+  if (!relativePath || relativePath.includes("\0")) return null;
+  const resolvedRoot = resolve(PREVIEW_DIR);
+  const resolvedFile = resolve(PREVIEW_DIR, relativePath);
+  const rel = relative(resolvedRoot, resolvedFile);
+  if (rel.startsWith("..") || resolve(resolvedRoot, rel) !== resolvedFile) {
+    return null;
+  }
+  return resolvedFile;
+}
+
 function serveStatic(path: string, res: ServerResponse): boolean {
-  const filePath = join(PREVIEW_DIR, path === "/" ? "index.html" : path);
-  if (!existsSync(filePath)) return false;
+  const filePath = resolvePreviewStaticPath(path);
+  if (!filePath || !existsSync(filePath)) return false;
   const ext = extname(filePath);
   const type = MIME[ext] ?? "application/octet-stream";
   res.writeHead(200, { "Content-Type": type });

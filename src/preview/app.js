@@ -42,14 +42,26 @@ async function init() {
 
 function populateSelects() {
   const styleSel = $("style-select");
-  styleSel.innerHTML = meta.styles
-    .map((s) => `<option value="${s.id}">${s.label}</option>`)
-    .join("");
+  styleSel.replaceChildren();
+  for (const s of meta.styles) {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.label;
+    styleSel.appendChild(opt);
+  }
 
   const presetSel = $("preset-select");
-  presetSel.innerHTML =
-    `<option value="">— Preset —</option>` +
-    meta.presets.map((p) => `<option value="${p.key}">${p.name}</option>`).join("");
+  presetSel.replaceChildren();
+  const blank = document.createElement("option");
+  blank.value = "";
+  blank.textContent = "— Preset —";
+  presetSel.appendChild(blank);
+  for (const p of meta.presets) {
+    const opt = document.createElement("option");
+    opt.value = p.key;
+    opt.textContent = p.name;
+    presetSel.appendChild(opt);
+  }
 
   updateStudioLink();
 }
@@ -400,12 +412,14 @@ function renderSpeakersSummary() {
   }
   heading.style.display = "block";
   panel.style.display = "block";
-  panel.innerHTML = speakers
-    .map(
-      (sp, i) =>
-        `<span class="word-chip speaker-chip speaker-${i % SPEAKER_COLORS.length}" style="border-left:3px solid ${SPEAKER_COLORS[i % SPEAKER_COLORS.length]}">${formatSpeaker(sp)}</span>`
-    )
-    .join("");
+  panel.replaceChildren();
+  speakers.forEach((sp, i) => {
+    const chip = document.createElement("span");
+    chip.className = `word-chip speaker-chip speaker-${i % SPEAKER_COLORS.length}`;
+    chip.style.borderLeft = `3px solid ${SPEAKER_COLORS[i % SPEAKER_COLORS.length]}`;
+    chip.textContent = formatSpeaker(sp);
+    panel.appendChild(chip);
+  });
 }
 
 function buildEditor() {
