@@ -57,13 +57,13 @@
       <div class="feat"><div class="feat-tag">Cloud</div><h4>OpenAI Whisper</h4><p>Production-grade accuracy.</p></div>
       <div class="feat"><div class="feat-tag">Fast</div><h4>Groq</h4><p>Low-latency cloud inference.</p></div>
       <div class="feat"><div class="feat-tag">Scale</div><h4>Deepgram</h4><p>Word-level timestamps at scale.</p></div>
-      <div class="feat"><div class="feat-tag">Accurate</div><h4>AssemblyAI</h4><p>Word-level timestamps via upload API.</p></div>
+      <div class="feat"><div class="feat-tag">Accurate</div><h4>AssemblyAI</h4><p>Word-level timestamps and optional speaker diarization.</p></div>
       <div class="feat"><div class="feat-tag">Scribe</div><h4>ElevenLabs</h4><p>Word-level Scribe transcription via API.</p></div>
     </div>
     <div class="code" style="margin-top:14px">
 <span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
-<span class="cm">// npx captioneer process audio.mp3 --provider elevenlabs</span>
+<span class="cm">// npx captioneer process audio.mp3 --provider elevenlabs --diarize</span>
 <span class="kw">const</span> provider = createProvider(<span class="st">'elevenlabs'</span>);
 <span class="kw">const</span> captions = <span class="kw">await</span> provider.transcribe(<span class="st">'audio.mp3'</span>);
     </div>

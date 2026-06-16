@@ -67,11 +67,17 @@ async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise
     const filename =
       (typeof req.headers["x-filename"] === "string" ? req.headers["x-filename"] : "upload.bin") ||
       "upload.bin";
+    const diarize = req.headers["x-diarize"] === "true";
+    const speakersHeader = req.headers["x-speakers"];
+    const numSpeakers =
+      typeof speakersHeader === "string" ? Number.parseInt(speakersHeader, 10) : undefined;
     const tmpPath = join(tmpdir(), `captioneer-${Date.now()}-${basename(filename)}`);
     await writeFile(tmpPath, body);
     try {
       const captions = await transcribeMediaFile(tmpPath, {
         onProgress: (m) => console.log(`   ${m}`),
+        diarize,
+        numSpeakers: Number.isFinite(numSpeakers) ? numSpeakers : undefined,
       });
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(captions));

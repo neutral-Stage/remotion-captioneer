@@ -30,6 +30,6 @@
 
 ## Optional next
 
-- [ ] Speaker diarization parsing in STT providers
+- [x] Speaker diarization parsing in STT providers (AssemblyAI, ElevenLabs; `--diarize` CLI + preview)
 - [ ] Video hosting APIs
 - [ ] Full legacy ESLint cleanup (321 existing issues)

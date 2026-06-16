@@ -831,7 +831,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [ ] Integration with video hosting APIs (YouTube, Vimeo)
 - [x] ~~Real-time caption rendering in browser~~ (`npx captioneer preview` — live browser-based caption rendering with audio sync)
 - [x] Caption translation utilities (`translateCaptionData`, `captioneer translate`)
-- [ ] Speaker diarization UI (optional `speaker` field on segments — foundation in types)
+- [x] Speaker diarization (`--diarize` on AssemblyAI & ElevenLabs; `speaker` on segments)
 
 ---
 

@@ -15,6 +15,10 @@ export type TranscribeMediaOptions = {
   language?: string;
   whisperPath?: string;
   modelPath?: string;
+  /** Enable speaker diarization (AssemblyAI, ElevenLabs) */
+  diarize?: boolean;
+  /** Expected speaker count hint */
+  numSpeakers?: number;
   onProgress?: (message: string) => void;
 };
 
@@ -83,6 +87,14 @@ export async function transcribeMediaFile(
   return provider.transcribe(resolved, {
     model: options.model,
     language: options.language,
+    ...(options.diarize
+      ? {
+          diarize: true,
+          speakerLabels: true,
+          numSpeakers: options.numSpeakers,
+          speakersExpected: options.numSpeakers,
+        }
+      : {}),
   });
 }
 

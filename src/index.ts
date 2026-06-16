@@ -73,7 +73,13 @@ export {
   createProvider,
   detectProvider,
   listProviders,
+  chunkWordsIntoSegments,
+  listSpeakers,
+  formatSpeakerLabel,
+  speakerColorIndex,
 } from "./providers/index.js";
+
+export type { WordWithSpeaker } from "./providers/index.js";
 
 // ─── Audio-Video Sync ─────────────────────────────────────────────
 

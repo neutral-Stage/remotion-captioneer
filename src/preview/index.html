@@ -71,6 +71,10 @@
         <label><input type="checkbox" id="cfg-smart-wrap"> Smart wrap</label>
       </div>
 
+      <div class="config-group">
+        <label><input type="checkbox" id="cfg-diarize"> Speaker diarization (AssemblyAI / ElevenLabs)</label>
+      </div>
+
       <h3>Stats</h3>
       <div class="stats">
         <div class="stat"><div class="stat-label">Segments</div><div class="stat-value" id="stat-segments">0</div></div>
@@ -78,6 +82,9 @@
         <div class="stat"><div class="stat-label">Style</div><div class="stat-value" id="stat-style" style="font-size:0.85rem">—</div></div>
         <div class="stat"><div class="stat-label">FPS</div><div class="stat-value">30</div></div>
       </div>
+
+      <h3 id="speakers-heading" style="display:none">Speakers</h3>
+      <div class="editor-panel" id="speakers-panel" style="display:none"></div>
 
       <h3>Timeline editor</h3>
       <div class="editor-panel" id="editor-panel">

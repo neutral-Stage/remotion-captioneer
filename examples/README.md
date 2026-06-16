@@ -33,6 +33,7 @@ All `*.tsx` examples import `./captions.json` in this folder. Use the same shape
 | `07-emoji.tsx` | Emoji reactions |
 | `08-style-gallery.tsx` | Sequence through multiple styles |
 | `09-preset-picker.tsx` | `applyPreset()` picker pattern |
+| `10-diarization.tsx` | Speaker labels with `--diarize` |
 
 ## Run in this repo
 

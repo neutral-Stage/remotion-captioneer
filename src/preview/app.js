@@ -17,7 +17,16 @@ let syntheticMode = false;
 let syntheticStart = 0;
 let syntheticPaused = true;
 let syntheticRaf = null;
-let playbackRate = 1;
+const SPEAKER_COLORS = [
+  "var(--color-accent)",
+  "var(--color-warning)",
+  "var(--color-success)",
+  "#f472b6",
+  "#a78bfa",
+  "#34d399",
+];
+
+let diarizeEnabled = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -79,7 +88,7 @@ function bindEvents() {
 
   $("copy-jsx-btn").addEventListener("click", copyJsx);
 
-  ["cfg-font-size", "cfg-position", "cfg-highlight", "cfg-words-per-line", "cfg-smart-wrap"].forEach(
+  ["cfg-font-size", "cfg-position", "cfg-highlight", "cfg-words-per-line", "cfg-smart-wrap", "cfg-diarize"].forEach(
     (id) => {
       $(id).addEventListener("change", onConfigChange);
       $(id).addEventListener("input", onConfigChange);
@@ -133,6 +142,7 @@ function onConfigChange() {
   playerProps.highlightColor = $("cfg-highlight").value;
   playerProps.wordsPerLine = Number($("cfg-words-per-line").value) || 0;
   playerProps.useSmartWrap = $("cfg-smart-wrap").checked;
+  diarizeEnabled = $("cfg-diarize").checked;
   remountPlayer();
   saveLocalConfig();
 }
@@ -176,6 +186,7 @@ async function processFile(file) {
         headers: {
           "X-Filename": file.name,
           "Content-Type": file.type || "application/octet-stream",
+          ...(diarizeEnabled ? { "X-Diarize": "true" } : {}),
         },
         body: file,
       });
@@ -200,6 +211,7 @@ async function processFile(file) {
   $("json-output").textContent = JSON.stringify(captions, null, 2);
 
   buildEditor();
+  renderSpeakersSummary();
   remountPlayer();
   setTimeout(clearStatus, 2500);
 }
@@ -358,6 +370,44 @@ function seekTo(ms) {
   syncPlayerFrame();
 }
 
+function speakerChipClass(speaker) {
+  if (!speaker) return "";
+  const idx = hashSpeaker(speaker) % SPEAKER_COLORS.length;
+  return ` speaker-chip speaker-${idx}`;
+}
+
+function hashSpeaker(speaker) {
+  let h = 0;
+  for (let i = 0; i < speaker.length; i++) h = (h * 31 + speaker.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function formatSpeaker(speaker) {
+  const numbered = speaker.match(/^speaker_(\d+)$/);
+  if (numbered) return `Speaker ${Number(numbered[1]) + 1}`;
+  if (/^[A-Z]$/.test(speaker)) return `Speaker ${speaker}`;
+  return speaker.replace(/_/g, " ");
+}
+
+function renderSpeakersSummary() {
+  const speakers = [...new Set(captions.segments.map((s) => s.speaker).filter(Boolean))].sort();
+  const heading = $("speakers-heading");
+  const panel = $("speakers-panel");
+  if (!speakers.length) {
+    heading.style.display = "none";
+    panel.style.display = "none";
+    return;
+  }
+  heading.style.display = "block";
+  panel.style.display = "block";
+  panel.innerHTML = speakers
+    .map(
+      (sp, i) =>
+        `<span class="word-chip speaker-chip speaker-${i % SPEAKER_COLORS.length}" style="border-left:3px solid ${SPEAKER_COLORS[i % SPEAKER_COLORS.length]}">${formatSpeaker(sp)}</span>`
+    )
+    .join("");
+}
+
 function buildEditor() {
   const panel = $("editor-panel");
   panel.innerHTML = "";
@@ -367,13 +417,18 @@ function buildEditor() {
     if (seg.speaker) {
       const sp = document.createElement("div");
       sp.style.color = "var(--color-text-dim)";
-      sp.textContent = seg.speaker;
+      sp.style.fontSize = "var(--text-xs)";
+      sp.textContent = formatSpeaker(seg.speaker);
       row.appendChild(sp);
     }
     seg.words.forEach((w) => {
       const chip = document.createElement("button");
       chip.type = "button";
-      chip.className = "word-chip" + (seg.speaker ? " speaker-" + (seg.speaker === "A" ? "a" : "b") : "");
+      chip.className = "word-chip" + speakerChipClass(seg.speaker);
+      if (seg.speaker) {
+        const idx = hashSpeaker(seg.speaker) % SPEAKER_COLORS.length;
+        chip.style.borderLeftColor = SPEAKER_COLORS[idx];
+      }
       chip.textContent = w.word;
       chip.title = `${w.startMs}–${w.endMs}ms`;
       chip.onclick = () => seekTo(w.startMs);
@@ -421,7 +476,7 @@ function saveLocalConfig() {
   try {
     localStorage.setItem(
       "captioneer-preview-config",
-      JSON.stringify({ style: currentStyle, preset: currentPreset, ...playerProps })
+      JSON.stringify({ style: currentStyle, preset: currentPreset, diarize: diarizeEnabled, ...playerProps })
     );
   } catch (_) {}
 }
@@ -439,6 +494,10 @@ function loadLocalConfig() {
     if (c.fontSize) $("cfg-font-size").value = c.fontSize;
     if (c.position) $("cfg-position").value = c.position;
     if (c.highlightColor) $("cfg-highlight").value = c.highlightColor;
+    if (typeof c.diarize === "boolean") {
+      $("cfg-diarize").checked = c.diarize;
+      diarizeEnabled = c.diarize;
+    }
     onConfigChange();
   } catch (_) {}
 }
