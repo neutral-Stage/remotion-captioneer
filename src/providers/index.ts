@@ -17,3 +17,11 @@ export {
   detectProvider,
   listProviders,
 } from "./registry.js";
+
+export {
+  chunkWordsIntoSegments,
+  listSpeakers,
+  formatSpeakerLabel,
+  speakerColorIndex,
+} from "./diarization.js";
+export type { WordWithSpeaker } from "./diarization.js";

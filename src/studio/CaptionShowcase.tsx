@@ -7,24 +7,22 @@ import { AbsoluteFill, Audio } from "remotion";
 import type { CaptionData, CaptionStyle } from "../types.js";
 import { AnimatedCaptions } from "../components/AnimatedCaptions.js";
 
+import { STYLE_HIGHLIGHT } from "./style-highlights.js";
+
 interface CaptionShowcaseProps {
   captions: CaptionData;
   style: CaptionStyle;
   audioSrc?: string;
 }
 
-const STYLE_HIGHLIGHT: Partial<Record<CaptionStyle, string>> = {
-  karaoke: "#f87171",
-  typewriter: "#34d399",
-  bounce: "#f472b6",
-};
+const STYLE_HIGHLIGHT_LEGACY = STYLE_HIGHLIGHT;
 
 export const CaptionShowcase: React.FC<CaptionShowcaseProps> = ({
   captions,
   style,
   audioSrc,
 }) => {
-  const highlight = STYLE_HIGHLIGHT[style] ?? "#e4e4e7";
+  const highlight = STYLE_HIGHLIGHT_LEGACY[style];
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#09090b" }}>

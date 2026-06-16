@@ -73,7 +73,13 @@ export {
   createProvider,
   detectProvider,
   listProviders,
+  chunkWordsIntoSegments,
+  listSpeakers,
+  formatSpeakerLabel,
+  speakerColorIndex,
 } from "./providers/index.js";
+
+export type { WordWithSpeaker } from "./providers/index.js";
 
 // ─── Audio-Video Sync ─────────────────────────────────────────────
 
@@ -129,6 +135,8 @@ export {
   createCaptionScene,
   createOutroScene,
   createDividerScene,
+  TEMPLATE_DEFAULT_TOKENS,
+  CAPTIONEER_CHROME_TOKENS,
   buildTemplate,
   TemplateComposition,
 } from "./templates/index.js";

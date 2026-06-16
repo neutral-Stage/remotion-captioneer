@@ -36,6 +36,8 @@ program
   .option("-k, --api-key <key>", "API key (or use env vars)")
   .option("-l, --language <lang>", "Language code (e.g. en, es, fr)")
   .option("-o, --output <path>", "Output JSON path")
+  .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
+  .option("--speakers <n>", "Expected number of speakers (with --diarize)", parseInt)
   .option("-v, --verbose", "Verbose output", false)
   .action(async (audioPath: string, opts: any) => {
     const resolved = resolve(audioPath);
@@ -76,6 +78,8 @@ program
         language: opts.language ?? config?.defaultLanguage,
         whisperPath: config?.whisperPath,
         modelPath: config?.modelPath,
+        diarize: opts.diarize,
+        numSpeakers: opts.speakers,
       });
 
       const outputPath = opts.output ?? defaultCaptionOutputPath(resolved);
@@ -83,6 +87,13 @@ program
       writeFileSync(outputPath, JSON.stringify(captions, null, 2));
       console.log(`\n✅ Captions saved to: ${outputPath}`);
       console.log(`📊 ${captions.segments.length} segments, ${captions.durationMs}ms duration`);
+      if (opts.diarize) {
+        const { listSpeakers } = await import("./providers/diarization.js");
+        const speakers = listSpeakers(captions.segments);
+        if (speakers.length > 0) {
+          console.log(`🗣️  Speakers: ${speakers.join(", ")}`);
+        }
+      }
       console.log(`\n💡 Use in your Remotion project:`);
       console.log(`   import { AnimatedCaptions } from "remotion-captioneer";`);
       console.log(`   import captions from "./${basename(outputPath)}";`);
@@ -321,6 +332,8 @@ program
   .option("-l, --language <lang>", "Language code")
   .option("-o, --output-dir <dir>", "Output directory")
   .option("-e, --extensions <exts>", "File extensions (comma-separated)", "mp3,wav,m4a,mp4,ogg,flac")
+  .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
+  .option("--speakers <n>", "Expected number of speakers", parseInt)
   .action(async (directory: string, opts: any) => {
     const { readdirSync, statSync } = await import("fs");
     const { join, resolve, basename, extname } = await import("path");
@@ -374,6 +387,8 @@ program
           language: opts.language ?? config?.defaultLanguage,
           whisperPath: config?.whisperPath,
           modelPath: config?.modelPath,
+          diarize: opts.diarize,
+          numSpeakers: opts.speakers,
         });
 
         const outputPath = join(

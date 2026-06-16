@@ -15,6 +15,10 @@ export type TranscribeMediaOptions = {
   language?: string;
   whisperPath?: string;
   modelPath?: string;
+  /** Enable speaker diarization (AssemblyAI, ElevenLabs) */
+  diarize?: boolean;
+  /** Expected speaker count hint */
+  numSpeakers?: number;
   onProgress?: (message: string) => void;
 };
 
@@ -23,6 +27,7 @@ function detectDefaultProvider(): ProviderName | null {
   if (process.env.OPENAI_API_KEY) return "openai";
   if (process.env.DEEPGRAM_API_KEY) return "deepgram";
   if (process.env.ASSEMBLYAI_API_KEY) return "assemblyai";
+  if (process.env.ELEVENLABS_API_KEY) return "elevenlabs";
   return null;
 }
 
@@ -32,6 +37,7 @@ function getApiKeyForProvider(provider: string): string | undefined {
     groq: "GROQ_API_KEY",
     deepgram: "DEEPGRAM_API_KEY",
     assemblyai: "ASSEMBLYAI_API_KEY",
+    elevenlabs: "ELEVENLABS_API_KEY",
   };
   return process.env[envMap[provider]];
 }
@@ -81,6 +87,14 @@ export async function transcribeMediaFile(
   return provider.transcribe(resolved, {
     model: options.model,
     language: options.language,
+    ...(options.diarize
+      ? {
+          diarize: true,
+          speakerLabels: true,
+          numSpeakers: options.numSpeakers,
+          speakersExpected: options.numSpeakers,
+        }
+      : {}),
   });
 }
 

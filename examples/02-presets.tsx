@@ -7,7 +7,7 @@ import captions from "./captions.json";
 
 // TikTok style
 export const TikTokVideo = () => (
-  <AbsoluteFill style={{ background: "#000" }}>
+    <AbsoluteFill style={{ background: "#09090b" }}>
     <AnimatedCaptions captions={captions} {...applyPreset("tiktok")} />
   </AbsoluteFill>
 );
@@ -23,7 +23,7 @@ export const CinematicVideo = () => (
 
 // Gaming neon
 export const GamingClip = () => (
-  <AbsoluteFill style={{ background: "#0a0a0a" }}>
+  <AbsoluteFill style={{ backgroundColor: "#09090b" }}>
     <AnimatedCaptions captions={captions} {...applyPreset("gaming-neon")} />
   </AbsoluteFill>
 );

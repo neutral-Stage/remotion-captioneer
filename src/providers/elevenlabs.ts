@@ -5,8 +5,9 @@
 
 import { existsSync, readFileSync } from "fs";
 import { basename, extname, resolve } from "path";
-import type { CaptionData, CaptionSegment, Word } from "../types.js";
+import type { CaptionData } from "../types.js";
 import type { STTProvider, STTProviderOptions } from "./base.js";
+import { chunkWordsIntoSegments, type WordWithSpeaker } from "./diarization.js";
 
 const ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/speech-to-text";
 
@@ -18,6 +19,7 @@ interface ElevenLabsWord {
   end?: number | null;
   type?: ElevenLabsWordType | string;
   logprob?: number | null;
+  speaker_id?: string | null;
 }
 
 interface ElevenLabsTranscript {
@@ -151,9 +153,9 @@ export class ElevenLabsProvider implements STTProvider {
       .flatMap((transcript) => transcript.words ?? [])
       .filter(isTimedWord)
       .sort((a, b) => a.start - b.start)
-      .map(toCaptionWord);
+      .map(toCaptionWordWithSpeaker);
 
-    const segments = chunkWords(words);
+    const segments = chunkWordsIntoSegments(words);
     const durationMs =
       segments.length > 0 ? segments[segments.length - 1].endMs : 0;
 
@@ -200,12 +202,14 @@ function isTimedWord(word: ElevenLabsWord): word is TimedElevenLabsWord {
   );
 }
 
-function toCaptionWord(word: TimedElevenLabsWord): Word {
+function toCaptionWordWithSpeaker(word: TimedElevenLabsWord): WordWithSpeaker {
+  const speaker = word.speaker_id?.trim() || undefined;
   return {
     word: word.text.trim(),
     startMs: Math.round(word.start * 1000),
     endMs: Math.round(word.end * 1000),
     confidence: confidenceFromLogprob(word.logprob),
+    speaker,
   };
 }
 
@@ -244,29 +248,6 @@ function normalizeLanguageCode(language?: string): string {
   const code = language.trim();
   const mapped = LANGUAGE_CODE_MAP[code.toLowerCase()];
   return mapped ?? code.toLowerCase();
-}
-
-function chunkWords(words: Word[]): CaptionSegment[] {
-  const segments: CaptionSegment[] = [];
-  const CHUNK_SIZE = 5;
-
-  for (let i = 0; i < words.length; i += CHUNK_SIZE) {
-    const chunk = words.slice(i, i + CHUNK_SIZE);
-    const text = chunk.map((word) => word.word).join(" ").trim();
-
-    if (!text) {
-      continue;
-    }
-
-    segments.push({
-      text,
-      startMs: chunk[0].startMs,
-      endMs: chunk[chunk.length - 1].endMs,
-      words: chunk,
-    });
-  }
-
-  return segments;
 }
 
 function getMimeType(filePath: string): string {
