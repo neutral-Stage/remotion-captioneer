@@ -27,6 +27,8 @@ export interface CaptionSegment {
   startMs: number;
   endMs: number;
   words: Word[];
+  /** Optional speaker label from diarization */
+  speaker?: string;
 }
 
 /**

@@ -1,59 +1,63 @@
 #!/usr/bin/env node
 /**
- * Ensures docs/marketing counts match source constants.
+ * Validates docs, README, and preview align with generated ui-meta.
  */
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-const styles = [
-  "word-highlight",
-  "karaoke",
-  "typewriter",
-  "bounce",
-  "wave",
-  "glow",
-  "typewriter-erase",
-  "pill",
-  "flicker",
-  "highlighter",
-  "blur",
-  "rainbow",
-  "scale",
-  "spotlight",
-];
+const metaPath = join(root, "docs/ui-meta.json");
+if (!existsSync(metaPath)) {
+  console.error("Run: npm run generate:meta");
+  process.exit(1);
+}
 
+const meta = JSON.parse(readFileSync(metaPath, "utf8"));
 const html = readFileSync(join(root, "docs/index.html"), "utf8");
+const readme = readFileSync(join(root, "README.md"), "utf8");
+const appJs = readFileSync(join(root, "docs/app.js"), "utf8");
+const previewJs = readFileSync(join(root, "src/preview/app.js"), "utf8");
 
 let ok = true;
-
-if (!html.includes("applyPreset")) {
-  console.error("docs/index.html should document applyPreset");
+const fail = (msg) => {
+  console.error(msg);
   ok = false;
-}
+};
 
+if (!html.includes("applyPreset")) fail("docs/index.html should document applyPreset");
 if (html.includes("transcribe(") && html.includes("from 'remotion-captioneer'")) {
-  console.error("docs should not import non-existent transcribe()");
-  ok = false;
+  fail("docs should not import non-existent transcribe()");
+}
+if (html.includes("captioneer info")) fail("docs references removed captioneer info command");
+if (html.includes("Diarization and sentiment")) {
+  fail("docs should not claim AssemblyAI diarization until implemented");
 }
 
-if (html.includes("captioneer info")) {
-  console.error("docs references removed captioneer info command");
-  ok = false;
+if (/\bFour styles\b/i.test(readme)) fail('README still says "Four styles"');
+if (readme.includes("✅ 4 ready-to-use styles") || readme.includes("Four styles. Zero")) {
+  fail("README still advertises only 4 styles");
 }
 
-for (const s of styles) {
-  if (!html.includes(s) && !html.includes(s.replace(/-/g, ""))) {
-    // style grid may use labels; warn only for primary ids
-    if (["word-highlight", "karaoke", "typewriter", "bounce"].includes(s)) {
-      console.warn(`warn: docs may not mention style ${s}`);
-    }
+if (!html.includes("app.js")) fail("docs should load app.js");
+if (!appJs.includes("ui-meta.json")) fail("docs app.js should fetch ui-meta.json");
+
+for (const s of meta.styles) {
+  if (!appJs.includes("META.styles") && !appJs.includes(s.id)) {
+    fail(`docs app missing style metadata for ${s.id}`);
   }
 }
 
-console.log(`Validated: ${styles.length} caption styles in source checklist`);
+if (!previewJs.includes("api/meta") || !previewJs.includes("style-select")) {
+  fail("preview app should load styles from /api/meta");
+}
+
+if (meta.styleCount !== 14) fail(`expected 14 styles, got ${meta.styleCount}`);
+
+console.log(
+  `Validated: ${meta.styleCount} styles, ${meta.presetCount} presets in ui-meta.json`
+);
 
 if (!ok) process.exit(1);
 console.log("docs/validate OK");

@@ -129,6 +129,8 @@ export {
   createCaptionScene,
   createOutroScene,
   createDividerScene,
+  TEMPLATE_DEFAULT_TOKENS,
+  CAPTIONEER_CHROME_TOKENS,
   buildTemplate,
   TemplateComposition,
 } from "./templates/index.js";

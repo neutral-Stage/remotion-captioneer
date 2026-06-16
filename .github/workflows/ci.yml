@@ -74,7 +74,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      - name: Lint UI surfaces
+        run: npm run lint:ui
+
+      - name: Lint (full codebase)
         continue-on-error: true
         run: npm run lint
 
@@ -99,6 +102,12 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate UI metadata
+        run: npm run generate:meta
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

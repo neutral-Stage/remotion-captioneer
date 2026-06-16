@@ -31,6 +31,8 @@ All `*.tsx` examples import `./captions.json` in this folder. Use the same shape
 | `05-layouts.tsx` | Layout primitives |
 | `06-export.ts` | `toSRT` / `toVTT` (Node) |
 | `07-emoji.tsx` | Emoji reactions |
+| `08-style-gallery.tsx` | Sequence through multiple styles |
+| `09-preset-picker.tsx` | `applyPreset()` picker pattern |
 
 ## Run in this repo
 

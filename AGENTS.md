@@ -4,6 +4,7 @@
 
 ```bash
 npm install
+npm run generate:meta
 ```
 
 ## Develop
@@ -14,16 +15,24 @@ npm run build
 npm start
 ```
 
-Remotion Studio loads **14** demo compositions from `src/studio/`.
+Remotion Studio: **Welcome** composition first, then **Gallery/** and **Styles/** folders (`src/studio/Root.tsx`).
 
 ## Preview server
 
 ```bash
-npm run build
+npm run build          # includes build:preview → dist/preview/
 npm run preview:web
 ```
 
-Open http://localhost:3456 — upload **audio** (uses `POST /api/process` + STT env keys) or **caption JSON**.
+Open http://localhost:3456 — Remotion Player preview, configurator, timeline editor. Upload **audio** (`POST /api/process`) or **caption JSON**.
+
+Deep links: `?style=karaoke&preset=tiktok`
+
+## Design tokens
+
+- Canonical: [`docs/theme.css`](docs/theme.css)
+- Preview imports: [`src/ui/tokens.css`](src/ui/tokens.css)
+- Guide: [`docs/DESIGN.md`](docs/DESIGN.md)
 
 ## Tests & checks
 
@@ -32,6 +41,7 @@ npm test
 npx tsc --noEmit
 npx remotion compositions
 npm run validate:docs
+npm run generate:meta
 ```
 
 ## Environment variables
@@ -48,7 +58,14 @@ Local whisper: `captioneer process audio.mp4 --provider local` (requires whisper
 
 ## Design (docs & preview UI)
 
-Marketing and preview surfaces use a neutral zinc palette with a single blue accent (`#3b82f6`). Shared tokens live in `docs/theme.css`; the preview server inlines matching CSS variables. Avoid purple/gold gradients and emoji-heavy headings in new UI.
+Marketing and preview chrome: neutral zinc + blue accent (`#3b82f6`). Caption preset colors are separate. See `docs/DESIGN.md`.
+
+## Docker preview
+
+```bash
+docker build -t captioneer .
+docker run -p 3456:3456 -e OPENAI_API_KEY=... captioneer
+```
 
 ## Architecture
 

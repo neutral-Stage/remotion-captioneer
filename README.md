@@ -1,8 +1,8 @@
-# 🎬 remotion-captioneer
+# remotion-captioneer
 
 **Drop-in animated captions for [Remotion](https://remotion.dev).**
 
-Feed it audio. Get word-level synced, beautifully animated captions. Four styles. Zero hassle.
+Feed it audio. Get word-level synced, beautifully animated captions. **14 styles.** Zero hassle.
 
 [![CI](https://github.com/neutral-Stage/remotion-captioneer/actions/workflows/ci.yml/badge.svg)](https://github.com/neutral-Stage/remotion-captioneer/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/remotion-captioneer)](https://www.npmjs.com/package/remotion-captioneer)
@@ -37,7 +37,7 @@ const captionData = fromCaptionArray(flatCaptions);
 |---|---|---|
 | **Caption types** | ✅ `Caption` type | ✅ Compatible + `CaptionData` with segments |
 | **Page segmentation** | ✅ `createTikTokStyleCaptions()` | ❌ Use official package |
-| **Animated components** | ❌ Build yourself | ✅ 4 ready-to-use styles |
+| **Animated components** | ❌ Build yourself | ✅ 14 ready-to-use styles |
 | **STT/transcription** | ❌ Separate package | ✅ 6 providers built-in |
 | **CLI tool** | ❌ | ✅ `npx captioneer process` |
 
@@ -102,16 +102,16 @@ Active word bounces up with spring physics.
 
 - 🎙️ **6 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs
 - 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
-- 🎭 **24 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun
+- 🎭 **23 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun
 - 🎵 **Audio-Video Sync** — Beat detection, volume-reactive animations, timeline keyframes
 - 📦 **Template System** — Data-driven video generation from JSON config
 - 🧱 **Layout Primitives** — Stack, Row, Columns, Grid, Center, FadeIn, SlideUp
 - 📤 **7 Export Formats** — SRT, VTT, ASS, TXT, word-level SRT & VTT
 - ⚡ **Drop-in Components** — `<AnimatedCaptions>` works out of the box
-- 🔧 **CLI Tool** — process, batch, export, presets, providers, styles
+- 🔧 **CLI Tool** — process, batch, export, translate, preview, presets, providers, styles, init, demo
 - 📐 **Zero Config** — Works with sensible defaults, customizable everything
 - 🔷 **TypeScript** — Full type definitions included
-- 🐳 **Docker Ready** — Deploy rendering at scale
+- 🐳 **Docker** — `Dockerfile` for headless preview (see repo root)
 
 ---
 
@@ -772,7 +772,12 @@ ENTRYPOINT ["npx", "captioneer"]
 | `fontSize` | `number` | `56` | Font size in px |
 | `fontColor` | `string` | `"rgba(255,255,255,0.5)"` | Inactive text color |
 | `highlightColor` | `string` | `"#FFD700"` | Active/highlight color |
+| `backgroundColor` | `string` | — | Optional caption area background |
 | `position` | `"top" \| "center" \| "bottom"` | `"bottom"` | Vertical position |
+| `maxWidth` | `number` | — | Max caption width in px |
+| `wordsPerLine` | `number` | — | Words per line when wrapping |
+| `useSmartWrap` | `boolean` | `false` | Use `smartWrap()` for line breaks |
+| `textDirection` | `"ltr" \| "rtl" \| "auto"` | `"ltr"` | Text direction for RTL scripts |
 
 ---
 
@@ -789,6 +794,8 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 | `05-layouts.tsx` | Custom layouts with primitives |
 | `06-export.ts` | Export to SRT, VTT, ASS formats |
 | `07-emoji.tsx` | Emoji reactions at word timestamps |
+| `08-style-gallery.tsx` | Cycling all 14 styles in one composition |
+| `09-preset-picker.tsx` | Applying presets to AnimatedCaptions |
 
 ---
 
@@ -797,7 +804,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 ### ✅ Completed
 
 - [x] 14 caption styles (word-highlight, karaoke, typewriter, bounce, wave, glow, typewriter-erase, pill, flicker, highlighter, blur, rainbow, scale, spotlight)
-- [x] 24 caption presets across 10 categories (Social, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun)
+- [x] 23 caption presets across 10 categories
 - [x] Multi-line auto-wrapping with smart breaks (`smartWrap()`)
 - [x] Word-level emoji reactions (`EmojiReactions` + `autoGenerateReactions()`)
 - [x] Real-time preview server (`npx captioneer preview`)
@@ -824,7 +831,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [ ] Integration with video hosting APIs (YouTube, Vimeo)
 - [x] ~~Real-time caption rendering in browser~~ (`npx captioneer preview` — live browser-based caption rendering with audio sync)
 - [x] Caption translation utilities (`translateCaptionData`, `captioneer translate`)
-- [ ] Speaker diarization (multi-speaker support)
+- [ ] Speaker diarization UI (optional `speaker` field on segments — foundation in types)
 
 ---
 
