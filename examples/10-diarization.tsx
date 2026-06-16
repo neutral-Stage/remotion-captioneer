@@ -8,13 +8,13 @@
 
 import { AbsoluteFill } from "remotion";
 import { AnimatedCaptions, listSpeakers, formatSpeakerLabel } from "remotion-captioneer";
-import captions from "./captions.json";
+import captions from "./captions-diarized.json";
 
 export const DiarizationExample = () => {
   const speakers = listSpeakers(captions.segments);
   return (
     <AbsoluteFill style={{ backgroundColor: "#09090b" }}>
-      <AnimatedCaptions captions={captions} style="word-highlight" highlightColor="#3b82f6" />
+      <AnimatedCaptions captions={captions} style="word-highlight" highlightColor="#3b82f6" showSpeakerLabels />
       {speakers.length > 0 && (
         <div
           style={{

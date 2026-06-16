@@ -226,7 +226,7 @@ Choose your speech-to-text backend. Supports 6 providers out of the box:
 
 ## 🎭 Caption Presets
 
-Apply a professional look instantly with one of 16 built-in presets:
+Apply a professional look instantly with one of 23 built-in presets:
 
 ```tsx
 import { AnimatedCaptions, applyPreset } from "remotion-captioneer";
@@ -796,6 +796,9 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 | `07-emoji.tsx` | Emoji reactions at word timestamps |
 | `08-style-gallery.tsx` | Cycling all 14 styles in one composition |
 | `09-preset-picker.tsx` | Applying presets to AnimatedCaptions |
+| `10-diarization.tsx` | Speaker labels with `--diarize` |
+| `11-translate.tsx` | `translateCaptionData` / `captioneer translate` |
+| `12-rtl.tsx` | RTL captions with `textDirection="rtl"` |
 
 ---
 
@@ -816,7 +819,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Layout primitives (Stack, Row, Columns, Grid, FadeIn, SlideUp, etc.)
 - [x] Export formats (SRT, VTT, ASS, TXT, word-level SRT & VTT)
 - [x] Project scaffolder (`npx captioneer init`)
-- [x] 7 working examples covering all features
+- [x] 10 working examples covering all features
 - [x] 11 CLI commands (init, process, batch, export, translate, preview, presets, providers, styles, demo)
 - [x] GitHub Pages demo with all 14 styles animated
 - [x] GitHub Actions CI/CD (build, test, release to npm, CodeQL)

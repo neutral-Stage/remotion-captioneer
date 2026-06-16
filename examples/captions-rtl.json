@@ -1,0 +1,27 @@
+{
+  "language": "ar",
+  "durationMs": 5000,
+  "segments": [
+    {
+      "text": "مرحبا بالعالم هذا رائع",
+      "startMs": 0,
+      "endMs": 2500,
+      "words": [
+        { "word": "مرحبا", "startMs": 0, "endMs": 600, "confidence": 0.95 },
+        { "word": "بالعالم", "startMs": 600, "endMs": 1200, "confidence": 0.95 },
+        { "word": "هذا", "startMs": 1200, "endMs": 1700, "confidence": 0.95 },
+        { "word": "رائع", "startMs": 1700, "endMs": 2500, "confidence": 0.95 }
+      ]
+    },
+    {
+      "text": "التسميات التوضيحية جميلة",
+      "startMs": 2800,
+      "endMs": 5000,
+      "words": [
+        { "word": "التسميات", "startMs": 2800, "endMs": 3500, "confidence": 0.95 },
+        { "word": "التوضيحية", "startMs": 3500, "endMs": 4200, "confidence": 0.95 },
+        { "word": "جميلة", "startMs": 4200, "endMs": 5000, "confidence": 0.95 }
+      ]
+    }
+  ]
+}

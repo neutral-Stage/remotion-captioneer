@@ -34,6 +34,7 @@
       <div class="waveform" id="waveform" aria-hidden="true" style="display:none"></div>
 
       <div class="timeline" id="timeline" role="slider" aria-label="Playback position" tabindex="0" style="display:none">
+        <div class="timeline-beats" id="timeline-beats"></div>
         <div class="timeline-progress" id="timeline-progress"></div>
       </div>
 
@@ -64,6 +65,10 @@
         <input type="color" id="cfg-highlight" value="#3b82f6">
       </div>
       <div class="config-group">
+        <label for="cfg-font-color">Font color</label>
+        <input type="text" id="cfg-font-color" value="rgba(255,255,255,0.5)" placeholder="rgba(255,255,255,0.5)">
+      </div>
+      <div class="config-group">
         <label for="cfg-words-per-line">Words per line</label>
         <input type="number" id="cfg-words-per-line" value="0" min="0" max="12">
       </div>
@@ -73,6 +78,10 @@
 
       <div class="config-group">
         <label><input type="checkbox" id="cfg-diarize"> Speaker diarization (AssemblyAI / ElevenLabs)</label>
+      </div>
+      <div class="config-group" id="speakers-count-group">
+        <label for="cfg-speakers">Expected speakers (optional)</label>
+        <input type="number" id="cfg-speakers" value="" min="2" max="10" placeholder="Auto">
       </div>
 
       <h3>Stats</h3>
@@ -88,7 +97,7 @@
 
       <h3>Timeline editor</h3>
       <div class="editor-panel" id="editor-panel">
-        <p style="color:var(--color-text-secondary);font-size:var(--text-xs)">Upload captions to edit word timings. Click a word to seek.</p>
+        <p style="color:var(--color-text-secondary);font-size:var(--text-xs)">Drag word edges to adjust timing. Click a word to seek.</p>
       </div>
 
       <h3>Caption data</h3>

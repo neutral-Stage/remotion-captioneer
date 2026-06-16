@@ -11,8 +11,8 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { presets } from "./presets/index.js";
 import { transcribeMediaFile } from "./transcribe-media.js";
-import { CAPTION_STYLES, styleToCompositionId } from "./caption-styles.js";
-import type { CaptionStyle } from "./types.js";
+import { analyzeAudio } from "./sync/audio-analysis.js";
+import { parseProcessHeaders } from "./preview/headers.js";
 
 const PORT = 3456;
 
@@ -49,10 +49,6 @@ function buildPresetPayload(): Record<
   return out;
 }
 
-const STUDIO_COMPOSITION_MAP = Object.fromEntries(
-  CAPTION_STYLES.map((s) => [s, styleToCompositionId(s as CaptionStyle)])
-);
-
 async function readRequestBody(req: IncomingMessage): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of req) {
@@ -61,23 +57,43 @@ async function readRequestBody(req: IncomingMessage): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
+async function handleAnalyze(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  try {
+    const body = await readRequestBody(req);
+    const filename =
+      (typeof req.headers["x-filename"] === "string" ? req.headers["x-filename"] : "upload.bin") ||
+      "upload.bin";
+    const tmpPath = join(tmpdir(), `captioneer-analyze-${Date.now()}-${basename(filename)}`);
+    await writeFile(tmpPath, body);
+    try {
+      const analysis = await analyzeAudio(tmpPath);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(analysis));
+    } finally {
+      await unlink(tmpPath).catch(() => undefined);
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Audio analysis failed";
+    console.error("Preview /api/analyze failed:", e);
+    res.writeHead(500, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: msg }));
+  }
+}
+
 async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
     const body = await readRequestBody(req);
     const filename =
       (typeof req.headers["x-filename"] === "string" ? req.headers["x-filename"] : "upload.bin") ||
       "upload.bin";
-    const diarize = req.headers["x-diarize"] === "true";
-    const speakersHeader = req.headers["x-speakers"];
-    const numSpeakers =
-      typeof speakersHeader === "string" ? Number.parseInt(speakersHeader, 10) : undefined;
+    const { diarize, numSpeakers } = parseProcessHeaders(req.headers);
     const tmpPath = join(tmpdir(), `captioneer-${Date.now()}-${basename(filename)}`);
     await writeFile(tmpPath, body);
     try {
       const captions = await transcribeMediaFile(tmpPath, {
         onProgress: (m) => console.log(`   ${m}`),
         diarize,
-        numSpeakers: Number.isFinite(numSpeakers) ? numSpeakers : undefined,
+        numSpeakers,
       });
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(captions));
@@ -117,6 +133,11 @@ export function startPreviewServer(port: number = PORT): void {
 
     if (req.method === "POST" && url === "/api/process") {
       void handleProcess(req, res);
+      return;
+    }
+
+    if (req.method === "POST" && url === "/api/analyze") {
+      void handleAnalyze(req, res);
       return;
     }
 

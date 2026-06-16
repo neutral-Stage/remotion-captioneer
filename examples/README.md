@@ -34,6 +34,8 @@ All `*.tsx` examples import `./captions.json` in this folder. Use the same shape
 | `08-style-gallery.tsx` | Sequence through multiple styles |
 | `09-preset-picker.tsx` | `applyPreset()` picker pattern |
 | `10-diarization.tsx` | Speaker labels with `--diarize` |
+| `11-translate.tsx` | `translateCaptionData` (Node) |
+| `12-rtl.tsx` | RTL captions with `textDirection="rtl"` |
 
 ## Run in this repo
 

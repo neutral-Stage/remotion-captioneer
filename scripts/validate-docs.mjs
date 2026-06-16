@@ -55,6 +55,32 @@ if (!previewJs.includes("api/meta") || !previewJs.includes("style-select")) {
 
 if (meta.styleCount !== 14) fail(`expected 14 styles, got ${meta.styleCount}`);
 
+const presetCount = meta.presetCount ?? meta.presets?.length;
+if (presetCount == null) fail("ui-meta.json missing presetCount");
+if (!readme.includes(String(presetCount))) {
+  fail(`README should mention ${presetCount} presets (ui-meta presetCount)`);
+}
+if (/\b16 built-in presets\b/i.test(readme)) {
+  fail("README still says 16 built-in presets");
+}
+
+const examplesDir = join(root, "examples");
+for (const file of ["10-diarization.tsx", "11-translate.tsx", "12-rtl.tsx"]) {
+  if (!existsSync(join(examplesDir, file))) {
+    fail(`missing example ${file}`);
+  }
+}
+
+if (!previewJs.includes("timeline-beats") && !previewJs.includes("renderBeatMarkers")) {
+  fail("preview should implement beat markers when README claims them");
+}
+if (!previewJs.includes("buildWaveformFromFile") && !previewJs.includes("decodeAudioData")) {
+  fail("preview should build waveform from audio");
+}
+if (!previewJs.includes("setupWordDrag") && !previewJs.includes("word-handle")) {
+  fail("preview should support word timing drag editor");
+}
+
 console.log(
   `Validated: ${meta.styleCount} styles, ${meta.presetCount} presets in ui-meta.json`
 );

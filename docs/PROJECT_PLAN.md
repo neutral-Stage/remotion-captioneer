@@ -9,7 +9,7 @@
 | Preview server | `dist/preview/` via `src/preview-server.ts` | ✅ Remotion Player + configurator |
 | GitHub Pages | `docs/` (theme.css, app.js, ui-meta.json) | ✅ |
 | Scaffold | `src/scaffold.ts` | ✅ |
-| Examples | `examples/` + `captions.json` | ✅ through 09 |
+| Examples | `examples/` + `captions.json` | ✅ through 12 |
 
 ## UI system
 
@@ -31,5 +31,6 @@
 ## Optional next
 
 - [x] Speaker diarization parsing in STT providers (AssemblyAI, ElevenLabs; `--diarize` CLI + preview)
+- [x] Preview timeline editor (word timing drag, waveform, beat markers, JSON export)
 - [ ] Video hosting APIs
 - [ ] Full legacy ESLint cleanup (321 existing issues)

@@ -8,7 +8,9 @@ import { CaptionShowcase } from "./CaptionShowcase.js";
 import { WelcomeComposition } from "./WelcomeComposition.js";
 import { StyleGallery } from "./StyleGallery.js";
 import { PresetShowcase } from "./PresetShowcase.js";
+import { DiarizationDemo } from "./DiarizationDemo.js";
 import { CAPTION_STYLES, styleToCompositionId } from "../caption-styles.js";
+import { presets } from "../presets/index.js";
 import { demoCaptions } from "./demo/captions.js";
 import type { CaptionStyle } from "../types.js";
 
@@ -49,7 +51,15 @@ export const RemotionRoot: React.FC = () => {
         <Composition
           id="PresetShowcase"
           component={PresetShowcase}
-          durationInFrames={8 * 75}
+          durationInFrames={Object.keys(presets).length * 60}
+          fps={DEMO_FPS}
+          width={DEMO_WIDTH}
+          height={DEMO_HEIGHT}
+        />
+        <Composition
+          id="DiarizationDemo"
+          component={DiarizationDemo}
+          durationInFrames={DEMO_DURATION_FRAMES}
           fps={DEMO_FPS}
           width={DEMO_WIDTH}
           height={DEMO_HEIGHT}
