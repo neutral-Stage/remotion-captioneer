@@ -1,4 +1,4 @@
-@import "../../docs/theme.css";
+@import "./theme.css";
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -149,6 +149,22 @@ body {
   cursor: pointer;
 }
 
+.timeline-beats {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.beat-marker {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--color-warning);
+  opacity: 0.7;
+  transform: translateX(-1px);
+}
+
 .timeline-progress {
   height: 100%;
   background: var(--color-accent);
@@ -274,17 +290,44 @@ body {
 .seg-row:last-child { border-bottom: none; }
 
 .word-chip {
-  display: inline-block;
-  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
   margin: 2px;
   border-radius: var(--radius-sm);
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   cursor: pointer;
+  position: relative;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+}
+
+.word-chip-inner {
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.word-handle {
+  width: 4px;
+  align-self: stretch;
+  cursor: ew-resize;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.word-handle:hover {
+  background: var(--color-accent);
+  opacity: 0.5;
 }
 
 .word-chip:hover,
-.word-chip:focus-visible {
+.word-chip:focus-within {
   border-color: var(--color-accent);
   outline: none;
 }

@@ -13,10 +13,11 @@ const srcDir = join(root, "src/preview");
 
 mkdirSync(outDir, { recursive: true });
 
-// Copy static assets
+// Copy static assets + design tokens
 copyFileSync(join(srcDir, "index.html"), join(outDir, "index.html"));
 copyFileSync(join(srcDir, "app.js"), join(outDir, "app.js"));
 copyFileSync(join(srcDir, "styles.css"), join(outDir, "styles.css"));
+copyFileSync(join(root, "docs/theme.css"), join(outDir, "theme.css"));
 
 // Copy theme + ui-meta
 copyFileSync(join(root, "docs/ui-meta.json"), join(outDir, "ui-meta.json"));

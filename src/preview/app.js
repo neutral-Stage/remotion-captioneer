@@ -5,6 +5,10 @@
 let meta = { styles: [], presets: [] };
 let currentStyle = "word-highlight";
 let currentPreset = "tiktok";
+let captions = null;
+let playbackRate = 1;
+let audioAnalysis = null;
+let lastUploadedFile = null;
 const playerProps = {
   fontSize: 56,
   fontColor: "rgba(255,255,255,0.5)",
@@ -27,6 +31,7 @@ const SPEAKER_COLORS = [
 ];
 
 let diarizeEnabled = false;
+const MS_PER_DRAG_PX = 8;
 
 const $ = (id) => document.getElementById(id);
 
@@ -37,7 +42,7 @@ async function init() {
   bindEvents();
   applyUrlParams();
   loadLocalConfig();
-  buildWaveformPlaceholder();
+  clearWaveform();
 }
 
 function populateSelects() {
@@ -100,12 +105,19 @@ function bindEvents() {
 
   $("copy-jsx-btn").addEventListener("click", copyJsx);
 
-  ["cfg-font-size", "cfg-position", "cfg-highlight", "cfg-words-per-line", "cfg-smart-wrap", "cfg-diarize"].forEach(
-    (id) => {
-      $(id).addEventListener("change", onConfigChange);
-      $(id).addEventListener("input", onConfigChange);
-    }
-  );
+  [
+    "cfg-font-size",
+    "cfg-position",
+    "cfg-highlight",
+    "cfg-font-color",
+    "cfg-words-per-line",
+    "cfg-smart-wrap",
+    "cfg-diarize",
+    "cfg-speakers",
+  ].forEach((id) => {
+    $(id).addEventListener("change", onConfigChange);
+    $(id).addEventListener("input", onConfigChange);
+  });
 
   $("play-btn").addEventListener("click", togglePlay);
   $("restart-btn").addEventListener("click", restart);
@@ -142,6 +154,7 @@ function applyPreset(key) {
   $("cfg-highlight").value = p.highlightColor;
   $("cfg-font-size").value = p.fontSize;
   $("cfg-position").value = p.position;
+  if (p.fontColor) $("cfg-font-color").value = p.fontColor;
   $("stat-style").textContent = p.name;
   updateStudioLink();
   remountPlayer();
@@ -152,9 +165,11 @@ function onConfigChange() {
   playerProps.fontSize = Number($("cfg-font-size").value) || 56;
   playerProps.position = $("cfg-position").value;
   playerProps.highlightColor = $("cfg-highlight").value;
+  playerProps.fontColor = $("cfg-font-color").value || "rgba(255,255,255,0.5)";
   playerProps.wordsPerLine = Number($("cfg-words-per-line").value) || 0;
   playerProps.useSmartWrap = $("cfg-smart-wrap").checked;
   diarizeEnabled = $("cfg-diarize").checked;
+  $("speakers-count-group").style.display = diarizeEnabled ? "block" : "none";
   remountPlayer();
   saveLocalConfig();
 }
@@ -169,9 +184,17 @@ function clearStatus() {
   $("status-banner").className = "status-banner";
 }
 
+function getSpeakersHeader() {
+  const raw = $("cfg-speakers").value;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n >= 2 ? String(n) : undefined;
+}
+
 async function processFile(file) {
   setStatus("Processing…", "loading");
   $("json-output").textContent = "Processing…";
+  lastUploadedFile = file;
+  audioAnalysis = null;
 
   const isJson =
     file.name.toLowerCase().endsWith(".json") || file.type === "application/json";
@@ -183,6 +206,7 @@ async function processFile(file) {
       if (!captions?.segments) throw new Error("Expected { segments: [...] }");
       syntheticMode = true;
       $("audio-player").removeAttribute("src");
+      clearWaveform();
     } catch (err) {
       setStatus("Invalid caption JSON: " + err.message, "error");
       $("json-output").textContent = "Invalid JSON.";
@@ -192,26 +216,36 @@ async function processFile(file) {
     syntheticMode = false;
     const url = URL.createObjectURL(file);
     $("audio-player").src = url;
+    void buildWaveformFromFile(file);
     try {
+      const headers = {
+        "X-Filename": file.name,
+        "Content-Type": file.type || "application/octet-stream",
+        ...(diarizeEnabled ? { "X-Diarize": "true" } : {}),
+      };
+      const speakers = getSpeakersHeader();
+      if (speakers) headers["X-Speakers"] = speakers;
+
       const res = await fetch("/api/process", {
         method: "POST",
-        headers: {
-          "X-Filename": file.name,
-          "Content-Type": file.type || "application/octet-stream",
-          ...(diarizeEnabled ? { "X-Diarize": "true" } : {}),
-        },
+        headers,
         body: file,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || res.statusText);
       captions = data;
       setStatus("Transcription complete", "success");
+      void fetchAudioAnalysis(file);
     } catch (err) {
       setStatus("Transcribe failed: " + (err.message || err), "error");
       captions = demoCaptions();
     }
   }
 
+  showPreviewUI();
+}
+
+function showPreviewUI() {
   $("upload-zone").classList.add("hidden");
   $("remotion-mount").classList.add("active");
   $("timeline").style.display = "block";
@@ -220,12 +254,32 @@ async function processFile(file) {
 
   $("stat-segments").textContent = String(captions.segments.length);
   $("stat-duration").textContent = (captions.durationMs / 1000).toFixed(1) + "s";
-  $("json-output").textContent = JSON.stringify(captions, null, 2);
+  syncJsonOutput();
 
   buildEditor();
   renderSpeakersSummary();
+  renderBeatMarkers();
   remountPlayer();
   setTimeout(clearStatus, 2500);
+}
+
+async function fetchAudioAnalysis(file) {
+  try {
+    const res = await fetch("/api/analyze", {
+      method: "POST",
+      headers: {
+        "X-Filename": file.name,
+        "Content-Type": file.type || "application/octet-stream",
+      },
+      body: file,
+    });
+    const data = await res.json();
+    if (!res.ok) return;
+    audioAnalysis = data;
+    renderBeatMarkers();
+  } catch {
+    // Beat analysis requires ffmpeg on the server — optional
+  }
 }
 
 function demoCaptions() {
@@ -265,7 +319,7 @@ function syncPlayerFrame() {
 
 function getCurrentTimeMs() {
   if (syntheticMode) {
-    if (syntheticPaused) return Math.max(0, performance.now() - syntheticStart) * 0;
+    if (syntheticPaused) return 0;
     return (performance.now() - syntheticStart) * playbackRate;
   }
   return $("audio-player").currentTime * 1000;
@@ -279,11 +333,13 @@ function togglePlay() {
       syntheticPaused = false;
       $("play-btn").textContent = "⏸ Pause";
       $("play-btn").classList.add("active");
+      window.captioneerPlay?.();
       startSyntheticLoop();
     } else {
       syntheticPaused = true;
       $("play-btn").textContent = "▶ Play";
       $("play-btn").classList.remove("active");
+      window.captioneerPause?.();
       if (syntheticRaf) cancelAnimationFrame(syntheticRaf);
     }
     return;
@@ -291,11 +347,13 @@ function togglePlay() {
   const audio = $("audio-player");
   if (audio.paused) {
     void audio.play();
+    window.captioneerPlay?.();
     $("play-btn").textContent = "⏸ Pause";
     $("play-btn").classList.add("active");
     startAudioLoop();
   } else {
     audio.pause();
+    window.captioneerPause?.();
     $("play-btn").textContent = "▶ Play";
     $("play-btn").classList.remove("active");
   }
@@ -306,9 +364,11 @@ function restart() {
     syntheticStart = performance.now();
     syntheticPaused = false;
     $("play-btn").textContent = "⏸ Pause";
+    window.captioneerPlay?.();
     startSyntheticLoop();
   } else {
     $("audio-player").currentTime = 0;
+    window.captioneerSeekTo?.(0);
     if ($("audio-player").paused) togglePlay();
   }
   updateProgress();
@@ -329,6 +389,7 @@ function startSyntheticLoop() {
         syntheticPaused = true;
         $("play-btn").textContent = "▶ Play";
         $("play-btn").classList.remove("active");
+        window.captioneerPause?.();
         return;
       }
       syntheticRaf = requestAnimationFrame(loop);
@@ -354,8 +415,21 @@ function updateProgress() {
   $("timeline-progress").style.width = p + "%";
 }
 
+function renderBeatMarkers() {
+  const container = $("timeline-beats");
+  container.innerHTML = "";
+  if (!audioAnalysis?.beats?.length || !captions?.durationMs) return;
+  for (const beat of audioAnalysis.beats) {
+    const marker = document.createElement("div");
+    marker.className = "beat-marker";
+    marker.style.left = (beat.timeMs / captions.durationMs) * 100 + "%";
+    marker.title = `Beat ${beat.timeMs}ms`;
+    container.appendChild(marker);
+  }
+}
+
 function onTimelineClick(e) {
-  if (!captions) return;
+  if (!captions || e.target.classList.contains("beat-marker")) return;
   const rect = $("timeline").getBoundingClientRect();
   const ratio = (e.clientX - rect.left) / rect.width;
   seekTo(ratio * captions.durationMs);
@@ -422,9 +496,88 @@ function renderSpeakersSummary() {
   });
 }
 
+function syncSegmentText(seg) {
+  seg.text = seg.words.map((w) => w.word).join(" ").trim();
+  if (seg.words.length) {
+    seg.startMs = seg.words[0].startMs;
+    seg.endMs = seg.words[seg.words.length - 1].endMs;
+  }
+}
+
+function syncJsonOutput() {
+  $("json-output").textContent = JSON.stringify(captions, null, 2);
+}
+
+function onWordTimingChange() {
+  if (!captions) return;
+  captions.durationMs = Math.max(
+    captions.durationMs,
+    ...captions.segments.flatMap((s) => s.words.map((w) => w.endMs))
+  );
+  syncJsonOutput();
+  remountPlayer();
+}
+
+function setupWordDrag(handle, word, seg, edge) {
+  let startX = 0;
+  let origMs = 0;
+
+  const onMove = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const deltaMs = Math.round((clientX - startX) * MS_PER_DRAG_PX);
+    const minDur = 20;
+
+    if (edge === "start") {
+      const maxStart = word.endMs - minDur;
+      word.startMs = Math.max(0, Math.min(maxStart, origMs + deltaMs));
+    } else {
+      const minEnd = word.startMs + minDur;
+      word.endMs = Math.min(captions.durationMs, Math.max(minEnd, origMs + deltaMs));
+    }
+    syncSegmentText(seg);
+    onWordTimingChange();
+    handle.closest(".word-chip").querySelector(".word-chip-inner").title =
+      `${word.startMs}–${word.endMs}ms`;
+  };
+
+  const onUp = () => {
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", onUp);
+    document.removeEventListener("touchmove", onMove);
+    document.removeEventListener("touchend", onUp);
+    buildEditor();
+  };
+
+  handle.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    startX = e.clientX;
+    origMs = edge === "start" ? word.startMs : word.endMs;
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  });
+
+  handle.addEventListener(
+    "touchstart",
+    (e) => {
+      e.stopPropagation();
+      startX = e.touches[0].clientX;
+      origMs = edge === "start" ? word.startMs : word.endMs;
+      document.addEventListener("touchmove", onMove, { passive: true });
+      document.addEventListener("touchend", onUp);
+    },
+    { passive: true }
+  );
+}
+
 function buildEditor() {
   const panel = $("editor-panel");
   panel.innerHTML = "";
+  const hint = document.createElement("p");
+  hint.style.cssText = "color:var(--color-text-secondary);font-size:var(--text-xs);margin-bottom:8px";
+  hint.textContent = "Drag word edges to adjust timing. Click a word to seek.";
+  panel.appendChild(hint);
+
   captions.segments.forEach((seg) => {
     const row = document.createElement("div");
     row.className = "seg-row";
@@ -436,29 +589,86 @@ function buildEditor() {
       row.appendChild(sp);
     }
     seg.words.forEach((w) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
+      const chip = document.createElement("span");
       chip.className = "word-chip" + speakerChipClass(seg.speaker);
       if (seg.speaker) {
         const idx = hashSpeaker(seg.speaker) % SPEAKER_COLORS.length;
         chip.style.borderLeftColor = SPEAKER_COLORS[idx];
       }
-      chip.textContent = w.word;
-      chip.title = `${w.startMs}–${w.endMs}ms`;
-      chip.onclick = () => seekTo(w.startMs);
+
+      const handleStart = document.createElement("span");
+      handleStart.className = "word-handle word-handle-start";
+      handleStart.setAttribute("aria-label", "Adjust start time");
+
+      const inner = document.createElement("button");
+      inner.type = "button";
+      inner.className = "word-chip-inner";
+      inner.textContent = w.word;
+      inner.title = `${w.startMs}–${w.endMs}ms`;
+      inner.onclick = () => seekTo(w.startMs);
+
+      const handleEnd = document.createElement("span");
+      handleEnd.className = "word-handle word-handle-end";
+      handleEnd.setAttribute("aria-label", "Adjust end time");
+
+      setupWordDrag(handleStart, w, seg, "start");
+      setupWordDrag(handleEnd, w, seg, "end");
+
+      chip.appendChild(handleStart);
+      chip.appendChild(inner);
+      chip.appendChild(handleEnd);
       row.appendChild(chip);
     });
     panel.appendChild(row);
   });
 }
 
-function buildWaveformPlaceholder() {
+function clearWaveform() {
   const wf = $("waveform");
-  for (let i = 0; i < 80; i++) {
-    const bar = document.createElement("div");
-    bar.className = "wave-bar";
-    bar.style.height = 4 + (i % 7) * 3 + "px";
-    wf.appendChild(bar);
+  wf.innerHTML = "";
+}
+
+async function buildWaveformFromFile(file) {
+  clearWaveform();
+  const wf = $("waveform");
+  wf.style.display = "flex";
+  const barCount = 80;
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const audioContext = new AudioContext();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+    await audioContext.close();
+
+    const channel = audioBuffer.getChannelData(0);
+    const samplesPerBar = Math.max(1, Math.floor(channel.length / barCount));
+    let maxAmp = 0;
+    const amps = [];
+
+    for (let i = 0; i < barCount; i++) {
+      let sum = 0;
+      const start = i * samplesPerBar;
+      const end = Math.min(channel.length, start + samplesPerBar);
+      for (let j = start; j < end; j++) sum += Math.abs(channel[j]);
+      const amp = sum / (end - start || 1);
+      amps.push(amp);
+      if (amp > maxAmp) maxAmp = amp;
+    }
+
+    for (let i = 0; i < barCount; i++) {
+      const bar = document.createElement("div");
+      bar.className = "wave-bar";
+      const h = maxAmp > 0 ? 4 + (amps[i] / maxAmp) * 40 : 4;
+      bar.style.height = h + "px";
+      wf.appendChild(bar);
+    }
+  } catch {
+    for (let i = 0; i < barCount; i++) {
+      const bar = document.createElement("div");
+      bar.className = "wave-bar";
+      bar.style.height = 4 + (i % 7) * 3 + "px";
+      wf.appendChild(bar);
+    }
   }
 }
 
@@ -466,7 +676,7 @@ function copyJsx() {
   const presetPart = currentPreset
     ? `{...applyPreset('${currentPreset}')}`
     : `style="${currentStyle}" highlightColor="${playerProps.highlightColor}"`;
-  const snippet = `<AnimatedCaptions captions={captions} ${presetPart} fontSize={${playerProps.fontSize}} position="${playerProps.position}" />`;
+  const snippet = `<AnimatedCaptions captions={captions} ${presetPart} fontSize={${playerProps.fontSize}} fontColor="${playerProps.fontColor}" position="${playerProps.position}" />`;
   navigator.clipboard.writeText(snippet);
   setStatus("Copied JSX to clipboard", "success");
   setTimeout(clearStatus, 2000);
@@ -475,7 +685,9 @@ function copyJsx() {
 function exportJson() {
   if (!captions) return;
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(captions, null, 2)], { type: "application/json" }));
+  a.href = URL.createObjectURL(
+    new Blob([JSON.stringify(captions, null, 2)], { type: "application/json" })
+  );
   a.download = "captions.json";
   a.click();
 }
@@ -488,9 +700,16 @@ function updateStudioLink() {
 
 function saveLocalConfig() {
   try {
+    const speakersRaw = $("cfg-speakers").value;
     localStorage.setItem(
       "captioneer-preview-config",
-      JSON.stringify({ style: currentStyle, preset: currentPreset, diarize: diarizeEnabled, ...playerProps })
+      JSON.stringify({
+        style: currentStyle,
+        preset: currentPreset,
+        diarize: diarizeEnabled,
+        speakers: speakersRaw,
+        ...playerProps,
+      })
     );
   } catch (_) {}
 }
@@ -508,10 +727,13 @@ function loadLocalConfig() {
     if (c.fontSize) $("cfg-font-size").value = c.fontSize;
     if (c.position) $("cfg-position").value = c.position;
     if (c.highlightColor) $("cfg-highlight").value = c.highlightColor;
+    if (c.fontColor) $("cfg-font-color").value = c.fontColor;
     if (typeof c.diarize === "boolean") {
       $("cfg-diarize").checked = c.diarize;
       diarizeEnabled = c.diarize;
     }
+    if (c.speakers) $("cfg-speakers").value = c.speakers;
+    $("speakers-count-group").style.display = diarizeEnabled ? "block" : "none";
     onConfigChange();
   } catch (_) {}
 }

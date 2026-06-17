@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T10:28:42.354Z",
+  "generatedAt": "2026-06-17T09:22:08.866Z",
   "styleCount": 14,
   "presetCount": 23,
   "styles": [
@@ -84,7 +84,7 @@
       "fontColor": "rgba(255,255,255,0.6)",
       "fontSize": 64,
       "position": "bottom",
-      "category": "Other"
+      "category": "Social Media"
     },
     {
       "key": "instagram-reels",
@@ -95,7 +95,7 @@
       "fontColor": "rgba(255,255,255,0.5)",
       "fontSize": 56,
       "position": "bottom",
-      "category": "Other"
+      "category": "Social Media"
     },
     {
       "key": "youtube-shorts",
@@ -106,7 +106,7 @@
       "fontColor": "rgba(255,255,255,0.5)",
       "fontSize": 58,
       "position": "bottom",
-      "category": "Other"
+      "category": "Social Media"
     },
     {
       "key": "twitter-clips",
@@ -117,7 +117,7 @@
       "fontColor": "rgba(255,255,255,0.5)",
       "fontSize": 48,
       "position": "bottom",
-      "category": "Other"
+      "category": "Social Media"
     },
     {
       "key": "podcast-clean",
@@ -128,7 +128,7 @@
       "fontColor": "rgba(255,255,255,0.4)",
       "fontSize": 52,
       "position": "bottom",
-      "category": "Other"
+      "category": "Podcast"
     },
     {
       "key": "podcast-bold",
@@ -139,7 +139,7 @@
       "fontColor": "rgba(255,255,255,0.3)",
       "fontSize": 60,
       "position": "bottom",
-      "category": "Other"
+      "category": "Podcast"
     },
     {
       "key": "cinematic-gold",
@@ -150,7 +150,7 @@
       "fontColor": "rgba(255,255,255,0.3)",
       "fontSize": 56,
       "position": "bottom",
-      "category": "Other"
+      "category": "Cinematic"
     },
     {
       "key": "cinematic-white",
@@ -161,7 +161,7 @@
       "fontColor": "#FFFFFF",
       "fontSize": 44,
       "position": "center",
-      "category": "Other"
+      "category": "Cinematic"
     },
     {
       "key": "cinematic-neon",
@@ -172,7 +172,7 @@
       "fontColor": "rgba(255,255,255,0.25)",
       "fontSize": 56,
       "position": "bottom",
-      "category": "Other"
+      "category": "Cinematic"
     },
     {
       "key": "music-karaoke",
@@ -183,7 +183,7 @@
       "fontColor": "rgba(255,255,255,0.3)",
       "fontSize": 60,
       "position": "bottom",
-      "category": "Other"
+      "category": "Music"
     },
     {
       "key": "music-wave",
@@ -194,7 +194,7 @@
       "fontColor": "rgba(255,255,255,0.35)",
       "fontSize": 56,
       "position": "bottom",
-      "category": "Other"
+      "category": "Music"
     },
     {
       "key": "tutorial-typewriter",
@@ -205,7 +205,7 @@
       "fontColor": "#FFFFFF",
       "fontSize": 42,
       "position": "center",
-      "category": "Other"
+      "category": "Tutorial"
     },
     {
       "key": "tutorial-erase",
@@ -216,7 +216,7 @@
       "fontColor": "#FFFFFF",
       "fontSize": 42,
       "position": "center",
-      "category": "Other"
+      "category": "Tutorial"
     },
     {
       "key": "minimal-white",
@@ -227,7 +227,7 @@
       "fontColor": "rgba(255,255,255,0.35)",
       "fontSize": 48,
       "position": "bottom",
-      "category": "Other"
+      "category": "Minimal"
     },
     {
       "key": "minimal-subtle",
@@ -238,7 +238,7 @@
       "fontColor": "rgba(255,255,255,0.2)",
       "fontSize": 44,
       "position": "bottom",
-      "category": "Other"
+      "category": "Minimal"
     },
     {
       "key": "gaming-neon",
@@ -249,7 +249,7 @@
       "fontColor": "rgba(255,255,255,0.3)",
       "fontSize": 54,
       "position": "bottom",
-      "category": "Other"
+      "category": "Gaming"
     },
     {
       "key": "gaming-bold",
@@ -260,7 +260,7 @@
       "fontColor": "rgba(255,255,255,0.4)",
       "fontSize": 64,
       "position": "bottom",
-      "category": "Other"
+      "category": "Gaming"
     },
     {
       "key": "news-ticker",
@@ -271,7 +271,7 @@
       "fontColor": "#FFFFFF",
       "fontSize": 44,
       "position": "center",
-      "category": "Other"
+      "category": "News & Documentary"
     },
     {
       "key": "documentary",
@@ -282,7 +282,7 @@
       "fontColor": "rgba(255,255,255,0.3)",
       "fontSize": 52,
       "position": "bottom",
-      "category": "Other"
+      "category": "News & Documentary"
     },
     {
       "key": "education-highlighter",
@@ -293,7 +293,7 @@
       "fontColor": "rgba(255,255,255,0.4)",
       "fontSize": 52,
       "position": "bottom",
-      "category": "Other"
+      "category": "Education"
     },
     {
       "key": "education-scale",
@@ -304,7 +304,7 @@
       "fontColor": "rgba(255,255,255,0.3)",
       "fontSize": 52,
       "position": "bottom",
-      "category": "Other"
+      "category": "Education"
     },
     {
       "key": "fun-rainbow",
@@ -315,7 +315,7 @@
       "fontColor": "rgba(255,255,255,0.3)",
       "fontSize": 60,
       "position": "bottom",
-      "category": "Other"
+      "category": "Fun & Creative"
     },
     {
       "key": "retro-flicker",
@@ -326,8 +326,52 @@
       "fontColor": "rgba(255,255,255,0.2)",
       "fontSize": 56,
       "position": "bottom",
-      "category": "Other"
+      "category": "Fun & Creative"
     }
   ],
-  "categories": {}
+  "categories": {
+    "Social Media": [
+      "tiktok",
+      "instagram-reels",
+      "youtube-shorts",
+      "twitter-clips"
+    ],
+    "Podcast": [
+      "podcast-clean",
+      "podcast-bold"
+    ],
+    "Cinematic": [
+      "cinematic-gold",
+      "cinematic-white",
+      "cinematic-neon"
+    ],
+    "Music": [
+      "music-karaoke",
+      "music-wave"
+    ],
+    "Tutorial": [
+      "tutorial-typewriter",
+      "tutorial-erase"
+    ],
+    "Minimal": [
+      "minimal-white",
+      "minimal-subtle"
+    ],
+    "Gaming": [
+      "gaming-neon",
+      "gaming-bold"
+    ],
+    "News & Documentary": [
+      "news-ticker",
+      "documentary"
+    ],
+    "Education": [
+      "education-highlighter",
+      "education-scale"
+    ],
+    "Fun & Creative": [
+      "fun-rainbow",
+      "retro-flicker"
+    ]
+  }
 }

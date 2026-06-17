@@ -36,7 +36,7 @@
     "remotion:preview": "remotion preview",
     "preview:web": "node dist/cli.js preview",
     "lint": "eslint src --ext .ts,.tsx",
-    "lint:ui": "eslint src/preview/player-entry.tsx src/studio/WelcomeComposition.tsx src/studio/StyleGallery.tsx src/studio/PresetShowcase.tsx src/studio/style-highlights.ts src/studio/Root.tsx",
+    "lint:ui": "eslint src/preview/player-entry.tsx src/studio/WelcomeComposition.tsx src/studio/StyleGallery.tsx src/studio/PresetShowcase.tsx src/studio/DiarizationDemo.tsx src/studio/style-highlights.ts src/studio/Root.tsx",
     "validate:docs": "node scripts/validate-docs.mjs"
   },
   "keywords": [

@@ -39,7 +39,9 @@ function parseCaptionStyles() {
 
 function parsePresets() {
   const src = readFileSync(join(root, "src/presets/index.ts"), "utf8");
-  const categoriesBlock = src.match(/getPresetCategories[^=]*=\s*\(\)[^=]*=>\s*\{([\s\S]*?)\};/);
+  const categoriesBlock = src.match(
+    /getPresetCategories\(\)[^{]*\{[\s\S]*?return\s*\{([\s\S]*?)\};/
+  );
   const categories = {};
   if (categoriesBlock) {
     for (const m of categoriesBlock[1].matchAll(/"([^"]+)":\s*\[([^\]]*)\]/g)) {

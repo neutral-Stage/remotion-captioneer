@@ -45,6 +45,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run validate:docs
+      - name: npm audit (high severity)
+        continue-on-error: true
+        run: npm audit --audit-level=high
 
   studio-smoke:
     runs-on: ubuntu-latest
