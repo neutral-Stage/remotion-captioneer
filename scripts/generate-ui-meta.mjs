@@ -3,7 +3,7 @@
  * Generate ui-meta.json from source constants (styles, presets).
  * Run: node scripts/generate-ui-meta.mjs
  */
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -112,4 +112,10 @@ for (const dir of outDirs) {
   writeFileSync(join(dir, "ui-meta.json"), JSON.stringify(meta, null, 2) + "\n");
 }
 
+// Sync shared UI kit → docs (GitHub Pages serves docs/ statically)
+const componentsSrc = join(root, "src/ui/components.css");
+const componentsDocs = join(root, "docs/components.css");
+copyFileSync(componentsSrc, componentsDocs);
+
 console.log(`Generated ui-meta.json: ${styles.length} styles, ${presets.length} presets`);
+console.log("Synced src/ui/components.css → docs/components.css");

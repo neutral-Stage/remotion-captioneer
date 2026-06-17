@@ -60,6 +60,7 @@ async function init() {
   setupExp();
   loadConfig();
   applyUrlParams();
+  applyCapPosition();
 
   document.getElementById("icmd").onclick = () => {
     navigator.clipboard.writeText("npx captioneer init my-video");
@@ -95,6 +96,8 @@ function pick(id) {
     b.setAttribute("aria-pressed", on ? "true" : "false");
   });
   document.getElementById("psn").textContent = STYLES.find((s) => s.id === id).n;
+  const styleEl = document.getElementById("cfg-style");
+  if (styleEl) styleEl.value = id;
   saveConfig();
 }
 
@@ -104,13 +107,23 @@ function applyPreset(key) {
   S.preset = key;
   S.st = p.style;
   S.accent = p.highlightColor;
+  if (p.fontSize) S.config.fontSize = Math.min(48, Math.max(14, Math.round(p.fontSize / 2.5)));
+  if (p.position) S.config.position = p.position;
   pick(p.style);
   document.querySelectorAll(".cat-item").forEach((el) => {
     el.classList.toggle("on", el.dataset.key === key);
   });
-  document.getElementById("cfg-preset").value = key;
-  document.getElementById("cfg-style").value = p.style;
-  document.getElementById("cfg-highlight").value = p.highlightColor;
+  const presetEl = document.getElementById("cfg-preset");
+  const styleEl = document.getElementById("cfg-style");
+  const highlightEl = document.getElementById("cfg-highlight");
+  const fontEl = document.getElementById("cfg-font");
+  const posEl = document.getElementById("cfg-position");
+  if (presetEl) presetEl.value = key;
+  if (styleEl) styleEl.value = p.style;
+  if (highlightEl) highlightEl.value = p.highlightColor;
+  if (fontEl) fontEl.value = String(S.config.fontSize);
+  if (posEl) posEl.value = S.config.position;
+  applyCapPosition();
   saveConfig();
 }
 
@@ -139,7 +152,18 @@ function buildShowcase() {
         scrollToDemo(s.id);
       }
     };
-    c.innerHTML = `<canvas id="sc-${s.id}" height="80" aria-hidden="true"></canvas><div class="info"><h4>${s.n}</h4><small>${s.id}</small></div>`;
+    const canvas = document.createElement("canvas");
+    canvas.id = "sc-" + s.id;
+    canvas.height = 80;
+    canvas.setAttribute("aria-hidden", "true");
+    const info = document.createElement("div");
+    info.className = "info";
+    const h4 = document.createElement("h4");
+    h4.textContent = s.n;
+    const small = document.createElement("small");
+    small.textContent = s.id;
+    info.append(h4, small);
+    c.append(canvas, info);
     g.appendChild(c);
   });
   if (!reducedMotion) animateShowcards();
@@ -307,40 +331,107 @@ function buildPresets() {
   for (const [cat, keys] of Object.entries(cats)) {
     const d = document.createElement("div");
     d.className = "cat";
-    const items = keys
-      .map((key) => {
-        const p = PRESET_MAP[key];
-        const label = p ? p.name : key;
-        return `<button type="button" class="cat-item" data-key="${key}">${label}</button>`;
-      })
-      .join("");
-    d.innerHTML = `<div class="cat-title">${cat}</div><div class="cat-items">${items}</div>`;
+    const title = document.createElement("div");
+    title.className = "cat-title";
+    title.textContent = cat;
+    const items = document.createElement("div");
+    items.className = "cat-items";
+    keys.forEach((key) => {
+      const p = PRESET_MAP[key];
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cat-item";
+      btn.dataset.key = key;
+      btn.textContent = p ? p.name : key;
+      btn.onclick = () => applyPreset(key);
+      items.appendChild(btn);
+    });
+    d.append(title, items);
     a.appendChild(d);
   }
-  a.querySelectorAll(".cat-item").forEach((btn) => {
-    btn.onclick = () => applyPreset(btn.dataset.key);
-  });
 }
 
 function buildConfigurator() {
   const panel = document.getElementById("configPanel");
   if (!panel) return;
-  const styleOpts = STYLES.map((s) => `<option value="${s.id}">${s.n}</option>`).join("");
-  const presetOpts = META.presets
-    .map((p) => `<option value="${p.key}">${p.name}</option>`)
-    .join("");
-  panel.innerHTML = `
-    <div class="config-row"><label for="cfg-preset">Preset</label><select id="cfg-preset">${presetOpts}</select></div>
-    <div class="config-row"><label for="cfg-style">Style</label><select id="cfg-style">${styleOpts}</select></div>
-    <div class="config-row"><label for="cfg-highlight">Highlight</label><input type="color" id="cfg-highlight" value="#3b82f6"></div>
-    <div class="config-row"><button type="button" class="bt bt2" id="copy-jsx">Copy JSX</button></div>`;
-  document.getElementById("cfg-preset").onchange = (e) => applyPreset(e.target.value);
-  document.getElementById("cfg-style").onchange = (e) => pick(e.target.value);
-  document.getElementById("cfg-highlight").oninput = (e) => {
+  panel.replaceChildren();
+
+  const addRow = (labelText, control) => {
+    const row = document.createElement("div");
+    row.className = "config-row";
+    const label = document.createElement("label");
+    label.textContent = labelText;
+    row.append(label, control);
+    panel.appendChild(row);
+  };
+
+  const presetSel = document.createElement("select");
+  presetSel.id = "cfg-preset";
+  META.presets.forEach((p) => {
+    const opt = document.createElement("option");
+    opt.value = p.key;
+    opt.textContent = p.name;
+    presetSel.appendChild(opt);
+  });
+  presetSel.onchange = (e) => applyPreset(e.target.value);
+  addRow("Preset", presetSel);
+
+  const styleSel = document.createElement("select");
+  styleSel.id = "cfg-style";
+  STYLES.forEach((s) => {
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.n;
+    styleSel.appendChild(opt);
+  });
+  styleSel.onchange = (e) => pick(e.target.value);
+  addRow("Style", styleSel);
+
+  const colorIn = document.createElement("input");
+  colorIn.type = "color";
+  colorIn.id = "cfg-highlight";
+  colorIn.value = S.accent;
+  colorIn.oninput = (e) => {
     S.accent = e.target.value;
     saveConfig();
   };
-  document.getElementById("copy-jsx").onclick = copyJsx;
+  addRow("Highlight", colorIn);
+
+  const fontIn = document.createElement("input");
+  fontIn.type = "number";
+  fontIn.id = "cfg-font";
+  fontIn.min = "14";
+  fontIn.max = "48";
+  fontIn.value = String(S.config.fontSize);
+  fontIn.oninput = (e) => {
+    S.config.fontSize = Number(e.target.value) || 22;
+    saveConfig();
+  };
+  addRow("Font size", fontIn);
+
+  const posSel = document.createElement("select");
+  posSel.id = "cfg-position";
+  ["bottom", "center", "top"].forEach((pos) => {
+    const opt = document.createElement("option");
+    opt.value = pos;
+    opt.textContent = pos.charAt(0).toUpperCase() + pos.slice(1);
+    posSel.appendChild(opt);
+  });
+  posSel.value = S.config.position;
+  posSel.onchange = (e) => {
+    S.config.position = e.target.value;
+    applyCapPosition();
+    saveConfig();
+  };
+  addRow("Position", posSel);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.type = "button";
+  copyBtn.className = "bt bt2";
+  copyBtn.id = "copy-jsx";
+  copyBtn.textContent = "Copy JSX";
+  copyBtn.onclick = copyJsx;
+  addRow("", copyBtn);
 }
 
 function copyJsx() {
@@ -354,8 +445,15 @@ function copyJsx() {
 
 function buildEmojis() {
   const r = document.getElementById("emojiDemo");
+  if (!r) return;
   EMOJIS.forEach(({ w, e }) => {
-    r.innerHTML += `<div class="emoji-item">${e} <span>"${w}"</span></div>`;
+    const item = document.createElement("div");
+    item.className = "emoji-item";
+    item.append(document.createTextNode(e + " "));
+    const span = document.createElement("span");
+    span.textContent = `"${w}"`;
+    item.appendChild(span);
+    r.appendChild(item);
   });
 }
 
@@ -410,7 +508,7 @@ function stop() {
   if (S.raf) cancelAnimationFrame(S.raf);
   document.getElementById("ppb").textContent = "▶";
   document.getElementById("ppb").setAttribute("aria-label", "Play");
-  document.getElementById("cap").textContent = "";
+  document.getElementById("cap").replaceChildren();
   document.getElementById("pf").style.width = "0";
 }
 
@@ -418,11 +516,14 @@ function tick() {
   if (!S.on) return;
   const el = (performance.now() - S.t0) / 1000;
   const p = Math.min(el / S.dur, 1);
-  document.getElementById("pf").style.width = p * 100 + "%";
+  const pf = document.getElementById("pf");
+  pf.style.width = p * 100 + "%";
+  const prog = document.querySelector(".pprog");
+  if (prog) prog.setAttribute("aria-valuenow", String(Math.round(p * 100)));
   document.getElementById("pt").textContent = ft(el) + " / " + ft(S.dur);
   const c = S.caps.find((c) => el >= c.start && el < c.end);
   if (c) renderCap(c, el);
-  else document.getElementById("cap").textContent = "";
+  else document.getElementById("cap").replaceChildren();
   if (!reducedMotion) {
     updateWave(el);
     drawBg(el);
@@ -444,6 +545,26 @@ function setupCtrl() {
   const btn = document.getElementById("ppb");
   btn.onclick = play;
   btn.setAttribute("aria-label", "Play");
+  const prog = document.querySelector(".pprog");
+  prog.setAttribute("aria-valuenow", "0");
+  prog.setAttribute("tabindex", "0");
+  const seekFromEvent = (clientX) => {
+    const rect = prog.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    seekTo(ratio * S.dur);
+  };
+  prog.addEventListener("click", (e) => seekFromEvent(e.clientX));
+  prog.addEventListener("keydown", (e) => {
+    const step = S.dur * 0.05;
+    const current = (performance.now() - S.t0) / 1000;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      seekTo(Math.min(S.dur, current + step));
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      seekTo(Math.max(0, current - step));
+    }
+  });
   document.addEventListener("keydown", (e) => {
     if (e.target.matches("input,select,textarea")) return;
     if (e.code === "Space") {
@@ -451,6 +572,29 @@ function setupCtrl() {
       play();
     }
   });
+}
+
+function seekTo(seconds) {
+  if (!S.caps.length) loadLine();
+  S.t0 = performance.now() - seconds * 1000;
+  const p = Math.min(seconds / S.dur, 1);
+  document.getElementById("pf").style.width = p * 100 + "%";
+  document.querySelector(".pprog")?.setAttribute("aria-valuenow", String(Math.round(p * 100)));
+  document.getElementById("pt").textContent = ft(seconds) + " / " + ft(S.dur);
+  const c = S.caps.find((cap) => seconds >= cap.start && seconds < cap.end);
+  const capEl = document.getElementById("cap");
+  if (c) renderCap(c, seconds);
+  else capEl.replaceChildren();
+  if (S.on && S.raf) cancelAnimationFrame(S.raf);
+  if (S.on) S.raf = requestAnimationFrame(tick);
+}
+
+function applyCapPosition() {
+  const layer = document.getElementById("capLayer");
+  if (!layer) return;
+  layer.classList.remove("pos-top", "pos-bottom");
+  if (S.config.position === "top") layer.classList.add("pos-top");
+  else if (S.config.position === "bottom") layer.classList.add("pos-bottom");
 }
 
 function drawBg(t) {
@@ -473,31 +617,113 @@ function updateWave(t) {
   });
 }
 
+function resetCapStyles(el) {
+  el.style.cssText = "";
+  el.className = "cap-el";
+  el.style.fontSize = S.config.fontSize + "px";
+  el.style.color = "#fff";
+  el.style.fontWeight = "700";
+  el.style.textAlign = "center";
+  el.style.maxWidth = "88%";
+  el.style.padding = "6px 14px";
+}
+
 function renderCap(cap, elapsed) {
   const el = document.getElementById("cap");
   const bg = S.accent;
-  const size = S.config.fontSize;
-  const p = (elapsed - cap.start) / (cap.end - cap.start);
-  el.style.cssText =
-    "font-size:" +
-    size +
-    "px;color:#fff;font-weight:700;text-align:center;max-width:88%;padding:6px 14px;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none";
+  const p = Math.max(0, Math.min(1, (elapsed - cap.start) / (cap.end - cap.start)));
+  const text = cap.text;
+  resetCapStyles(el);
+
   switch (S.st) {
     case "karaoke": {
       const pct = Math.min(p * 100, 100);
-      el.textContent = cap.text;
+      el.textContent = text;
       el.style.background = `linear-gradient(90deg,${bg} ${pct}%,#fff ${pct}%)`;
       el.style.webkitBackgroundClip = "text";
+      el.style.backgroundClip = "text";
       el.style.webkitTextFillColor = "transparent";
       break;
     }
+    case "typewriter": {
+      const n = Math.max(1, Math.floor(p * text.length));
+      el.textContent = text.substring(0, n);
+      break;
+    }
+    case "typewriter-erase": {
+      const cycle = p < 0.5 ? p * 2 : 1 - (p - 0.5) * 2;
+      const n = Math.max(1, Math.floor(cycle * text.length));
+      el.textContent = text.substring(0, n);
+      break;
+    }
     case "bounce":
-      el.textContent = cap.text;
+      el.textContent = text;
       el.style.transform = reducedMotion ? "none" : `scaleY(${1 + Math.sin(p * Math.PI) * 0.25})`;
       el.style.textShadow = `0 0 14px ${bg}`;
       break;
+    case "wave": {
+      el.replaceChildren();
+      for (let i = 0; i < text.length; i++) {
+        const span = document.createElement("span");
+        span.className = "wave-char";
+        span.textContent = text[i];
+        if (!reducedMotion) {
+          span.style.transform = `translateY(${Math.sin(elapsed * 4 + i * 0.5) * 6}px)`;
+        }
+        el.appendChild(span);
+      }
+      break;
+    }
+    case "glow":
+      el.textContent = text;
+      el.style.color = bg;
+      el.style.textShadow = reducedMotion
+        ? `0 0 12px ${bg}`
+        : `0 0 ${8 + Math.sin(elapsed * 2) * 8}px ${bg}`;
+      break;
+    case "pill":
+      el.textContent = text;
+      el.style.background = bg + "33";
+      el.style.borderRadius = "999px";
+      el.style.fontSize = Math.max(14, S.config.fontSize - 4) + "px";
+      break;
+    case "flicker":
+      el.textContent = text;
+      el.style.color = "#fdcb6e";
+      el.style.opacity = reducedMotion ? "1" : String(0.5 + Math.random() * 0.5);
+      break;
+    case "highlighter":
+      el.textContent = text;
+      el.style.background = `linear-gradient(transparent 60%, rgba(253,203,110,${0.3 * Math.min(1, p * 1.5)}) 60%)`;
+      break;
+    case "blur":
+      el.textContent = text;
+      if (!reducedMotion) {
+        const b = Math.abs(Math.sin(elapsed)) * 4;
+        el.style.filter = `blur(${b}px)`;
+      }
+      break;
+    case "rainbow": {
+      const hue = reducedMotion ? 200 : (elapsed * 60) % 360;
+      el.textContent = text;
+      el.style.color = `hsl(${hue},80%,65%)`;
+      break;
+    }
+    case "scale":
+      el.textContent = text;
+      if (!reducedMotion) {
+        const sc = 0.8 + Math.abs(Math.sin(elapsed * 2)) * 0.4;
+        el.style.transform = `scale(${sc})`;
+      }
+      break;
+    case "spotlight":
+      el.textContent = text;
+      el.style.textShadow = `0 0 24px rgba(255,255,255,0.9), 0 0 48px ${bg}`;
+      break;
+    case "word-highlight":
     default:
-      el.textContent = cap.text;
+      el.textContent = text;
+      el.style.color = bg;
       el.style.textShadow = `0 0 18px ${bg}`;
   }
 }
@@ -547,7 +773,13 @@ function saveConfig() {
   try {
     localStorage.setItem(
       "captioneer-docs-config",
-      JSON.stringify({ st: S.st, preset: S.preset, accent: S.accent })
+      JSON.stringify({
+        st: S.st,
+        preset: S.preset,
+        accent: S.accent,
+        fontSize: S.config.fontSize,
+        position: S.config.position,
+      })
     );
   } catch (_) {}
 }
@@ -557,9 +789,18 @@ function loadConfig() {
     const raw = localStorage.getItem("captioneer-docs-config");
     if (!raw) return;
     const c = JSON.parse(raw);
+    if (c.fontSize) S.config.fontSize = c.fontSize;
+    if (c.position) S.config.position = c.position;
+    applyCapPosition();
     if (c.preset) applyPreset(c.preset);
     else if (c.st) pick(c.st);
     if (c.accent) S.accent = c.accent;
+    const highlightEl = document.getElementById("cfg-highlight");
+    const fontEl = document.getElementById("cfg-font");
+    const posEl = document.getElementById("cfg-position");
+    if (highlightEl && c.accent) highlightEl.value = c.accent;
+    if (fontEl && c.fontSize) fontEl.value = String(c.fontSize);
+    if (posEl && c.position) posEl.value = c.position;
   } catch (_) {}
 }
 

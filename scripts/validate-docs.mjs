@@ -95,6 +95,29 @@ if (!previewJs.includes("setupWordDrag") && !previewJs.includes("word-handle")) 
   fail("preview should support word timing drag editor");
 }
 
+if (!existsSync(join(root, "src/ui/components.css"))) {
+  fail("src/ui/components.css missing (UI kit)");
+}
+
+const componentsCss = readFileSync(join(root, "docs/components.css"), "utf8");
+if (!componentsCss.includes("cap-layer.pos-top")) {
+  fail("docs/components.css should include cap position classes from UI kit");
+}
+
+if (!appJs.includes("seekTo")) {
+  fail("docs app.js should support timeline seek (seekTo)");
+}
+
+for (const s of meta.styles) {
+  if (!appJs.includes(`case "${s.id}"`)) {
+    fail(`docs renderCap should handle style "${s.id}"`);
+  }
+}
+
+if (/\binnerHTML\b/.test(appJs)) {
+  fail("docs app.js should avoid innerHTML (use DOM APIs)");
+}
+
 console.log(
   `Validated: ${meta.styleCount} styles, ${meta.presetCount} presets in ui-meta.json`
 );

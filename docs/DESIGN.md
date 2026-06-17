@@ -10,11 +10,15 @@
 
 Do **not** use purple/gold gradients in marketing UI. Preset highlight colors are intentional and separate from product chrome.
 
-## Token file
+## Token & component files
 
-Canonical tokens: [`theme.css`](theme.css)
+| Asset | Canonical path | Consumers |
+|-------|----------------|-----------|
+| Tokens | [`theme.css`](theme.css) | `src/ui/tokens.css`, preview `dist/preview/theme.css` |
+| Chrome components | [`src/ui/components.css`](../src/ui/components.css) | Copied to `docs/components.css` on `npm run generate:meta` |
+| Bundle entry | [`src/ui/index.css`](../src/ui/index.css) | tokens + components |
 
-Preview imports: [`src/ui/tokens.css`](../src/ui/tokens.css) → `@import` of `docs/theme.css`.
+Preview imports tokens via [`src/preview/styles.css`](../src/preview/styles.css) → `./theme.css` (copied at build).
 
 ## Usage
 

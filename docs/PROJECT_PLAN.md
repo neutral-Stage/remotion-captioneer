@@ -13,7 +13,7 @@
 
 ## UI system
 
-- Design tokens: `docs/theme.css` (canonical), `src/ui/tokens.css`
+- Design tokens: `docs/theme.css` (canonical), `src/ui/tokens.css`, `src/ui/components.css` (chrome kit)
 - Generated metadata: `npm run generate:meta` → `docs/ui-meta.json`
 - Preview build: `npm run build:preview` → `dist/preview/`
 - Thumbnails: `npm run generate:thumbnails` (optional, needs remotion still)
