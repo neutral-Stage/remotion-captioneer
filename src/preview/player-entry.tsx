@@ -79,8 +79,11 @@ const PlayerShell: React.FC<{ readonly options: PreviewProps }> = ({ options }) 
 
 declare global {
   interface Window {
-    mountCaptioneerPlayer: (mountEl: HTMLElement, options: PreviewProps) => void;
-    captioneerSeekTo: (ms: number) => void;
+    mountCaptioneerPlayer: (
+      _mountEl: HTMLElement,
+      _options: PreviewProps
+    ) => void;
+    captioneerSeekTo: (_ms: number) => void;
     captioneerPlay: () => void;
     captioneerPause: () => void;
     unmountCaptioneerPlayer: () => void;

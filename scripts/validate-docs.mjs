@@ -119,6 +119,14 @@ if (!cliSrc.includes('case "json"')) {
   fail("CLI export should support json format");
 }
 
+const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+if (!pkg.scripts["test:e2e"]) {
+  fail("package.json should define test:e2e Playwright script");
+}
+if (!existsSync(join(root, "playwright.config.ts"))) {
+  fail("playwright.config.ts missing for Phase 30 smoke tests");
+}
+
 if (!existsSync(join(root, "src/ui/components.css"))) {
   fail("src/ui/components.css missing (UI kit)");
 }

@@ -140,12 +140,16 @@ export function startPreviewServer(port: number = PORT): void {
     const url = req.url?.split("?")[0] ?? "/";
 
     if (req.method === "POST" && url === "/api/process") {
-      void handleProcess(req, res);
+      handleProcess(req, res).catch((e: unknown) => {
+        console.error("Unhandled /api/process error:", e);
+      });
       return;
     }
 
     if (req.method === "POST" && url === "/api/analyze") {
-      void handleAnalyze(req, res);
+      handleAnalyze(req, res).catch((e: unknown) => {
+        console.error("Unhandled /api/analyze error:", e);
+      });
       return;
     }
 
@@ -162,17 +166,22 @@ export function startPreviewServer(port: number = PORT): void {
     }
 
     if (req.method === "GET" && url === "/api/config") {
-      void (async () => {
-        const config = await loadConfig();
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(
-          JSON.stringify({
-            defaultStyle: resolveDefaultStyle(config),
-            defaultProvider: config?.defaultProvider ?? null,
-            defaultLanguage: config?.defaultLanguage ?? null,
-          })
-        );
-      })();
+      loadConfig()
+        .then((config) => {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(
+            JSON.stringify({
+              defaultStyle: resolveDefaultStyle(config),
+              defaultProvider: config?.defaultProvider ?? null,
+              defaultLanguage: config?.defaultLanguage ?? null,
+            })
+          );
+        })
+        .catch((e: unknown) => {
+          console.error("Preview /api/config failed:", e);
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Config load failed" }));
+        });
       return;
     }
 

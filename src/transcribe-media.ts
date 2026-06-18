@@ -5,6 +5,7 @@
 import { basename, extname, resolve } from "path";
 import type { CaptionData } from "./types.js";
 import type { ProviderName } from "./providers/base.js";
+import type { WhisperOptions } from "./types.js";
 import { loadConfig } from "./config.js";
 import { createProvider } from "./providers/registry.js";
 
@@ -68,7 +69,9 @@ export async function transcribeMediaFile(
   if (providerName === "local") {
     const { processAudio } = await import("./whisper.js");
     return processAudio(resolved, {
-      model: (options.model as any) ?? config?.defaultModel ?? "base",
+      model: (options.model as WhisperOptions["model"] | undefined) ??
+        (config?.defaultModel as WhisperOptions["model"] | undefined) ??
+        "base",
       language: options.language ?? config?.defaultLanguage,
       whisperPath: options.whisperPath ?? config?.whisperPath,
       modelPath: options.modelPath ?? config?.modelPath,

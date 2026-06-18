@@ -38,10 +38,12 @@ Deep links: `?style=karaoke&preset=tiktok`
 
 ```bash
 npm test
+npm run test:e2e        # Playwright smoke (docs + preview; run build first)
 npx tsc --noEmit
 npx remotion compositions
 npm run validate:docs
 npm run generate:meta
+npm run lint:incremental
 ```
 
 ## Environment variables

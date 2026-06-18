@@ -45,6 +45,10 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run validate:docs
+      - name: Install Playwright browser
+        run: npm run test:e2e:install
+      - run: npm run build
+      - run: npm run test:e2e
       - name: npm audit (high severity)
         continue-on-error: true
         run: npm audit --audit-level=high
@@ -79,6 +83,9 @@ jobs:
 
       - name: Lint UI surfaces
         run: npm run lint:ui
+
+      - name: Lint incremental (critical paths)
+        run: npm run lint:incremental
 
       - name: Lint (full codebase)
         continue-on-error: true

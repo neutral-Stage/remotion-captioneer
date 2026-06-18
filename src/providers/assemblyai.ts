@@ -83,28 +83,33 @@ export class AssemblyAIProvider implements STTProvider {
       throw new Error(`AssemblyAI upload failed: ${uploadRes.statusText}`);
     }
 
-    const { upload_url } = await uploadRes.json();
+    const uploadPayload = (await uploadRes.json()) as { upload_url: string };
+    const uploadUrl = uploadPayload.upload_url;
 
     const languageCode = options.languageCode ?? options.language;
 
     // Step 2: Request transcription
+    const transcriptBody: Record<string, unknown> = {
+      audio_url: uploadUrl,
+      punctuate: options.punctuate ?? true,
+      format_text: options.formatText ?? true,
+      word_boost: [],
+      speaker_labels: options.speakerLabels ?? false,
+    };
+    if (languageCode) {
+      transcriptBody.language_code = languageCode;
+    }
+    if (typeof options.speakersExpected === "number") {
+      transcriptBody.speakers_expected = options.speakersExpected;
+    }
+
     const transcriptRes = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
       method: "POST",
       headers: {
         Authorization: this.apiKey,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        audio_url: upload_url,
-        ...(languageCode ? { language_code: languageCode } : {}),
-        punctuate: options.punctuate ?? true,
-        format_text: options.formatText ?? true,
-        word_boost: [],
-        speaker_labels: options.speakerLabels ?? false,
-        ...(typeof options.speakersExpected === "number"
-          ? { speakers_expected: options.speakersExpected }
-          : {}),
-      }),
+      body: JSON.stringify(transcriptBody),
     });
 
     if (!transcriptRes.ok) {
@@ -118,10 +123,12 @@ export class AssemblyAIProvider implements STTProvider {
 
     // Step 3: Poll for completion
     console.log("⏳ Waiting for transcription to complete...");
-    let result: AssemblyAITranscript;
+    let result: AssemblyAITranscript | undefined;
 
-    while (true) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    for (;;) {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 2000);
+      });
 
       const statusRes = await fetch(
         `${ASSEMBLYAI_API_URL}/transcript/${transcriptId}`,
@@ -132,10 +139,13 @@ export class AssemblyAIProvider implements STTProvider {
 
       result = (await statusRes.json()) as AssemblyAITranscript;
 
-      if (result.status === "completed") break;
-      if (result.status === "error") {
-        throw new Error(`AssemblyAI error: ${result.error}`);
+      if (result.status === "completed" || result.status === "error") {
+        break;
       }
+    }
+
+    if (!result || result.status === "error") {
+      throw new Error(`AssemblyAI error: ${result?.error ?? "unknown"}`);
     }
 
     return this.parseResponse(result);

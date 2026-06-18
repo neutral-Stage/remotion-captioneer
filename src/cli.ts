@@ -12,8 +12,29 @@
 
 import { Command } from "commander";
 import { existsSync, readFileSync, writeFileSync } from "fs";
-import { dirname, join, resolve, basename, extname } from "path";
+import { dirname, join, resolve, basename } from "path";
 import { fileURLToPath } from "url";
+
+/** Commander action options (subset used across subcommands). */
+type ProcessOpts = {
+  provider?: string;
+  model?: string;
+  apiKey?: string;
+  language?: string;
+  output?: string;
+  diarize?: boolean;
+  speakers?: number;
+  verbose?: boolean;
+};
+
+type ExportOpts = { format?: string; output?: string };
+type TranslateOpts = { target: string; output?: string; apiKey?: string; model?: string };
+type BatchOpts = ProcessOpts & {
+  outputDir?: string;
+  extensions?: string;
+};
+type PreviewOpts = { port?: string };
+type AnalyzeOpts = { output?: string };
 
 const program = new Command();
 
@@ -39,7 +60,7 @@ program
   .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
   .option("--speakers <n>", "Expected number of speakers (with --diarize)", parseInt)
   .option("-v, --verbose", "Verbose output", false)
-  .action(async (audioPath: string, opts: any) => {
+  .action(async (audioPath: string, opts: ProcessOpts) => {
     const resolved = resolve(audioPath);
     if (!existsSync(resolved)) {
       console.error(`❌ File not found: ${resolved}`);
@@ -100,8 +121,9 @@ program
       console.log(`   import { AnimatedCaptions } from "remotion-captioneer";`);
       console.log(`   import captions from "./${basename(outputPath)}";`);
       console.log(`   <AnimatedCaptions captions={captions} style="${style}" />`);
-    } catch (error: any) {
-      console.error(`❌ Error: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error: ${message}`);
       process.exit(1);
     }
   });
@@ -178,7 +200,7 @@ program
   .description("Analyze audio for beats, BPM, and volume envelope")
   .argument("<audio>", "Path to audio or video file")
   .option("-o, --output <path>", "Output JSON path (default: <audio>-analysis.json)")
-  .action(async (audioPath: string, opts: { output?: string }) => {
+  .action(async (audioPath: string, opts: AnalyzeOpts) => {
     const { resolve, basename, extname } = await import("path");
     const resolved = resolve(audioPath);
     if (!existsSync(resolved)) {
@@ -208,9 +230,9 @@ program
 program
   .description("Start a real-time preview server")
   .option("-p, --port <port>", "Port number", "3456")
-  .action(async (opts: any) => {
+  .action(async (opts: PreviewOpts) => {
     const { startPreviewServer } = await import("./preview-server.js");
-    startPreviewServer(parseInt(opts.port));
+    startPreviewServer(parseInt(opts.port ?? "3456", 10));
   });
 
 program
@@ -237,7 +259,7 @@ program
   .argument("<caption-file>", "Path to caption JSON file")
   .option("-f, --format <format>", "Output format: srt, vtt, ass, txt, json, srt-words, vtt-words", "srt")
   .option("-o, --output <path>", "Output file path")
-  .action(async (captionFile: string, opts: any) => {
+  .action(async (captionFile: string, opts: ExportOpts) => {
     const { readFileSync, writeFileSync: wfs } = await import("fs");
     const { resolve, basename, extname } = await import("path");
 
@@ -307,7 +329,7 @@ program
   .option("-o, --output <path>", "Output JSON path")
   .option("-k, --api-key <key>", "OpenAI API key (defaults to OPENAI_API_KEY)")
   .option("-m, --model <model>", "OpenAI chat model", "gpt-4o-mini")
-  .action(async (captionFile: string, opts: any) => {
+  .action(async (captionFile: string, opts: TranslateOpts) => {
     const { resolve: res, basename: bn, extname: ext } = await import("path");
 
     const filePath = res(captionFile);
@@ -374,8 +396,8 @@ program
   .option("-e, --extensions <exts>", "File extensions (comma-separated)", "mp3,wav,m4a,mp4,ogg,flac")
   .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
   .option("--speakers <n>", "Expected number of speakers", parseInt)
-  .action(async (directory: string, opts: any) => {
-    const { readdirSync, statSync } = await import("fs");
+  .action(async (directory: string, opts: BatchOpts) => {
+    const { readdirSync } = await import("fs");
     const { join, resolve, basename, extname } = await import("path");
 
     const dirPath = resolve(directory);
@@ -384,7 +406,9 @@ program
       process.exit(1);
     }
 
-    const extensions = opts.extensions.split(",").map((e: string) => `.${e.trim().toLowerCase()}`);
+    const extensions = (opts.extensions ?? "mp3,wav,m4a,mp4,ogg,flac")
+      .split(",")
+      .map((e: string) => `.${e.trim().toLowerCase()}`);
 
     const files = readdirSync(dirPath)
       .filter((f) => extensions.includes(extname(f).toLowerCase()))
@@ -440,8 +464,9 @@ program
         wfs(outputPath, JSON.stringify(captions, null, 2));
         console.log(`  ✅ ${captions.segments.length} segments → ${basename(outputPath)}`);
         success++;
-      } catch (error: any) {
-        console.error(`  ❌ Failed: ${error.message}`);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`  ❌ Failed: ${message}`);
         failed++;
       }
     }

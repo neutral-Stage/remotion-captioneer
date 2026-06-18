@@ -35,5 +35,8 @@
 - [x] Preview SRT/VTT export, undo/redo, snap-to-beat
 - [x] CLI `captioneer analyze` and `export --format json`
 - [x] `defaultStyle` in `.captioneerrc` wired to scaffold, preview, and process hints
+- [x] Playwright smoke tests (docs + preview) via `npm run test:e2e`
+- [x] Incremental ESLint gate (`npm run lint:incremental`) on critical paths
+- [ ] Full legacy ESLint cleanup (remaining ~280 issues outside incremental scope)
 - [ ] Video hosting APIs
 - [ ] Full legacy ESLint cleanup (321 existing issues)
