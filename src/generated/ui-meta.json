@@ -1,0 +1,377 @@
+{
+  "generatedAt": "2026-06-18T10:57:31.848Z",
+  "styleCount": 14,
+  "presetCount": 23,
+  "styles": [
+    {
+      "id": "word-highlight",
+      "label": "Word Highlight",
+      "compositionId": "WordHighlightDemo"
+    },
+    {
+      "id": "karaoke",
+      "label": "Karaoke",
+      "compositionId": "KaraokeDemo"
+    },
+    {
+      "id": "typewriter",
+      "label": "Typewriter",
+      "compositionId": "TypewriterDemo"
+    },
+    {
+      "id": "bounce",
+      "label": "Bounce",
+      "compositionId": "BounceDemo"
+    },
+    {
+      "id": "wave",
+      "label": "Wave",
+      "compositionId": "WaveDemo"
+    },
+    {
+      "id": "glow",
+      "label": "Glow",
+      "compositionId": "GlowDemo"
+    },
+    {
+      "id": "typewriter-erase",
+      "label": "Typewriter Erase",
+      "compositionId": "TypewriterEraseDemo"
+    },
+    {
+      "id": "pill",
+      "label": "Pill",
+      "compositionId": "PillDemo"
+    },
+    {
+      "id": "flicker",
+      "label": "Flicker",
+      "compositionId": "FlickerDemo"
+    },
+    {
+      "id": "highlighter",
+      "label": "Highlighter",
+      "compositionId": "HighlighterDemo"
+    },
+    {
+      "id": "blur",
+      "label": "Blur",
+      "compositionId": "BlurDemo"
+    },
+    {
+      "id": "rainbow",
+      "label": "Rainbow",
+      "compositionId": "RainbowDemo"
+    },
+    {
+      "id": "scale",
+      "label": "Scale",
+      "compositionId": "ScaleDemo"
+    },
+    {
+      "id": "spotlight",
+      "label": "Spotlight",
+      "compositionId": "SpotlightDemo"
+    }
+  ],
+  "presets": [
+    {
+      "key": "tiktok",
+      "name": "TikTok",
+      "description": "Bold white text, yellow highlight, bottom position — classic TikTok style",
+      "style": "word-highlight",
+      "highlightColor": "#FE2C55",
+      "fontColor": "rgba(255,255,255,0.6)",
+      "fontSize": 64,
+      "position": "bottom",
+      "category": "Social Media"
+    },
+    {
+      "key": "instagram-reels",
+      "name": "Instagram Reels",
+      "description": "Clean, modern style with subtle animations",
+      "style": "karaoke",
+      "highlightColor": "#E1306C",
+      "fontColor": "rgba(255,255,255,0.5)",
+      "fontSize": 56,
+      "position": "bottom",
+      "category": "Social Media"
+    },
+    {
+      "key": "youtube-shorts",
+      "name": "YouTube Shorts",
+      "description": "Bright, energetic style with bounce effect",
+      "style": "bounce",
+      "highlightColor": "#FF0000",
+      "fontColor": "rgba(255,255,255,0.5)",
+      "fontSize": 58,
+      "position": "bottom",
+      "category": "Social Media"
+    },
+    {
+      "key": "twitter-clips",
+      "name": "Twitter/X Clips",
+      "description": "Minimal, clean style for Twitter video",
+      "style": "pill",
+      "highlightColor": "#1DA1F2",
+      "fontColor": "rgba(255,255,255,0.5)",
+      "fontSize": 48,
+      "position": "bottom",
+      "category": "Social Media"
+    },
+    {
+      "key": "podcast-clean",
+      "name": "Podcast Clean",
+      "description": "Clean word highlight for podcast clips",
+      "style": "word-highlight",
+      "highlightColor": "#FFFFFF",
+      "fontColor": "rgba(255,255,255,0.4)",
+      "fontSize": 52,
+      "position": "bottom",
+      "category": "Podcast"
+    },
+    {
+      "key": "podcast-bold",
+      "name": "Podcast Bold",
+      "description": "Bold, high-contrast for podcast highlights",
+      "style": "glow",
+      "highlightColor": "#FFD700",
+      "fontColor": "rgba(255,255,255,0.3)",
+      "fontSize": 60,
+      "position": "bottom",
+      "category": "Podcast"
+    },
+    {
+      "key": "cinematic-gold",
+      "name": "Cinematic Gold",
+      "description": "Elegant gold glow for cinematic content",
+      "style": "glow",
+      "highlightColor": "#D4AF37",
+      "fontColor": "rgba(255,255,255,0.3)",
+      "fontSize": 56,
+      "position": "bottom",
+      "category": "Cinematic"
+    },
+    {
+      "key": "cinematic-white",
+      "name": "Cinematic White",
+      "description": "Clean white typewriter for dramatic reveals",
+      "style": "typewriter",
+      "highlightColor": "#00FF88",
+      "fontColor": "#FFFFFF",
+      "fontSize": 44,
+      "position": "center",
+      "category": "Cinematic"
+    },
+    {
+      "key": "cinematic-neon",
+      "name": "Cinematic Neon",
+      "description": "Neon glow for cyberpunk/futuristic content",
+      "style": "glow",
+      "highlightColor": "#00FFFF",
+      "fontColor": "rgba(255,255,255,0.25)",
+      "fontSize": 56,
+      "position": "bottom",
+      "category": "Cinematic"
+    },
+    {
+      "key": "music-karaoke",
+      "name": "Music Karaoke",
+      "description": "Classic karaoke fill for music videos",
+      "style": "karaoke",
+      "highlightColor": "#FF6B6B",
+      "fontColor": "rgba(255,255,255,0.3)",
+      "fontSize": 60,
+      "position": "bottom",
+      "category": "Music"
+    },
+    {
+      "key": "music-wave",
+      "name": "Music Wave",
+      "description": "Rhythmic wave animation synced to the beat",
+      "style": "wave",
+      "highlightColor": "#00D4FF",
+      "fontColor": "rgba(255,255,255,0.35)",
+      "fontSize": 56,
+      "position": "bottom",
+      "category": "Music"
+    },
+    {
+      "key": "tutorial-typewriter",
+      "name": "Tutorial Typewriter",
+      "description": "Typewriter effect for code tutorials and walkthroughs",
+      "style": "typewriter",
+      "highlightColor": "#00FF88",
+      "fontColor": "#FFFFFF",
+      "fontSize": 42,
+      "position": "center",
+      "category": "Tutorial"
+    },
+    {
+      "key": "tutorial-erase",
+      "name": "Tutorial Erase",
+      "description": "Type-then-erase for step-by-step tutorials",
+      "style": "typewriter-erase",
+      "highlightColor": "#00FF88",
+      "fontColor": "#FFFFFF",
+      "fontSize": 42,
+      "position": "center",
+      "category": "Tutorial"
+    },
+    {
+      "key": "minimal-white",
+      "name": "Minimal White",
+      "description": "Subtle white text, minimal animation",
+      "style": "word-highlight",
+      "highlightColor": "rgba(255,255,255,0.9)",
+      "fontColor": "rgba(255,255,255,0.35)",
+      "fontSize": 48,
+      "position": "bottom",
+      "category": "Minimal"
+    },
+    {
+      "key": "minimal-subtle",
+      "name": "Minimal Subtle",
+      "description": "Nearly invisible until active — very clean",
+      "style": "word-highlight",
+      "highlightColor": "rgba(255,255,255,0.8)",
+      "fontColor": "rgba(255,255,255,0.2)",
+      "fontSize": 44,
+      "position": "bottom",
+      "category": "Minimal"
+    },
+    {
+      "key": "gaming-neon",
+      "name": "Gaming Neon",
+      "description": "Neon glow style for gaming content and streams",
+      "style": "glow",
+      "highlightColor": "#00FF88",
+      "fontColor": "rgba(255,255,255,0.3)",
+      "fontSize": 54,
+      "position": "bottom",
+      "category": "Gaming"
+    },
+    {
+      "key": "gaming-bold",
+      "name": "Gaming Bold",
+      "description": "Big bold bounce for high-energy gaming clips",
+      "style": "bounce",
+      "highlightColor": "#FF0055",
+      "fontColor": "rgba(255,255,255,0.4)",
+      "fontSize": 64,
+      "position": "bottom",
+      "category": "Gaming"
+    },
+    {
+      "key": "news-ticker",
+      "name": "News Ticker",
+      "description": "Clean typewriter for news and professional content",
+      "style": "typewriter",
+      "highlightColor": "#00BCD4",
+      "fontColor": "#FFFFFF",
+      "fontSize": 44,
+      "position": "center",
+      "category": "News & Documentary"
+    },
+    {
+      "key": "documentary",
+      "name": "Documentary",
+      "description": "Elegant spotlight for documentary narration",
+      "style": "spotlight",
+      "highlightColor": "#D4AF37",
+      "fontColor": "rgba(255,255,255,0.3)",
+      "fontSize": 52,
+      "position": "bottom",
+      "category": "News & Documentary"
+    },
+    {
+      "key": "education-highlighter",
+      "name": "Education Highlighter",
+      "description": "Yellow highlighter for study and educational content",
+      "style": "highlighter",
+      "highlightColor": "#FFEB3B",
+      "fontColor": "rgba(255,255,255,0.4)",
+      "fontSize": 52,
+      "position": "bottom",
+      "category": "Education"
+    },
+    {
+      "key": "education-scale",
+      "name": "Education Scale",
+      "description": "Words scale up to emphasize key points",
+      "style": "scale",
+      "highlightColor": "#34D399",
+      "fontColor": "rgba(255,255,255,0.3)",
+      "fontSize": 52,
+      "position": "bottom",
+      "category": "Education"
+    },
+    {
+      "key": "fun-rainbow",
+      "name": "Fun Rainbow",
+      "description": "Cycling rainbow colors for fun, playful content",
+      "style": "rainbow",
+      "highlightColor": "#FF00FF",
+      "fontColor": "rgba(255,255,255,0.3)",
+      "fontSize": 60,
+      "position": "bottom",
+      "category": "Fun & Creative"
+    },
+    {
+      "key": "retro-flicker",
+      "name": "Retro Flicker",
+      "description": "Neon sign flicker for retro/vintage content",
+      "style": "flicker",
+      "highlightColor": "#FF9500",
+      "fontColor": "rgba(255,255,255,0.2)",
+      "fontSize": 56,
+      "position": "bottom",
+      "category": "Fun & Creative"
+    }
+  ],
+  "categories": {
+    "Social Media": [
+      "tiktok",
+      "instagram-reels",
+      "youtube-shorts",
+      "twitter-clips"
+    ],
+    "Podcast": [
+      "podcast-clean",
+      "podcast-bold"
+    ],
+    "Cinematic": [
+      "cinematic-gold",
+      "cinematic-white",
+      "cinematic-neon"
+    ],
+    "Music": [
+      "music-karaoke",
+      "music-wave"
+    ],
+    "Tutorial": [
+      "tutorial-typewriter",
+      "tutorial-erase"
+    ],
+    "Minimal": [
+      "minimal-white",
+      "minimal-subtle"
+    ],
+    "Gaming": [
+      "gaming-neon",
+      "gaming-bold"
+    ],
+    "News & Documentary": [
+      "news-ticker",
+      "documentary"
+    ],
+    "Education": [
+      "education-highlighter",
+      "education-scale"
+    ],
+    "Fun & Creative": [
+      "fun-rainbow",
+      "retro-flicker"
+    ]
+  }
+}

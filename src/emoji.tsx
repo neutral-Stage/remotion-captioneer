@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, random } from "remotion";
 import type { CaptionData } from "./types.js";
 
 export interface EmojiReaction {
@@ -27,7 +27,63 @@ export interface EmojiReaction {
 }
 
 interface EmojiReactionsProps {
-  reactions: EmojiReaction[];
+  readonly reactions: EmojiReaction[];
+}
+
+type EmojiAnimation = NonNullable<EmojiReaction["animation"]>;
+
+function computeEmojiTransform(
+  anim: EmojiAnimation,
+  elapsed: number,
+  progress: number,
+  fps: number,
+  x: number,
+  y: number
+): { transform: string; opacity: number } {
+  if (anim === "pop") {
+    const popScale = spring({
+      frame: (elapsed / 1000) * fps,
+      fps,
+      config: { damping: 8, stiffness: 200 },
+    });
+    return {
+      transform: `translate(${x}px, ${y}px) scale(${popScale})`,
+      opacity: progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1,
+    };
+  }
+
+  if (anim === "float") {
+    const floatY = y - progress * 100;
+    const floatScale = 1 + Math.sin(progress * Math.PI) * 0.2;
+    return {
+      transform: `translate(${x}px, ${floatY}px) scale(${floatScale})`,
+      opacity: 1 - progress,
+    };
+  }
+
+  if (anim === "spin") {
+    const rotation = progress * 360;
+    const spinScale = spring({
+      frame: (elapsed / 1000) * fps,
+      fps,
+      config: { damping: 10, stiffness: 150 },
+    });
+    return {
+      transform: `translate(${x}px, ${y}px) rotate(${rotation}deg) scale(${spinScale})`,
+      opacity: progress > 0.8 ? 1 - (progress - 0.8) / 0.2 : 1,
+    };
+  }
+
+  const shakeX = Math.sin(elapsed * 0.05) * 10;
+  const shakeScale = spring({
+    frame: (elapsed / 1000) * fps,
+    fps,
+    config: { damping: 6, stiffness: 300 },
+  });
+  return {
+    transform: `translate(${x + shakeX}px, ${y}px) scale(${shakeScale})`,
+    opacity: progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1,
+  };
 }
 
 export const EmojiReactions: React.FC<EmojiReactionsProps> = ({ reactions }) => {
@@ -50,49 +106,14 @@ export const EmojiReactions: React.FC<EmojiReactionsProps> = ({ reactions }) => 
         const x = (reaction.x ?? 0.5) * width;
         const y = (reaction.y ?? 0.5) * height;
 
-        let transform = "";
-        let opacity = 1;
-
-        switch (anim) {
-          case "pop":
-            const popScale = spring({
-              frame: (elapsed / 1000) * fps,
-              fps,
-              config: { damping: 8, stiffness: 200 },
-            });
-            transform = `translate(${x}px, ${y}px) scale(${popScale})`;
-            opacity = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
-            break;
-
-          case "float":
-            const floatY = y - progress * 100;
-            const floatScale = 1 + Math.sin(progress * Math.PI) * 0.2;
-            transform = `translate(${x}px, ${floatY}px) scale(${floatScale})`;
-            opacity = 1 - progress;
-            break;
-
-          case "spin":
-            const rotation = progress * 360;
-            const spinScale = spring({
-              frame: (elapsed / 1000) * fps,
-              fps,
-              config: { damping: 10, stiffness: 150 },
-            });
-            transform = `translate(${x}px, ${y}px) rotate(${rotation}deg) scale(${spinScale})`;
-            opacity = progress > 0.8 ? 1 - (progress - 0.8) / 0.2 : 1;
-            break;
-
-          case "shake":
-            const shakeX = Math.sin(elapsed * 0.05) * 10;
-            const shakeScale = spring({
-              frame: (elapsed / 1000) * fps,
-              fps,
-              config: { damping: 6, stiffness: 300 },
-            });
-            transform = `translate(${x + shakeX}px, ${y}px) scale(${shakeScale})`;
-            opacity = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
-            break;
-        }
+        const { transform, opacity } = computeEmojiTransform(
+          anim,
+          elapsed,
+          progress,
+          fps,
+          x,
+          y
+        );
 
         return (
           <div
@@ -152,6 +173,8 @@ const WORD_EMOJI_MAP: Record<string, string> = {
   "king": "👑", "queen": "👑", "best": "👑",
 };
 
+const EMOJI_ANIMATIONS: EmojiAnimation[] = ["pop", "float", "spin", "shake"];
+
 /**
  * Auto-generate reactions from caption data
  */
@@ -164,16 +187,16 @@ export function autoGenerateReactions(captionData: CaptionData): EmojiReaction[]
       const emoji = WORD_EMOJI_MAP[normalized];
 
       if (emoji) {
+        const seed = `${word.startMs}-${normalized}`;
+        const animIndex = Math.floor(random(seed + "-anim") * EMOJI_ANIMATIONS.length);
         reactions.push({
           emoji,
           timeMs: word.startMs + (word.endMs - word.startMs) / 2,
-          x: 0.15 + Math.random() * 0.7,
-          y: 0.15 + Math.random() * 0.5,
-          size: 40 + Math.random() * 20,
-          animation: ["pop", "float", "spin", "shake"][
-            Math.floor(Math.random() * 4)
-          ] as any,
-          durationMs: 1200 + Math.random() * 800,
+          x: 0.15 + random(seed + "-x") * 0.7,
+          y: 0.15 + random(seed + "-y") * 0.5,
+          size: 40 + random(seed + "-size") * 20,
+          animation: EMOJI_ANIMATIONS[animIndex] ?? "pop",
+          durationMs: 1200 + random(seed + "-dur") * 800,
         });
       }
     }

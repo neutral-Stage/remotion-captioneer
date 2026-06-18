@@ -10,12 +10,12 @@ import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface FlickerProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  flickerColor?: string;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly flickerColor?: string;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Flicker: React.FC<FlickerProps> = ({
@@ -26,8 +26,6 @@ export const Flicker: React.FC<FlickerProps> = ({
   flickerColor = "#FF9500",
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

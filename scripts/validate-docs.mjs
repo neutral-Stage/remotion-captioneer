@@ -1,59 +1,158 @@
 #!/usr/bin/env node
 /**
- * Ensures docs/marketing counts match source constants.
+ * Validates docs, README, and preview align with generated ui-meta.
  */
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-const styles = [
-  "word-highlight",
-  "karaoke",
-  "typewriter",
-  "bounce",
-  "wave",
-  "glow",
-  "typewriter-erase",
-  "pill",
-  "flicker",
-  "highlighter",
-  "blur",
-  "rainbow",
-  "scale",
-  "spotlight",
-];
+const metaPath = join(root, "docs/ui-meta.json");
+if (!existsSync(metaPath)) {
+  console.error("Run: npm run generate:meta");
+  process.exit(1);
+}
 
+const meta = JSON.parse(readFileSync(metaPath, "utf8"));
 const html = readFileSync(join(root, "docs/index.html"), "utf8");
+const readme = readFileSync(join(root, "README.md"), "utf8");
+const appJs = readFileSync(join(root, "docs/app.js"), "utf8");
+const previewJs = readFileSync(join(root, "src/preview/app.js"), "utf8");
 
 let ok = true;
-
-if (!html.includes("applyPreset")) {
-  console.error("docs/index.html should document applyPreset");
+const fail = (msg) => {
+  console.error(msg);
   ok = false;
-}
+};
 
+if (!html.includes("applyPreset")) fail("docs/index.html should document applyPreset");
 if (html.includes("transcribe(") && html.includes("from 'remotion-captioneer'")) {
-  console.error("docs should not import non-existent transcribe()");
-  ok = false;
+  fail("docs should not import non-existent transcribe()");
+}
+if (html.includes("captioneer info")) fail("docs references removed captioneer info command");
+if (html.includes("Diarization and sentiment")) {
+  fail("docs should not claim AssemblyAI diarization until implemented");
 }
 
-if (html.includes("captioneer info")) {
-  console.error("docs references removed captioneer info command");
-  ok = false;
+if (/\bFour styles\b/i.test(readme)) fail('README still says "Four styles"');
+if (readme.includes("✅ 4 ready-to-use styles") || readme.includes("Four styles. Zero")) {
+  fail("README still advertises only 4 styles");
 }
 
-for (const s of styles) {
-  if (!html.includes(s) && !html.includes(s.replace(/-/g, ""))) {
-    // style grid may use labels; warn only for primary ids
-    if (["word-highlight", "karaoke", "typewriter", "bounce"].includes(s)) {
-      console.warn(`warn: docs may not mention style ${s}`);
-    }
+if (!html.includes("app.js")) fail("docs should load app.js");
+if (!appJs.includes("ui-meta.json")) fail("docs app.js should fetch ui-meta.json");
+
+if (!appJs.includes("META.categories") && !appJs.includes("categories")) {
+  fail("docs app.js should use preset categories from ui-meta");
+}
+
+for (const s of meta.styles) {
+  if (!appJs.includes("META.styles") && !appJs.includes(s.id)) {
+    fail(`docs app missing style metadata for ${s.id}`);
   }
 }
 
-console.log(`Validated: ${styles.length} caption styles in source checklist`);
+if (!previewJs.includes("api/meta") || !previewJs.includes("style-select")) {
+  fail("preview app should load styles from /api/meta");
+}
+
+if (meta.styleCount !== 14) fail(`expected 14 styles, got ${meta.styleCount}`);
+
+const categoryCount = Object.keys(meta.categories ?? {}).length;
+if (categoryCount < 5) {
+  fail(`ui-meta.json categories empty or too few (${categoryCount}); run npm run generate:meta`);
+}
+
+const buildPreview = readFileSync(join(root, "scripts/build-preview.mjs"), "utf8");
+if (!buildPreview.includes("theme.css")) {
+  fail("build-preview.mjs should copy theme.css into dist/preview");
+}
+
+const presetCount = meta.presetCount ?? meta.presets?.length;
+if (presetCount == null) fail("ui-meta.json missing presetCount");
+if (!readme.includes(String(presetCount))) {
+  fail(`README should mention ${presetCount} presets (ui-meta presetCount)`);
+}
+if (/\b16 built-in presets\b/i.test(readme)) {
+  fail("README still says 16 built-in presets");
+}
+
+const examplesDir = join(root, "examples");
+for (const file of ["10-diarization.tsx", "11-translate.tsx", "12-rtl.tsx"]) {
+  if (!existsSync(join(examplesDir, file))) {
+    fail(`missing example ${file}`);
+  }
+}
+
+if (!previewJs.includes("timeline-beats") && !previewJs.includes("renderBeatMarkers")) {
+  fail("preview should implement beat markers when README claims them");
+}
+if (!previewJs.includes("buildWaveformFromFile") && !previewJs.includes("decodeAudioData")) {
+  fail("preview should build waveform from audio");
+}
+if (!previewJs.includes("setupWordDrag") && !previewJs.includes("word-handle")) {
+  fail("preview should support word timing drag editor");
+}
+
+if (!previewJs.includes("snapMs") && !previewJs.includes("cfg-snap-beat")) {
+  fail("preview should support snap-to-beat editing");
+}
+
+if (!previewJs.includes("undo") || !previewJs.includes("redo")) {
+  fail("preview should support undo/redo for editor");
+}
+
+if (!previewJs.includes("exportCaptions") && !previewJs.includes("downloadExport")) {
+  fail("preview should export SRT/VTT from edited captions");
+}
+
+if (!existsSync(join(root, "src/preview/export-client.js"))) {
+  fail("src/preview/export-client.js missing");
+}
+
+const cliSrc = readFileSync(join(root, "src/cli.ts"), "utf8");
+if (!cliSrc.includes('.command("analyze")')) {
+  fail("CLI should include captioneer analyze command");
+}
+if (!cliSrc.includes('case "json"')) {
+  fail("CLI export should support json format");
+}
+
+const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+if (!pkg.scripts["test:e2e"]) {
+  fail("package.json should define test:e2e Playwright script");
+}
+if (!existsSync(join(root, "playwright.config.ts"))) {
+  fail("playwright.config.ts missing for Phase 30 smoke tests");
+}
+
+if (!existsSync(join(root, "src/ui/components.css"))) {
+  fail("src/ui/components.css missing (UI kit)");
+}
+
+const componentsCss = readFileSync(join(root, "docs/components.css"), "utf8");
+if (!componentsCss.includes("cap-layer.pos-top")) {
+  fail("docs/components.css should include cap position classes from UI kit");
+}
+
+if (!appJs.includes("seekTo")) {
+  fail("docs app.js should support timeline seek (seekTo)");
+}
+
+for (const s of meta.styles) {
+  if (!appJs.includes(`case "${s.id}"`)) {
+    fail(`docs renderCap should handle style "${s.id}"`);
+  }
+}
+
+if (/\binnerHTML\b/.test(appJs)) {
+  fail("docs app.js should avoid innerHTML (use DOM APIs)");
+}
+
+console.log(
+  `Validated: ${meta.styleCount} styles, ${meta.presetCount} presets in ui-meta.json`
+);
 
 if (!ok) process.exit(1);
 console.log("docs/validate OK");

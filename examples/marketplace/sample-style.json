@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "id": "sample-neon-pulse",
+    "name": "Sample Neon Pulse",
+    "description": "Example marketplace style package using the built-in glow animation.",
+    "version": "1.0.0",
+    "author": "Captioneer"
+  },
+  "preset": {
+    "name": "Neon Pulse",
+    "description": "Purple neon glow preset for short-form clips",
+    "style": "glow",
+    "fontFamily": "Inter, sans-serif",
+    "fontSize": 60,
+    "fontColor": "rgba(255,255,255,0.35)",
+    "highlightColor": "#A855F7",
+    "position": "bottom"
+  }
+}

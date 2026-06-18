@@ -27,6 +27,8 @@ export interface CaptionSegment {
   startMs: number;
   endMs: number;
   words: Word[];
+  /** Optional speaker label from diarization */
+  speaker?: string;
 }
 
 /**
@@ -75,6 +77,10 @@ export interface CaptionComponentProps {
   useSmartWrap?: boolean;
   /** Text direction for RTL scripts (e.g. Arabic, Hebrew). */
   textDirection?: "ltr" | "rtl" | "auto";
+  /** Show speaker label for the active segment when segments have `speaker` */
+  showSpeakerLabels?: boolean;
+  /** Optional palette for speaker label chips */
+  speakerColors?: string[];
 }
 
 /**

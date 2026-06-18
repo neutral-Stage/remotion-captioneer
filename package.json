@@ -26,13 +26,20 @@
   },
   "scripts": {
     "start": "remotion studio",
-    "build": "tsc",
+    "build": "npm run generate:meta && tsc && npm run build:preview",
+    "generate:meta": "node scripts/generate-ui-meta.mjs",
+    "build:preview": "node scripts/build-preview.mjs",
+    "generate:thumbnails": "node scripts/generate-thumbnails.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "render": "remotion render",
     "remotion:preview": "remotion preview",
     "preview:web": "node dist/cli.js preview",
     "lint": "eslint src --ext .ts,.tsx",
+    "lint:ui": "eslint src/preview/player-entry.tsx src/studio/WelcomeComposition.tsx src/studio/StyleGallery.tsx src/studio/PresetShowcase.tsx src/studio/DiarizationDemo.tsx src/studio/style-highlights.ts src/studio/Root.tsx",
+    "lint:incremental": "eslint src/cli.ts src/config.ts src/exporters.ts src/node.ts src/preview-server.ts src/preview/headers.ts src/preview/temp-path.ts src/transcribe-media.ts src/providers/assemblyai.ts src/providers/diarization.ts src/preview/player-entry.tsx src/studio/DiarizationDemo.tsx",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium --with-deps",
     "validate:docs": "node scripts/validate-docs.mjs"
   },
   "keywords": [
@@ -66,6 +73,7 @@
   "dependencies": {
     "@remotion/captions": "4.0.438",
     "@remotion/install-whisper-cpp": "4.0.438",
+    "@remotion/player": "4.0.438",
     "remotion": "4.0.438",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -86,7 +94,11 @@
     "eslint": "8.57.1",
     "eslint-plugin-react": "7.37.4",
     "eslint-plugin-react-hooks": "4.6.0",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "@testing-library/react": "^16.2.0",
+    "jsdom": "^26.0.0",
+    "esbuild": "^0.25.0",
+    "@playwright/test": "^1.51.0"
   },
   "engines": {
     "node": ">=18.0.0"
