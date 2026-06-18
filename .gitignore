@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .captioneer-cache/
+.captioneer/
 whisper.cpp/
 
 # OS

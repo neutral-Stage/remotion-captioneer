@@ -41,6 +41,7 @@ const undoStack = [];
 let undoIndex = 0;
 const MAX_UNDO = 40;
 let dragSnapshot = null;
+let hostingInfo = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -60,6 +61,100 @@ function attachAudioFile(audioEl, file) {
   if (previous.startsWith("blob:")) {
     URL.revokeObjectURL(previous);
   }
+}
+
+const HOSTING_LINK_SCHEMES = new Set(["http:", "https:"]);
+
+function formatHostingProvider(name) {
+  if (name === "youtube") return "YouTube";
+  if (name === "vimeo") return "Vimeo";
+  return "Video";
+}
+
+function hideHostingCard() {
+  hostingInfo = null;
+  const card = $("hosting-card");
+  card.classList.add("hidden");
+  const thumb = $("hosting-thumb");
+  thumb.removeAttribute("src");
+  thumb.hidden = true;
+  $("hosting-provider").textContent = "";
+  $("hosting-title").textContent = "";
+  const link = $("hosting-link");
+  link.removeAttribute("href");
+  link.textContent = "Open video";
+}
+
+function renderHostingCard(info) {
+  const card = $("hosting-card");
+  const thumb = $("hosting-thumb");
+  const link = $("hosting-link");
+
+  $("hosting-provider").textContent = formatHostingProvider(info.provider);
+  $("hosting-title").textContent = info.title || `Video ${info.videoId}`;
+
+  if (info.thumbnailUrl) {
+    try {
+      const thumbUrl = new URL(info.thumbnailUrl);
+      if (HOSTING_LINK_SCHEMES.has(thumbUrl.protocol)) {
+        thumb.src = thumbUrl.href;
+        thumb.hidden = false;
+      } else {
+        thumb.removeAttribute("src");
+        thumb.hidden = true;
+      }
+    } catch {
+      thumb.removeAttribute("src");
+      thumb.hidden = true;
+    }
+  } else {
+    thumb.removeAttribute("src");
+    thumb.hidden = true;
+  }
+
+  try {
+    const canonical = new URL(info.canonicalUrl);
+    if (HOSTING_LINK_SCHEMES.has(canonical.protocol)) {
+      link.href = canonical.href;
+    } else {
+      link.removeAttribute("href");
+    }
+  } catch {
+    link.removeAttribute("href");
+  }
+  link.textContent = "Open video";
+
+  card.classList.remove("hidden");
+}
+
+async function resolveHostingUrl() {
+  const raw = $("hosting-url-input").value.trim();
+  if (!raw) {
+    setStatus("Enter a YouTube or Vimeo URL", "error");
+    return;
+  }
+
+  setStatus("Resolving video URL…", "loading");
+  try {
+    const res = await fetch(
+      "/api/hosting/resolve?url=" + encodeURIComponent(raw)
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || res.statusText);
+    }
+    hostingInfo = data;
+    renderHostingCard(data);
+    clearStatus();
+  } catch (err) {
+    hideHostingCard();
+    setStatus(err.message || "Could not resolve URL", "error");
+  }
+}
+
+function clearHostingCard() {
+  hideHostingCard();
+  $("hosting-url-input").value = "";
 }
 
 async function init() {
@@ -108,11 +203,28 @@ function populateSelects() {
   for (const p of meta.presets) {
     const opt = document.createElement("option");
     opt.value = p.key;
-    opt.textContent = p.name;
+    opt.textContent = p.marketplace ? `${p.name}` : p.name;
+    if (p.marketplace) {
+      opt.dataset.marketplace = "true";
+    }
     presetSel.appendChild(opt);
   }
 
+  updateMarketplaceHint();
   updateStudioLink();
+}
+
+function updateMarketplaceHint() {
+  const count = meta.marketplacePresetCount ?? 0;
+  const countEl = $("marketplace-count");
+  if (!countEl) return;
+  if (count > 0) {
+    countEl.hidden = false;
+    countEl.textContent = `${count} installed marketplace preset${count === 1 ? "" : "s"}`;
+  } else {
+    countEl.hidden = true;
+    countEl.textContent = "";
+  }
 }
 
 function bindEvents() {
@@ -175,6 +287,15 @@ function bindEvents() {
 
   $("timeline").addEventListener("click", onTimelineClick);
   $("timeline").addEventListener("keydown", onTimelineKey);
+
+  $("hosting-resolve-btn").addEventListener("click", () => void resolveHostingUrl());
+  $("hosting-url-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void resolveHostingUrl();
+    }
+  });
+  $("hosting-clear-btn").addEventListener("click", clearHostingCard);
 
   document.addEventListener("keydown", (e) => {
     if (e.target.matches("input,select,textarea")) return;

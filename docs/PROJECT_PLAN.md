@@ -9,7 +9,7 @@
 | Preview server | `dist/preview/` via `src/preview-server.ts` | ✅ Remotion Player + configurator |
 | GitHub Pages | `docs/` (theme.css, app.js, ui-meta.json) | ✅ |
 | Scaffold | `src/scaffold.ts` | ✅ |
-| Examples | `examples/` + `captions.json` | ✅ through 12 |
+| Examples | `examples/` + `captions.json` | ✅ through 13 |
 
 ## UI system
 
@@ -26,6 +26,7 @@
 | Web preview | `npm run preview:web` |
 | Generate meta | `npm run generate:meta` |
 | Test | `npm test` |
+| E2E smoke | `npm run test:e2e` |
 | Validate docs | `npm run validate:docs` |
 
 ## Optional next
@@ -40,3 +41,5 @@
 - [x] Full legacy ESLint cleanup (`npm run lint` passes; 11 non-pure-animation warnings remain)
 - [x] Video hosting APIs foundation (`src/hosting/`, CLI, preview `/api/hosting/resolve`)
 - [x] Style marketplace foundation (`src/marketplace/`, `captioneer styles install`, preview `/api/styles`)
+- [x] Preview hosting URL resolve UI (YouTube/Vimeo metadata card)
+- [x] Marketplace discovery UX (preset picker, docs hero count, `captioneer styles list`)

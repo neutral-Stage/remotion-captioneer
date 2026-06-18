@@ -183,7 +183,28 @@ program
     console.log("  scale             — Words grow from small to full");
     console.log("  spotlight         — Radial spotlight behind word");
     console.log("\nInstall marketplace presets: captioneer styles install <path|url>\n");
+    console.log("List installed packages: captioneer styles list\n");
   })
+  .addCommand(
+    new Command("list")
+      .description("List installed marketplace style packages")
+      .action(async () => {
+        const { getMarketplacePresets } = await import("./marketplace/registry.js");
+        const installed = getMarketplacePresets();
+        const keys = Object.keys(installed);
+        console.log("\n📦 Installed marketplace presets:\n");
+        if (keys.length === 0) {
+          console.log("  (none — run: captioneer styles install <path|url>)\n");
+          return;
+        }
+        for (const key of keys) {
+          const p = installed[key]!;
+          console.log(`  ${key}`);
+          console.log(`    ${p.name} — ${p.style} · ${p.highlightColor}`);
+        }
+        console.log("");
+      })
+  )
   .addCommand(
     new Command("install")
       .description("Install a style package from a JSON file or URL")

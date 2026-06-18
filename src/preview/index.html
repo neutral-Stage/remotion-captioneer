@@ -20,6 +20,29 @@
 
   <div class="main">
     <section class="preview" aria-label="Caption preview">
+      <div class="hosting-bar" id="hosting-bar">
+        <label for="hosting-url-input" class="hosting-label">Video URL (YouTube / Vimeo)</label>
+        <div class="hosting-row">
+          <input
+            type="url"
+            id="hosting-url-input"
+            class="hosting-input"
+            placeholder="https://youtube.com/watch?v=…"
+            autocomplete="off"
+          >
+          <button type="button" id="hosting-resolve-btn" class="primary">Resolve</button>
+        </div>
+        <p class="hosting-hint">Metadata only — upload local audio or video for transcription.</p>
+      </div>
+      <div class="hosting-card hidden" id="hosting-card" aria-live="polite">
+        <img id="hosting-thumb" class="hosting-thumb" alt="" width="120" height="68" hidden>
+        <div class="hosting-meta">
+          <div class="hosting-provider" id="hosting-provider"></div>
+          <div class="hosting-title" id="hosting-title"></div>
+          <a id="hosting-link" class="hosting-link" href="#" target="_blank" rel="noopener noreferrer">Open video</a>
+        </div>
+        <button type="button" id="hosting-clear-btn" class="hosting-clear" aria-label="Clear resolved video">×</button>
+      </div>
       <div class="video-frame" id="video-frame">
         <div class="upload-zone" id="upload-zone">
           <p class="upload-title">Drop audio, video, or caption JSON</p>
@@ -90,6 +113,13 @@
 
       <div class="config-group">
         <label><input type="checkbox" id="cfg-snap-beat"> Snap word edges to beats</label>
+      </div>
+
+      <h3>Marketplace</h3>
+      <div class="marketplace-panel" id="marketplace-panel">
+        <p class="marketplace-hint">Install community style packages with the CLI:</p>
+        <code class="marketplace-cmd">captioneer styles install &lt;path|url&gt;</code>
+        <p class="marketplace-count" id="marketplace-count" hidden></p>
       </div>
 
       <h3>Stats</h3>

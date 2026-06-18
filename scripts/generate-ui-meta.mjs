@@ -3,9 +3,10 @@
  * Generate ui-meta.json from source constants (styles, presets).
  * Run: node scripts/generate-ui-meta.mjs
  */
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { homedir } from "os";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -90,16 +91,56 @@ function parsePresets() {
   return { presets: presetEntries, categories };
 }
 
+function loadMarketplacePresetsForMeta(root) {
+  const dirs = [
+    join(root, ".captioneer", "styles"),
+    join(homedir(), ".captioneer", "styles"),
+  ];
+  const presets = [];
+  for (const dir of dirs) {
+    if (!existsSync(dir)) continue;
+    for (const file of readdirSync(dir)) {
+      if (!file.endsWith(".json")) continue;
+      try {
+        const raw = JSON.parse(readFileSync(join(dir, file), "utf-8"));
+        if (raw.schemaVersion !== 1 || !raw.meta?.id || !raw.preset) continue;
+        const p = raw.preset;
+        presets.push({
+          key: `marketplace:${raw.meta.id}`,
+          name: `${p.name || raw.meta.name} (installed)`,
+          description: p.description || raw.meta.description || "",
+          style: p.style,
+          highlightColor: p.highlightColor ?? "#3b82f6",
+          fontColor: p.fontColor ?? "#fff",
+          fontSize: p.fontSize ?? 56,
+          position: p.position ?? "bottom",
+          category: "Marketplace",
+          marketplace: true,
+        });
+      } catch {
+        // skip invalid packages
+      }
+    }
+  }
+  return presets;
+}
+
 const styles = parseCaptionStyles();
-const { presets, categories } = parsePresets();
+const { presets: builtinPresets, categories } = parsePresets();
+const marketplacePresets = loadMarketplacePresetsForMeta(root);
+const presets = [...builtinPresets, ...marketplacePresets];
 
 const meta = {
   generatedAt: new Date().toISOString(),
   styleCount: styles.length,
   presetCount: presets.length,
+  marketplacePresetCount: marketplacePresets.length,
   styles,
   presets,
-  categories,
+  categories: {
+    ...categories,
+    ...(marketplacePresets.length > 0 ? { Marketplace: marketplacePresets.map((p) => p.key) } : {}),
+  },
 };
 
 const outDirs = [
@@ -117,5 +158,7 @@ const componentsSrc = join(root, "src/ui/components.css");
 const componentsDocs = join(root, "docs/components.css");
 copyFileSync(componentsSrc, componentsDocs);
 
-console.log(`Generated ui-meta.json: ${styles.length} styles, ${presets.length} presets`);
+console.log(
+  `Generated ui-meta.json: ${styles.length} styles, ${presets.length} presets (${marketplacePresets.length} marketplace)`
+);
 console.log("Synced src/ui/components.css → docs/components.css");

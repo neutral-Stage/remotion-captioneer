@@ -36,6 +36,7 @@ All `*.tsx` examples import `./captions.json` in this folder. Use the same shape
 | `10-diarization.tsx` | Speaker labels with `--diarize` |
 | `11-translate.tsx` | `translateCaptionData` (Node) |
 | `12-rtl.tsx` | RTL captions with `textDirection="rtl"` |
+| `13-hosting.tsx` | `resolveVideoUrl` for YouTube / Vimeo metadata (Node) |
 
 ## Run in this repo
 

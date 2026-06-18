@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { Readable } from "stream";
 import type { IncomingMessage } from "http";
 import {
-  PREVIEW_MAX_BODY_BYTES,
   readRequestBody,
   RequestBodyTooLargeError,
 } from "./request-body.js";

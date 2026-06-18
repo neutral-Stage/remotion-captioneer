@@ -799,6 +799,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 | `10-diarization.tsx` | Speaker labels with `--diarize` |
 | `11-translate.tsx` | `translateCaptionData` / `captioneer translate` |
 | `12-rtl.tsx` | RTL captions with `textDirection="rtl"` |
+| `13-hosting.tsx` | YouTube / Vimeo URL metadata via `resolveVideoUrl` |
 
 ---
 
@@ -827,11 +828,11 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 
 ### 🔮 Future
 
-- [x] Caption style marketplace foundation (JSON preset packages + `captioneer styles install`)
+- [x] Caption style marketplace (JSON packages, install/list, preview preset picker)
 - [x] ~~AI-powered auto-emoji~~ (`autoGenerateReactions()` — keyword-based emoji generation from 60+ word→emoji mappings)
 - [x] Multi-language caption support with RTL (OpenAI `translateCaptionData` + `captioneer translate`; `AnimatedCaptions` `textDirection="rtl"`)
 - [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)
-- [x] Integration with video hosting APIs foundation (YouTube, Vimeo — `captioneer hosting info`)
+- [x] Video hosting APIs (YouTube/Vimeo resolve — CLI + preview URL import UI)
 - [x] ~~Real-time caption rendering in browser~~ (`npx captioneer preview` — live browser-based caption rendering with audio sync)
 - [x] Caption translation utilities (`translateCaptionData`, `captioneer translate`)
 - [x] Speaker diarization (`--diarize` on AssemblyAI & ElevenLabs; `speaker` on segments)

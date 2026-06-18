@@ -10,7 +10,8 @@ import { writeFile, unlink } from "fs/promises";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { getAllPresets } from "./marketplace/registry.js";
+import type { CaptionPreset } from "./presets/index.js";
+import { getAllPresets, getMarketplacePresets } from "./marketplace/registry.js";
 import { transcribeMediaFile } from "./transcribe-media.js";
 import { analyzeAudio } from "./sync/audio-analysis.js";
 import { loadConfig, resolveDefaultStyle } from "./config.js";
@@ -47,6 +48,61 @@ function readUiMeta(): string {
     if (existsSync(p)) return readFileSync(p, "utf8");
   }
   return JSON.stringify({ styles: [], presets: [] });
+}
+
+interface UiMetaPreset {
+  key: string;
+  name: string;
+  description: string;
+  style: string;
+  highlightColor: string;
+  fontColor: string;
+  fontSize: number;
+  position: string;
+  category: string;
+  marketplace?: boolean;
+}
+
+function buildMetaWithMarketplace(): string {
+  const base = JSON.parse(readUiMeta()) as {
+    styles: unknown[];
+    presets: UiMetaPreset[];
+    presetCount?: number;
+    styleCount?: number;
+    categories?: Record<string, string[]>;
+    generatedAt?: string;
+    marketplacePresetCount?: number;
+  };
+
+  const existingKeys = new Set((base.presets ?? []).map((p) => p.key));
+  const marketplacePresets: UiMetaPreset[] = Object.entries(
+    getMarketplacePresets()
+  )
+    .filter(([key]) => !existingKeys.has(key))
+    .map(([key, p]: [string, CaptionPreset]) => ({
+    key,
+    name: `${p.name} (installed)`,
+    description: p.description,
+    style: p.style,
+    highlightColor: p.highlightColor,
+    fontColor: p.fontColor,
+    fontSize: p.fontSize,
+    position: p.position,
+    category: "Marketplace",
+    marketplace: true,
+  }));
+
+  const allPresets = [...(base.presets ?? []), ...marketplacePresets];
+  const marketplacePresetCount = allPresets.filter(
+    (p) => p.marketplace === true || p.key.startsWith("marketplace:")
+  ).length;
+
+  return JSON.stringify({
+    ...base,
+    presets: allPresets,
+    presetCount: allPresets.length,
+    marketplacePresetCount,
+  });
 }
 
 function buildPresetPayload(): Record<
@@ -189,7 +245,7 @@ export function startPreviewServer(options: PreviewServerOptions = {}): void {
 
     if (req.method === "GET" && url === "/api/meta") {
       res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(readUiMeta());
+      res.end(buildMetaWithMarketplace());
       return;
     }
 

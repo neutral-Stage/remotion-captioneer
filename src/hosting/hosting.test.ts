@@ -12,6 +12,9 @@ describe("hosting", () => {
       "dQw4w9WgXcQ"
     );
     expect(parseYouTubeId("https://youtu.be/dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+    expect(parseYouTubeId("https://www.youtube.com/shorts/dQw4w9WgXcQ")).toBe(
+      "dQw4w9WgXcQ"
+    );
   });
 
   it("parses Vimeo URLs", () => {

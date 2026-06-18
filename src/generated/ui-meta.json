@@ -1,7 +1,8 @@
 {
-  "generatedAt": "2026-06-18T10:57:31.848Z",
+  "generatedAt": "2026-06-18T12:19:29.420Z",
   "styleCount": 14,
-  "presetCount": 23,
+  "presetCount": 24,
+  "marketplacePresetCount": 1,
   "styles": [
     {
       "id": "word-highlight",
@@ -327,6 +328,18 @@
       "fontSize": 56,
       "position": "bottom",
       "category": "Fun & Creative"
+    },
+    {
+      "key": "marketplace:sample-neon-pulse",
+      "name": "Neon Pulse (installed)",
+      "description": "Purple neon glow preset for short-form clips",
+      "style": "glow",
+      "highlightColor": "#A855F7",
+      "fontColor": "rgba(255,255,255,0.35)",
+      "fontSize": 60,
+      "position": "bottom",
+      "category": "Marketplace",
+      "marketplace": true
     }
   ],
   "categories": {
@@ -372,6 +385,9 @@
     "Fun & Creative": [
       "fun-rainbow",
       "retro-flicker"
+    ],
+    "Marketplace": [
+      "marketplace:sample-neon-pulse"
     ]
   }
 }

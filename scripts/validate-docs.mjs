@@ -79,10 +79,18 @@ if (/\b16 built-in presets\b/i.test(readme)) {
 }
 
 const examplesDir = join(root, "examples");
-for (const file of ["10-diarization.tsx", "11-translate.tsx", "12-rtl.tsx"]) {
+for (const file of ["10-diarization.tsx", "11-translate.tsx", "12-rtl.tsx", "13-hosting.tsx"]) {
   if (!existsSync(join(examplesDir, file))) {
     fail(`missing example ${file}`);
   }
+}
+
+if (meta.marketplacePresetCount == null) {
+  fail("ui-meta.json missing marketplacePresetCount");
+}
+
+if (!previewJs.includes("marketplace-count") && !previewJs.includes("updateMarketplaceHint")) {
+  fail("preview should surface installed marketplace presets");
 }
 
 if (!previewJs.includes("timeline-beats") && !previewJs.includes("renderBeatMarkers")) {

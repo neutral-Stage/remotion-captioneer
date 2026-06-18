@@ -61,6 +61,7 @@ async function init() {
   loadConfig();
   applyUrlParams();
   applyCapPosition();
+  updateHeroMarketplaceCount();
 
   document.getElementById("icmd").onclick = () => {
     navigator.clipboard.writeText("npx captioneer init my-video");
@@ -70,6 +71,15 @@ async function init() {
     loadLine();
     if (!reducedMotion) play();
   }, 400);
+}
+
+function updateHeroMarketplaceCount() {
+  const count = META.marketplacePresetCount ?? 0;
+  if (count <= 0) return;
+  const heroP = document.querySelector(".hero > p");
+  if (!heroP) return;
+  const base = heroP.textContent?.replace(/\s*·\s*\d+ marketplace.*$/, "") ?? heroP.textContent;
+  heroP.textContent = `${base} · ${count} marketplace style${count === 1 ? "" : "s"} installed`;
 }
 
 function buildStyleBtns() {
