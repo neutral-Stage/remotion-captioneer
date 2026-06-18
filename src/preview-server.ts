@@ -11,6 +11,7 @@ import { dirname } from "path";
 import { presets } from "./presets/index.js";
 import { transcribeMediaFile } from "./transcribe-media.js";
 import { analyzeAudio } from "./sync/audio-analysis.js";
+import { loadConfig, resolveDefaultStyle } from "./config.js";
 import { parseProcessHeaders } from "./preview/headers.js";
 import { createTempUploadPath } from "./preview/temp-path.js";
 
@@ -88,6 +89,7 @@ async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise
         onProgress: (m) => console.log(`   ${m}`),
         diarize,
         numSpeakers,
+        language: typeof req.headers["x-language"] === "string" ? req.headers["x-language"] : undefined,
       });
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(captions));
@@ -156,6 +158,21 @@ export function startPreviewServer(port: number = PORT): void {
     if (req.method === "GET" && url === "/api/meta") {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(readUiMeta());
+      return;
+    }
+
+    if (req.method === "GET" && url === "/api/config") {
+      void (async () => {
+        const config = await loadConfig();
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            defaultStyle: resolveDefaultStyle(config),
+            defaultProvider: config?.defaultProvider ?? null,
+            defaultLanguage: config?.defaultLanguage ?? null,
+          })
+        );
+      })();
       return;
     }
 

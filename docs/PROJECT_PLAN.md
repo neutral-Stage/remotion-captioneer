@@ -32,5 +32,8 @@
 
 - [x] Speaker diarization parsing in STT providers (AssemblyAI, ElevenLabs; `--diarize` CLI + preview)
 - [x] Preview timeline editor (word timing drag, waveform, beat markers, JSON export)
+- [x] Preview SRT/VTT export, undo/redo, snap-to-beat
+- [x] CLI `captioneer analyze` and `export --format json`
+- [x] `defaultStyle` in `.captioneerrc` wired to scaffold, preview, and process hints
 - [ ] Video hosting APIs
 - [ ] Full legacy ESLint cleanup (321 existing issues)

@@ -95,8 +95,11 @@ program
         }
       }
       console.log(`\n💡 Use in your Remotion project:`);
+      const { resolveDefaultStyle } = await import("./config.js");
+      const style = resolveDefaultStyle(config);
       console.log(`   import { AnimatedCaptions } from "remotion-captioneer";`);
       console.log(`   import captions from "./${basename(outputPath)}";`);
+      console.log(`   <AnimatedCaptions captions={captions} style="${style}" />`);
     } catch (error: any) {
       console.error(`❌ Error: ${error.message}`);
       process.exit(1);
@@ -164,12 +167,45 @@ program
   .description("Scaffold a new Remotion caption project")
   .argument("[name]", "Project name", "my-captioned-video")
   .action(async (name: string) => {
+    const { loadConfig, resolveDefaultStyle } = await import("./config.js");
+    const config = await loadConfig();
     const { scaffoldProject } = await import("./scaffold.js");
-    scaffoldProject(name);
+    scaffoldProject(name, ".", resolveDefaultStyle(config));
   });
 
 program
-  .command("preview")
+  .command("analyze")
+  .description("Analyze audio for beats, BPM, and volume envelope")
+  .argument("<audio>", "Path to audio or video file")
+  .option("-o, --output <path>", "Output JSON path (default: <audio>-analysis.json)")
+  .action(async (audioPath: string, opts: { output?: string }) => {
+    const { resolve, basename, extname } = await import("path");
+    const resolved = resolve(audioPath);
+    if (!existsSync(resolved)) {
+      console.error(`❌ File not found: ${resolved}`);
+      process.exit(1);
+    }
+
+    console.log(`🎵 Analyzing: ${basename(resolved)}`);
+
+    try {
+      const { analyzeAudio } = await import("./sync/audio-analysis.js");
+      const analysis = await analyzeAudio(resolved);
+      const outputPath =
+        opts.output ??
+        resolve(process.cwd(), `${basename(resolved, extname(resolved))}-analysis.json`);
+
+      writeFileSync(outputPath, JSON.stringify(analysis, null, 2));
+      console.log(`\n✅ Analysis saved to: ${outputPath}`);
+      console.log(`📊 BPM: ${analysis.bpm ?? "—"}, beats: ${analysis.beats?.length ?? 0}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error: ${message}`);
+      process.exit(1);
+    }
+  });
+
+program
   .description("Start a real-time preview server")
   .option("-p, --port <port>", "Port number", "3456")
   .action(async (opts: any) => {
@@ -199,7 +235,7 @@ program
   .command("export")
   .description("Export captions to different formats")
   .argument("<caption-file>", "Path to caption JSON file")
-  .option("-f, --format <format>", "Output format: srt, vtt, ass, txt, srt-words, vtt-words", "srt")
+  .option("-f, --format <format>", "Output format: srt, vtt, ass, txt, json, srt-words, vtt-words", "srt")
   .option("-o, --output <path>", "Output file path")
   .action(async (captionFile: string, opts: any) => {
     const { readFileSync, writeFileSync: wfs } = await import("fs");
@@ -213,7 +249,7 @@ program
 
     const captions = JSON.parse(readFileSync(filePath, "utf-8"));
 
-    const { toSRT, toVTT, toASS, toPlainText, toWordLevelSRT, toWordLevelVTT } = await import("./exporters.js");
+    const { toSRT, toVTT, toASS, toPlainText, toJSON, toWordLevelSRT, toWordLevelVTT } = await import("./exporters.js");
 
     let output: string;
     let ext: string;
@@ -235,6 +271,10 @@ program
         output = toPlainText(captions);
         ext = ".txt";
         break;
+      case "json":
+        output = toJSON(captions);
+        ext = ".json";
+        break;
       case "srt-words":
         output = toWordLevelSRT(captions);
         ext = ".srt";
@@ -245,7 +285,7 @@ program
         break;
       default:
         console.error(`❌ Unknown format: ${opts.format}`);
-        console.error(`   Available: srt, vtt, ass, txt, srt-words, vtt-words`);
+        console.error(`   Available: srt, vtt, ass, txt, json, srt-words, vtt-words`);
         process.exit(1);
     }
 

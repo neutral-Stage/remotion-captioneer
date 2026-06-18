@@ -85,6 +85,8 @@ export class AssemblyAIProvider implements STTProvider {
 
     const { upload_url } = await uploadRes.json();
 
+    const languageCode = options.languageCode ?? options.language;
+
     // Step 2: Request transcription
     const transcriptRes = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
       method: "POST",
@@ -94,7 +96,7 @@ export class AssemblyAIProvider implements STTProvider {
       },
       body: JSON.stringify({
         audio_url: upload_url,
-        language_code: options.languageCode ?? "en",
+        ...(languageCode ? { language_code: languageCode } : {}),
         punctuate: options.punctuate ?? true,
         format_text: options.formatText ?? true,
         word_boost: [],

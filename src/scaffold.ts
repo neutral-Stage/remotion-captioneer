@@ -13,7 +13,11 @@
 import { mkdirSync, writeFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
 
-export function scaffoldProject(projectName: string, dir: string = "."): void {
+export function scaffoldProject(
+  projectName: string,
+  dir: string = ".",
+  defaultStyle: string = "word-highlight"
+): void {
   const projectDir = resolve(dir, projectName);
 
   if (existsSync(projectDir)) {
@@ -155,7 +159,7 @@ export const CaptionedVideo = () => (
 
     <AnimatedCaptions
       captions={captions}
-      style="word-highlight"
+      style="${defaultStyle}"
       position="bottom"
       highlightColor="#e4e4e7"
       fontSize={58}
