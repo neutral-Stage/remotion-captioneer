@@ -6,8 +6,13 @@
 
 import { readFileSync, existsSync } from "fs";
 import { resolve, basename } from "path";
-import type { CaptionData, CaptionSegment, Word } from "../types.js";
+import type { CaptionData, CaptionSegment } from "../types.js";
 import type { STTProvider, STTProviderOptions } from "./base.js";
+import type {
+  VerboseWhisperResponse,
+  WhisperApiSegment,
+  WhisperApiWord,
+} from "./whisper-api-types.js";
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/audio/transcriptions";
 
@@ -83,14 +88,14 @@ export class GroqProvider implements STTProvider {
     return this.parseResponse(data);
   }
 
-  private parseResponse(data: any): CaptionData {
+  private parseResponse(data: VerboseWhisperResponse): CaptionData {
     const segments: CaptionSegment[] = (data.segments ?? []).map(
-      (seg: any) => {
+      (seg: WhisperApiSegment) => {
         const segWords = (data.words ?? [])
           .filter(
-            (w: any) => w.start >= seg.start && w.end <= seg.end
+            (w: WhisperApiWord) => w.start >= seg.start && w.end <= seg.end
           )
-          .map((w: any) => ({
+          .map((w: WhisperApiWord) => ({
             word: w.word.trim(),
             startMs: Math.round(w.start * 1000),
             endMs: Math.round(w.end * 1000),

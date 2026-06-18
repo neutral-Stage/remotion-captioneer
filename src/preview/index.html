@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#09090b">
+  <title>Captioneer Preview</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Captioneer <span>Preview</span></h1>
+    <div class="controls">
+      <select id="style-select" aria-label="Caption style"></select>
+      <select id="preset-select" aria-label="Preset"></select>
+      <button type="button" id="copy-jsx-btn" class="primary">Copy JSX</button>
+      <a id="studio-link" class="link-studio" href="#" target="_blank" rel="noopener">Open in Studio</a>
+    </div>
+  </header>
+
+  <div class="main">
+    <section class="preview" aria-label="Caption preview">
+      <div class="hosting-bar" id="hosting-bar">
+        <label for="hosting-url-input" class="hosting-label">Video URL (YouTube / Vimeo)</label>
+        <div class="hosting-row">
+          <input
+            type="url"
+            id="hosting-url-input"
+            class="hosting-input"
+            placeholder="https://youtube.com/watch?v=…"
+            autocomplete="off"
+          >
+          <button type="button" id="hosting-resolve-btn" class="primary">Resolve</button>
+        </div>
+        <p class="hosting-hint">Metadata only — upload local audio or video for transcription.</p>
+      </div>
+      <div class="hosting-card hidden" id="hosting-card" aria-live="polite">
+        <img id="hosting-thumb" class="hosting-thumb" alt="" width="120" height="68" hidden>
+        <div class="hosting-meta">
+          <div class="hosting-provider" id="hosting-provider"></div>
+          <div class="hosting-title" id="hosting-title"></div>
+          <a id="hosting-link" class="hosting-link" href="#" target="_blank" rel="noopener noreferrer">Open video</a>
+        </div>
+        <button type="button" id="hosting-clear-btn" class="hosting-clear" aria-label="Clear resolved video">×</button>
+      </div>
+      <div class="video-frame" id="video-frame">
+        <div class="upload-zone" id="upload-zone">
+          <p class="upload-title">Drop audio, video, or caption JSON</p>
+          <p>MP3, WAV, M4A, MP4, or JSON — or click to browse</p>
+          <input type="file" id="file-input" accept="audio/*,video/*,application/json,.json" hidden>
+        </div>
+        <div id="remotion-mount" aria-label="Remotion player"></div>
+      </div>
+
+      <div class="status-banner" id="status-banner" role="status"></div>
+
+      <div class="waveform" id="waveform" aria-hidden="true" style="display:none"></div>
+
+      <div class="timeline" id="timeline" role="slider" aria-label="Playback position" tabindex="0" style="display:none">
+        <div class="timeline-beats" id="timeline-beats"></div>
+        <div class="timeline-progress" id="timeline-progress"></div>
+      </div>
+
+      <div class="audio-controls" id="audio-controls" style="display:none">
+        <button type="button" id="play-btn" aria-label="Play">▶ Play</button>
+        <button type="button" id="restart-btn">⟲ Restart</button>
+        <button type="button" id="speed-btn">1x</button>
+        <button type="button" id="undo-btn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+        <button type="button" id="redo-btn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button>
+        <button type="button" id="export-srt-btn">↓ SRT</button>
+        <button type="button" id="export-vtt-btn">↓ VTT</button>
+        <button type="button" id="export-json-btn">↓ JSON</button>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <h3>Configurator</h3>
+      <div class="config-group">
+        <label for="cfg-font-size">Font size</label>
+        <input type="number" id="cfg-font-size" value="56" min="24" max="120">
+      </div>
+      <div class="config-group">
+        <label for="cfg-position">Position</label>
+        <select id="cfg-position">
+          <option value="bottom">Bottom</option>
+          <option value="center">Center</option>
+          <option value="top">Top</option>
+        </select>
+      </div>
+      <div class="config-group">
+        <label for="cfg-highlight">Highlight color</label>
+        <input type="color" id="cfg-highlight" value="#3b82f6">
+      </div>
+      <div class="config-group">
+        <label for="cfg-font-color">Font color</label>
+        <input type="text" id="cfg-font-color" value="rgba(255,255,255,0.5)" placeholder="rgba(255,255,255,0.5)">
+      </div>
+      <div class="config-group">
+        <label for="cfg-words-per-line">Words per line</label>
+        <input type="number" id="cfg-words-per-line" value="0" min="0" max="12">
+      </div>
+      <div class="config-group">
+        <label><input type="checkbox" id="cfg-smart-wrap"> Smart wrap</label>
+      </div>
+
+      <div class="config-group">
+        <label><input type="checkbox" id="cfg-diarize"> Speaker diarization (AssemblyAI / ElevenLabs)</label>
+      </div>
+      <div class="config-group" id="speakers-count-group">
+        <label for="cfg-speakers">Expected speakers (optional)</label>
+        <input type="number" id="cfg-speakers" value="" min="2" max="10" placeholder="Auto">
+      </div>
+
+      <div class="config-group">
+        <label><input type="checkbox" id="cfg-snap-beat"> Snap word edges to beats</label>
+      </div>
+
+      <h3>Marketplace</h3>
+      <div class="marketplace-panel" id="marketplace-panel">
+        <p class="marketplace-hint">Install community style packages with the CLI:</p>
+        <code class="marketplace-cmd">captioneer styles install &lt;path|url&gt;</code>
+        <p class="marketplace-count" id="marketplace-count" hidden></p>
+      </div>
+
+      <h3>Stats</h3>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Segments</div><div class="stat-value" id="stat-segments">0</div></div>
+        <div class="stat"><div class="stat-label">Duration</div><div class="stat-value" id="stat-duration">0s</div></div>
+        <div class="stat"><div class="stat-label">Style</div><div class="stat-value" id="stat-style" style="font-size:0.85rem">—</div></div>
+        <div class="stat"><div class="stat-label">FPS</div><div class="stat-value">30</div></div>
+      </div>
+
+      <h3 id="speakers-heading" style="display:none">Speakers</h3>
+      <div class="editor-panel" id="speakers-panel" style="display:none"></div>
+
+      <h3>Timeline editor</h3>
+      <div class="editor-panel" id="editor-panel">
+        <p style="color:var(--color-text-secondary);font-size:var(--text-xs)">Drag word edges to adjust timing. Click a word to seek. Ctrl+Z undo, Ctrl+Shift+Z redo.</p>
+      </div>
+
+      <h3>Caption data</h3>
+      <div class="json-output" id="json-output">Upload an audio file or JSON to begin…</div>
+    </aside>
+  </div>
+
+  <audio id="audio-player" hidden></audio>
+  <script src="player.js" defer></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>

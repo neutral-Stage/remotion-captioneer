@@ -73,7 +73,13 @@ export {
   createProvider,
   detectProvider,
   listProviders,
+  chunkWordsIntoSegments,
+  listSpeakers,
+  formatSpeakerLabel,
+  speakerColorIndex,
 } from "./providers/index.js";
+
+export type { WordWithSpeaker } from "./providers/index.js";
 
 // ─── Audio-Video Sync ─────────────────────────────────────────────
 
@@ -129,6 +135,8 @@ export {
   createCaptionScene,
   createOutroScene,
   createDividerScene,
+  TEMPLATE_DEFAULT_TOKENS,
+  CAPTIONEER_CHROME_TOKENS,
   buildTemplate,
   TemplateComposition,
 } from "./templates/index.js";
@@ -192,7 +200,7 @@ export {
 } from "./emoji.js";
 
 // Config
-export { loadConfig } from "./config.js";
+export { loadConfig, resolveDefaultStyle } from "./config.js";
 export type { CaptioneerConfig } from "./config.js";
 
 // Translation (OpenAI)

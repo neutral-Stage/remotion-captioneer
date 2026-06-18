@@ -15,6 +15,7 @@ import {
   Img,
   Sequence,
   Audio as RemotionAudio,
+  OffthreadVideo,
   staticFile,
 } from "remotion";
 import { AnimatedCaptions } from "../components/AnimatedCaptions.js";
@@ -29,47 +30,55 @@ import type {
 // ─── Main Template Composition ────────────────────────────────────
 
 interface TemplateCompositionProps {
-  template: VideoTemplate;
+  readonly template: VideoTemplate;
 }
 
 export const TemplateComposition: React.FC<TemplateCompositionProps> = ({
   template,
 }) => {
-  let frameOffset = 0;
+  const sceneOffsets = React.useMemo(() => {
+    const offsets: number[] = [];
+    let cursor = 0;
+    for (const scene of template.scenes) {
+      offsets.push(cursor);
+      cursor += scene.durationInFrames;
+    }
+    return offsets;
+  }, [template.scenes]);
 
   return (
     <AbsoluteFill>
-      {template.scenes.map((scene, index) => {
-        const from = frameOffset;
-        frameOffset += scene.durationInFrames;
-
-        return (
-          <Sequence key={scene.id} from={from} durationInFrames={scene.durationInFrames}>
-            <SceneRenderer
-              scene={scene}
-              tokens={template.tokens}
-              width={template.width}
-              height={template.height}
-            />
-          </Sequence>
-        );
-      })}
+      {template.scenes.map((scene, index) => (
+        <Sequence
+          key={scene.id}
+          from={sceneOffsets[index] ?? 0}
+          durationInFrames={scene.durationInFrames}
+        >
+          <SceneRenderer
+            scene={scene}
+            tokens={template.tokens}
+            width={template.width}
+            height={template.height}
+          />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };
 
 // ─── Scene Renderer ───────────────────────────────────────────────
 
+const OVERLAY_BLOCKS = new Set(["captions", "logo", "audio"]);
+
 const SceneRenderer: React.FC<{
-  scene: Scene;
-  tokens: DesignTokens;
-  width: number;
-  height: number;
+  readonly scene: Scene;
+  readonly tokens: DesignTokens;
+  readonly width: number;
+  readonly height: number;
 }> = ({ scene, tokens, width, height }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
 
-  // Handle scene transitions
   let opacity = 1;
   if (scene.transition === "fade" && scene.transitionDuration) {
     const tDur = scene.transitionDuration;
@@ -81,8 +90,10 @@ const SceneRenderer: React.FC<{
     );
   }
 
-  // Vertical layout with spacing
-  let yOffset = height * 0.15; // Start 15% from top
+  const flowBlocks = scene.blocks.filter((b) => !OVERLAY_BLOCKS.has(b.type));
+  const overlayBlocks = scene.blocks.filter((b) => OVERLAY_BLOCKS.has(b.type));
+
+  let yOffset = height * 0.15;
 
   return (
     <AbsoluteFill
@@ -91,95 +102,158 @@ const SceneRenderer: React.FC<{
         opacity,
       }}
     >
-      {scene.blocks.map((block) => {
-        const element = (
-          <BlockRenderer
-            key={block.id}
-            block={block}
-            tokens={tokens}
-            width={width}
-            height={height}
-          />
-        );
-        return element;
-      })}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "0 8%",
+        }}
+      >
+        {flowBlocks.map((block) => {
+          const element = (
+            <BlockRenderer
+              key={block.id}
+              nested
+              block={block}
+              tokens={tokens}
+              width={width}
+              height={height}
+              yOffset={yOffset}
+            />
+          );
+          yOffset += estimateBlockHeight(block, tokens);
+          return element;
+        })}
+      </div>
+      {overlayBlocks.map((block) => (
+        <BlockRenderer
+          key={block.id}
+          block={block}
+          tokens={tokens}
+          width={width}
+          height={height}
+        />
+      ))}
     </AbsoluteFill>
   );
 };
 
+function estimateBlockHeight(block: Block, tokens: DesignTokens): number {
+  switch (block.type) {
+    case "heading":
+      return (block.fontSize ?? tokens.typography.headingSize) * 1.4;
+    case "text":
+      return (block.fontSize ?? tokens.typography.bodySize) * 1.6;
+    case "divider":
+      return (block.margin ?? 32) * 2 + (block.thickness ?? 2);
+    case "spacer":
+      return block.height;
+    case "columns":
+    case "grid":
+      return 200;
+    case "video":
+      return 320;
+    case "image":
+      return 240;
+    default:
+      return 80;
+  }
+}
+
 // ─── Block Renderer ───────────────────────────────────────────────
 
 const BlockRenderer: React.FC<{
-  block: Block;
-  tokens: DesignTokens;
-  width: number;
-  height: number;
-}> = ({ block, tokens, width, height }) => {
+  readonly block: Block;
+  readonly tokens: DesignTokens;
+  readonly width: number;
+  readonly height: number;
+  readonly nested?: boolean;
+  readonly yOffset?: number;
+}> = ({ block, tokens, width, height, nested = false, yOffset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Apply animation
   const animStyle = getAnimationStyle(block.animation, frame, fps);
 
   const combinedStyle: React.CSSProperties = {
     ...animStyle,
     ...(block.style ?? {}),
+    ...(nested && yOffset > 0 ? { marginTop: yOffset > height * 0.15 ? 16 : 0 } : {}),
   };
+
+  const centerWrap = (child: React.ReactNode): React.ReactNode =>
+    nested ? (
+      <div style={{ width: "100%", textAlign: "center", ...combinedStyle }}>{child}</div>
+    ) : (
+      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
+        <div style={combinedStyle}>{child}</div>
+      </AbsoluteFill>
+    );
 
   switch (block.type) {
     case "heading":
-      return (
-        <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-          <div
-            style={{
-              ...combinedStyle,
-              fontFamily: tokens.typography.headingFont,
-              fontSize: block.fontSize ?? tokens.typography.headingSize,
-              fontWeight: block.fontWeight ?? 700,
-              color: block.color ?? tokens.colors.text,
-              textAlign: block.align ?? "center",
-              padding: "0 10%",
-            }}
-          >
-            {block.content}
-          </div>
-        </AbsoluteFill>
+      return centerWrap(
+        <div
+          style={{
+            fontFamily: tokens.typography.headingFont,
+            fontSize: block.fontSize ?? tokens.typography.headingSize,
+            fontWeight: block.fontWeight ?? 700,
+            color: block.color ?? tokens.colors.text,
+            textAlign: block.align ?? "center",
+            padding: nested ? "0" : "0 10%",
+          }}
+        >
+          {block.content}
+        </div>
       );
 
     case "text":
-      return (
-        <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-          <div
-            style={{
-              ...combinedStyle,
-              fontFamily: tokens.typography.bodyFont,
-              fontSize: block.fontSize ?? tokens.typography.bodySize,
-              fontWeight: block.fontWeight ?? 400,
-              color: block.color ?? tokens.colors.textMuted,
-              textAlign: block.align ?? "center",
-              padding: "0 15%",
-            }}
-          >
-            {block.content}
-          </div>
-        </AbsoluteFill>
+      return centerWrap(
+        <div
+          style={{
+            fontFamily: tokens.typography.bodyFont,
+            fontSize: block.fontSize ?? tokens.typography.bodySize,
+            fontWeight: block.fontWeight ?? 400,
+            color: block.color ?? tokens.colors.textMuted,
+            textAlign: block.align ?? "center",
+            padding: nested ? "0" : "0 15%",
+          }}
+        >
+          {block.content}
+        </div>
       );
 
     case "image":
-      return (
-        <AbsoluteFill style={{ justifyContent: "center", alignItems: "center" }}>
-          <div style={combinedStyle}>
-            <Img
-              src={block.src}
-              style={{
-                width: block.width ?? "60%",
-                height: block.height ?? "auto",
-                objectFit: block.objectFit ?? "contain",
-                borderRadius: block.borderRadius ?? tokens.borderRadius,
-              }}
-            />
-          </div>
-        </AbsoluteFill>
+      return centerWrap(
+        <Img
+          src={block.src}
+          style={{
+            width: block.width ?? "60%",
+            height: block.height ?? "auto",
+            objectFit: block.objectFit ?? "contain",
+            borderRadius: block.borderRadius ?? tokens.borderRadius,
+          }}
+        />
+      );
+
+    case "video":
+      return centerWrap(
+        <OffthreadVideo
+          src={block.src.startsWith("http") ? block.src : staticFile(block.src)}
+          muted={block.muted}
+          volume={block.volume ?? 1}
+          style={{
+            width: "80%",
+            maxHeight: nested ? 280 : 400,
+            borderRadius: tokens.borderRadius,
+            objectFit: "contain",
+          }}
+        />
       );
 
     case "logo":
@@ -190,14 +264,14 @@ const BlockRenderer: React.FC<{
               block.position === "top-left" || block.position === "bottom-left"
                 ? "flex-start"
                 : block.position === "top-right" || block.position === "bottom-right"
-                ? "flex-end"
-                : "center",
+                  ? "flex-end"
+                  : "center",
             alignItems:
               block.position === "top-left" || block.position === "top-right"
                 ? "flex-start"
                 : block.position === "bottom-left" || block.position === "bottom-right"
-                ? "flex-end"
-                : "center",
+                  ? "flex-end"
+                  : "center",
             padding: 40,
           }}
         >
@@ -215,12 +289,16 @@ const BlockRenderer: React.FC<{
 
     case "audio":
       return (
-        <RemotionAudio src={block.src} volume={block.volume ?? 1} />
+        <RemotionAudio
+          src={block.src.startsWith("http") ? block.src : staticFile(block.src)}
+          volume={block.volume ?? 1}
+        />
       );
 
     case "captions":
       return (
         <AnimatedCaptions
+          showSpeakerLabels
           captions={block.captions}
           style={block.captionStyle ?? "word-highlight"}
           highlightColor={block.highlightColor ?? tokens.colors.accent}
@@ -247,6 +325,58 @@ const BlockRenderer: React.FC<{
     case "spacer":
       return <div style={{ height: block.height }} />;
 
+    case "columns": {
+      const ratios = block.ratios ?? block.columns.map(() => 1);
+      const total = ratios.reduce((sum, r) => sum + r, 0);
+      return (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: block.gap ?? 16,
+            width: "100%",
+            ...combinedStyle,
+          }}
+        >
+          {block.columns.map((child, i) => (
+            <div key={child.id} style={{ flex: ratios[i] / total }}>
+              <BlockRenderer
+                nested
+                block={child}
+                tokens={tokens}
+                width={(width * ratios[i]) / total}
+                height={height}
+              />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "grid":
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${block.columns ?? 2}, 1fr)`,
+            gap: block.gap ?? 16,
+            width: "100%",
+            ...combinedStyle,
+          }}
+        >
+          {block.items.map((child) => (
+            <BlockRenderer
+              key={child.id}
+              nested
+              block={child}
+              tokens={tokens}
+              width={width / (block.columns ?? 2)}
+              height={height}
+            />
+          ))}
+        </div>
+      );
+
     default:
       return null;
   }
@@ -269,8 +399,11 @@ function getAnimationStyle(
     return getInitialStyle(animation.type);
   }
 
-  const progress = Math.min(1, adjustedFrame / durationFrames);
-  const easedProgress = easing.easeOut(progress);
+  const linearProgress = Math.min(1, adjustedFrame / durationFrames);
+  const easedProgress =
+    animation.easing === "spring"
+      ? spring({ frame: adjustedFrame, fps, config: { damping: 14, stiffness: 120 } })
+      : easing.easeOut(linearProgress);
 
   switch (animation.type) {
     case "fadeIn":
@@ -317,5 +450,5 @@ function getInitialStyle(type: string): React.CSSProperties {
 }
 
 const easing = {
-  easeOut: (t: number) => 1 - Math.pow(1 - t, 2),
+  easeOut: (t: number) => 1 - (1 - t)**2,
 };

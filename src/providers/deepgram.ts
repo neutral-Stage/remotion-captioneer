@@ -5,9 +5,13 @@
  */
 
 import { readFileSync, existsSync } from "fs";
-import { resolve, basename } from "path";
-import type { CaptionData, CaptionSegment } from "../types.js";
+import { resolve } from "path";
+import type { CaptionData, CaptionSegment, Word } from "../types.js";
 import type { STTProvider, STTProviderOptions } from "./base.js";
+import type {
+  DeepgramApiResponse,
+  DeepgramApiWord,
+} from "./whisper-api-types.js";
 
 const DEEPGRAM_API_URL = "https://api.deepgram.com/v1/listen";
 
@@ -53,10 +57,10 @@ export class DeepgramProvider implements STTProvider {
 
     const params = new URLSearchParams({
       model: options.model ?? "nova-2",
-      smart_format: String(options.smartFormat ?? true),
       punctuate: String(options.punctuate ?? true),
       words: "true",
     });
+    params.set("smart_format", String(options.smartFormat ?? true));
 
     if (options.language) {
       params.append("language", options.language);
@@ -80,7 +84,7 @@ export class DeepgramProvider implements STTProvider {
     return this.parseResponse(data);
   }
 
-  private parseResponse(data: any): CaptionData {
+  private parseResponse(data: DeepgramApiResponse): CaptionData {
     const result = data.results?.channels?.[0]?.alternatives?.[0];
     if (!result) {
       throw new Error("No transcription results from Deepgram");
@@ -94,7 +98,7 @@ export class DeepgramProvider implements STTProvider {
 
     for (let i = 0; i < words.length; i += CHUNK_SIZE) {
       const chunk = words.slice(i, i + CHUNK_SIZE);
-      const segWords = chunk.map((w: any) => ({
+      const segWords = chunk.map((w: DeepgramApiWord) => ({
         word: w.word,
         startMs: Math.round(w.start * 1000),
         endMs: Math.round(w.end * 1000),
@@ -102,7 +106,7 @@ export class DeepgramProvider implements STTProvider {
       }));
 
       segments.push({
-        text: segWords.map((w: any) => w.word).join(" "),
+        text: segWords.map((w: Word) => w.word).join(" "),
         startMs: segWords[0].startMs,
         endMs: segWords[segWords.length - 1].endMs,
         words: segWords,

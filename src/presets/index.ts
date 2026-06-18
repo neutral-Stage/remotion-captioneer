@@ -6,6 +6,7 @@
  */
 
 import type { CaptionComponentProps, CaptionStyle } from "../types.js";
+import { loadInstalledStylePackages } from "../marketplace/loader.js";
 
 export interface CaptionPreset {
   name: string;
@@ -286,11 +287,19 @@ export const presets: Record<string, CaptionPreset> = {
   },
 };
 
+function installedPresets(): Record<string, CaptionPreset> {
+  const out: Record<string, CaptionPreset> = {};
+  for (const pkg of loadInstalledStylePackages()) {
+    out[`marketplace:${pkg.meta.id}`] = pkg.preset;
+  }
+  return out;
+}
+
 /**
  * Get a preset by name
  */
 export function getPreset(name: string): CaptionPreset | null {
-  return presets[name] ?? null;
+  return presets[name] ?? installedPresets()[name] ?? null;
 }
 
 /**
