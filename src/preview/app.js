@@ -35,6 +35,24 @@ const MS_PER_DRAG_PX = 8;
 
 const $ = (id) => document.getElementById(id);
 
+/** Attach uploaded audio via blob URL (createObjectURL only yields blob: schemes). */
+function attachAudioFile(audioEl, file) {
+  if (!(audioEl instanceof HTMLAudioElement)) {
+    throw new Error("Audio player element missing");
+  }
+  const previous = audioEl.src;
+  const blobUrl = URL.createObjectURL(file);
+  if (!blobUrl.startsWith("blob:")) {
+    URL.revokeObjectURL(blobUrl);
+    throw new Error("Unexpected audio URL scheme");
+  }
+  // codeql[js/xss-through-dom]: createObjectURL always returns a same-origin blob: URL
+  audioEl.src = blobUrl;
+  if (previous.startsWith("blob:")) {
+    URL.revokeObjectURL(previous);
+  }
+}
+
 async function init() {
   const res = await fetch("/api/meta");
   meta = await res.json();
@@ -218,8 +236,7 @@ async function processFile(file) {
     }
   } else {
     syntheticMode = false;
-    const url = URL.createObjectURL(file);
-    $("audio-player").src = url;
+    attachAudioFile($("audio-player"), file);
     void buildWaveformFromFile(file);
     try {
       const headers = {
