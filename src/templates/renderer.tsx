@@ -30,31 +30,38 @@ import type {
 // ─── Main Template Composition ────────────────────────────────────
 
 interface TemplateCompositionProps {
-  template: VideoTemplate;
+  readonly template: VideoTemplate;
 }
 
 export const TemplateComposition: React.FC<TemplateCompositionProps> = ({
   template,
 }) => {
-  let frameOffset = 0;
+  const sceneOffsets = React.useMemo(() => {
+    const offsets: number[] = [];
+    let cursor = 0;
+    for (const scene of template.scenes) {
+      offsets.push(cursor);
+      cursor += scene.durationInFrames;
+    }
+    return offsets;
+  }, [template.scenes]);
 
   return (
     <AbsoluteFill>
-      {template.scenes.map((scene) => {
-        const from = frameOffset;
-        frameOffset += scene.durationInFrames;
-
-        return (
-          <Sequence key={scene.id} from={from} durationInFrames={scene.durationInFrames}>
-            <SceneRenderer
-              scene={scene}
-              tokens={template.tokens}
-              width={template.width}
-              height={template.height}
-            />
-          </Sequence>
-        );
-      })}
+      {template.scenes.map((scene, index) => (
+        <Sequence
+          key={scene.id}
+          from={sceneOffsets[index] ?? 0}
+          durationInFrames={scene.durationInFrames}
+        >
+          <SceneRenderer
+            scene={scene}
+            tokens={template.tokens}
+            width={template.width}
+            height={template.height}
+          />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };
@@ -64,10 +71,10 @@ export const TemplateComposition: React.FC<TemplateCompositionProps> = ({
 const OVERLAY_BLOCKS = new Set(["captions", "logo", "audio"]);
 
 const SceneRenderer: React.FC<{
-  scene: Scene;
-  tokens: DesignTokens;
-  width: number;
-  height: number;
+  readonly scene: Scene;
+  readonly tokens: DesignTokens;
+  readonly width: number;
+  readonly height: number;
 }> = ({ scene, tokens, width, height }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
@@ -111,11 +118,11 @@ const SceneRenderer: React.FC<{
           const element = (
             <BlockRenderer
               key={block.id}
+              nested
               block={block}
               tokens={tokens}
               width={width}
               height={height}
-              nested
               yOffset={yOffset}
             />
           );
@@ -161,12 +168,12 @@ function estimateBlockHeight(block: Block, tokens: DesignTokens): number {
 // ─── Block Renderer ───────────────────────────────────────────────
 
 const BlockRenderer: React.FC<{
-  block: Block;
-  tokens: DesignTokens;
-  width: number;
-  height: number;
-  nested?: boolean;
-  yOffset?: number;
+  readonly block: Block;
+  readonly tokens: DesignTokens;
+  readonly width: number;
+  readonly height: number;
+  readonly nested?: boolean;
+  readonly yOffset?: number;
 }> = ({ block, tokens, width, height, nested = false, yOffset = 0 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -291,13 +298,13 @@ const BlockRenderer: React.FC<{
     case "captions":
       return (
         <AnimatedCaptions
+          showSpeakerLabels
           captions={block.captions}
           style={block.captionStyle ?? "word-highlight"}
           highlightColor={block.highlightColor ?? tokens.colors.accent}
           position={block.position ?? "bottom"}
           fontFamily={tokens.typography.bodyFont}
           fontSize={tokens.typography.captionSize}
-          showSpeakerLabels
         />
       );
 
@@ -334,11 +341,11 @@ const BlockRenderer: React.FC<{
           {block.columns.map((child, i) => (
             <div key={child.id} style={{ flex: ratios[i] / total }}>
               <BlockRenderer
+                nested
                 block={child}
                 tokens={tokens}
                 width={(width * ratios[i]) / total}
                 height={height}
-                nested
               />
             </div>
           ))}
@@ -360,11 +367,11 @@ const BlockRenderer: React.FC<{
           {block.items.map((child) => (
             <BlockRenderer
               key={child.id}
+              nested
               block={child}
               tokens={tokens}
               width={width / (block.columns ?? 2)}
               height={height}
-              nested
             />
           ))}
         </div>
@@ -443,5 +450,5 @@ function getInitialStyle(type: string): React.CSSProperties {
 }
 
 const easing = {
-  easeOut: (t: number) => 1 - Math.pow(1 - t, 2),
+  easeOut: (t: number) => 1 - (1 - t)**2,
 };

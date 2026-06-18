@@ -11,13 +11,13 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from "remo
 // ─── Container ────────────────────────────────────────────────────
 
 interface ContainerProps {
-  children: React.ReactNode;
-  width?: number | string;
-  height?: number | string;
-  padding?: number;
-  background?: string;
-  borderRadius?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly width?: number | string;
+  readonly height?: number | string;
+  readonly padding?: number;
+  readonly background?: string;
+  readonly borderRadius?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const Container: React.FC<ContainerProps> = ({
@@ -48,11 +48,11 @@ export const Container: React.FC<ContainerProps> = ({
 // ─── Stack (vertical layout) ──────────────────────────────────────
 
 interface StackProps {
-  children: React.ReactNode;
-  gap?: number;
-  align?: "start" | "center" | "end" | "stretch";
-  justify?: "start" | "center" | "end" | "space-between";
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly gap?: number;
+  readonly align?: "start" | "center" | "end" | "stretch";
+  readonly justify?: "start" | "center" | "end" | "space-between";
+  readonly style?: React.CSSProperties;
 }
 
 export const Stack: React.FC<StackProps> = ({
@@ -94,12 +94,12 @@ export const Stack: React.FC<StackProps> = ({
 // ─── Row (horizontal layout) ──────────────────────────────────────
 
 interface RowProps {
-  children: React.ReactNode;
-  gap?: number;
-  align?: "start" | "center" | "end" | "stretch";
-  justify?: "start" | "center" | "end" | "space-between" | "space-around";
-  wrap?: boolean;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly gap?: number;
+  readonly align?: "start" | "center" | "end" | "stretch";
+  readonly justify?: "start" | "center" | "end" | "space-between" | "space-around";
+  readonly wrap?: boolean;
+  readonly style?: React.CSSProperties;
 }
 
 export const Row: React.FC<RowProps> = ({
@@ -143,10 +143,10 @@ export const Row: React.FC<RowProps> = ({
 // ─── Columns ──────────────────────────────────────────────────────
 
 interface ColumnsProps {
-  children: React.ReactNode[];
-  ratios?: number[];
-  gap?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode[];
+  readonly ratios?: number[];
+  readonly gap?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const Columns: React.FC<ColumnsProps> = ({
@@ -179,10 +179,10 @@ export const Columns: React.FC<ColumnsProps> = ({
 // ─── Grid ─────────────────────────────────────────────────────────
 
 interface GridProps {
-  children: React.ReactNode[];
-  columns?: number;
-  gap?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode[];
+  readonly columns?: number;
+  readonly gap?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const Grid: React.FC<GridProps> = ({
@@ -206,9 +206,9 @@ export const Grid: React.FC<GridProps> = ({
 // ─── Center ───────────────────────────────────────────────────────
 
 interface CenterProps {
-  children: React.ReactNode;
-  fullScreen?: boolean;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly fullScreen?: boolean;
+  readonly style?: React.CSSProperties;
 }
 
 export const Center: React.FC<CenterProps> = ({
@@ -242,12 +242,12 @@ export const Center: React.FC<CenterProps> = ({
 // ─── Positioned ───────────────────────────────────────────────────
 
 interface PositionedProps {
-  children: React.ReactNode;
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly top?: number;
+  readonly bottom?: number;
+  readonly left?: number;
+  readonly right?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const Positioned: React.FC<PositionedProps> = ({
@@ -275,10 +275,10 @@ export const Positioned: React.FC<PositionedProps> = ({
 // ─── Overlay ──────────────────────────────────────────────────────
 
 interface OverlayProps {
-  children: React.ReactNode;
-  color?: string;
-  opacity?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly color?: string;
+  readonly opacity?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const Overlay: React.FC<OverlayProps> = ({
@@ -301,11 +301,11 @@ export const Overlay: React.FC<OverlayProps> = ({
 // ─── Gradient Background ──────────────────────────────────────────
 
 interface GradientBgProps {
-  children: React.ReactNode;
-  from?: string;
-  to?: string;
-  angle?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly from?: string;
+  readonly to?: string;
+  readonly angle?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const GradientBg: React.FC<GradientBgProps> = ({
@@ -328,10 +328,10 @@ export const GradientBg: React.FC<GradientBgProps> = ({
 // ─── Animated Wrapper ─────────────────────────────────────────────
 
 interface FadeInProps {
-  children: React.ReactNode;
-  delayMs?: number;
-  durationMs?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly delayMs?: number;
+  readonly durationMs?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const FadeIn: React.FC<FadeInProps> = ({
@@ -360,11 +360,11 @@ export const FadeIn: React.FC<FadeInProps> = ({
 };
 
 interface SlideUpProps {
-  children: React.ReactNode;
-  delayMs?: number;
-  durationMs?: number;
-  distance?: number;
-  style?: React.CSSProperties;
+  readonly children: React.ReactNode;
+  readonly delayMs?: number;
+  readonly durationMs?: number;
+  readonly distance?: number;
+  readonly style?: React.CSSProperties;
 }
 
 export const SlideUp: React.FC<SlideUpProps> = ({

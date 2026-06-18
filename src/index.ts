@@ -200,7 +200,7 @@ export {
 } from "./emoji.js";
 
 // Config
-export { loadConfig } from "./config.js";
+export { loadConfig, resolveDefaultStyle } from "./config.js";
 export type { CaptioneerConfig } from "./config.js";
 
 // Translation (OpenAI)

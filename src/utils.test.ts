@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  findSegmentAtTime,
+  findWordIndexAtTime,
   getSegmentDisplayLines,
   groupWordsIntoLines,
   msToFrame,
@@ -34,5 +36,21 @@ describe("utils", () => {
   it("msToFrame / frameToMs", () => {
     expect(msToFrame(1000, 30)).toBe(30);
     expect(frameToMs(30, 30)).toBe(1000);
+  });
+
+  it("findSegmentAtTime uses binary search", () => {
+    const segments: CaptionSegment[] = [
+      { text: "a", startMs: 0, endMs: 1000, words: [] },
+      { text: "b", startMs: 1000, endMs: 2000, words: [] },
+      { text: "c", startMs: 2000, endMs: 3000, words: [] },
+    ];
+    expect(findSegmentAtTime(segments, 1500)?.text).toBe("b");
+    expect(findSegmentAtTime(segments, 9999)).toBeNull();
+  });
+
+  it("findWordIndexAtTime", () => {
+    expect(findWordIndexAtTime(segment.words, 1500)).toBe(1);
+    expect(findWordIndexAtTime(segment.words, 50)).toBe(0);
+    expect(findWordIndexAtTime(segment.words, 5000)).toBe(-1);
   });
 });

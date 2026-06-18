@@ -13,15 +13,41 @@
 import { mkdirSync, writeFileSync, existsSync } from "fs";
 import { join, resolve } from "path";
 
-export function scaffoldProject(projectName: string, dir: string = "."): void {
-  const projectDir = resolve(dir, projectName);
+const PROJECT_NAME_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
+
+export function assertSafeProjectName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error("Project name must not be empty");
+  }
+  if (trimmed.includes("..") || trimmed.includes("/") || trimmed.includes("\\")) {
+    throw new Error("Project name must not contain path separators or '..'");
+  }
+  if (trimmed.includes("\0")) {
+    throw new Error("Project name contains invalid characters");
+  }
+  if (!PROJECT_NAME_PATTERN.test(trimmed)) {
+    throw new Error(
+      "Project name must start with a letter or digit and contain only letters, digits, dots, underscores, or hyphens"
+    );
+  }
+  return trimmed;
+}
+
+export function scaffoldProject(
+  projectName: string,
+  dir: string = ".",
+  defaultStyle: string = "word-highlight"
+): void {
+  const safeName = assertSafeProjectName(projectName);
+  const projectDir = resolve(dir, safeName);
 
   if (existsSync(projectDir)) {
     console.error(`❌ Directory already exists: ${projectDir}`);
     process.exit(1);
   }
 
-  console.log(`\n🎬 Creating project: ${projectName}\n`);
+  console.log(`\n🎬 Creating project: ${safeName}\n`);
 
   // Create directory structure
   mkdirSync(join(projectDir, "src"), { recursive: true });
@@ -32,7 +58,7 @@ export function scaffoldProject(projectName: string, dir: string = "."): void {
     join(projectDir, "package.json"),
     JSON.stringify(
       {
-        name: projectName,
+        name: safeName,
         version: "1.0.0",
         description: "A Remotion captioned video project",
         scripts: {
@@ -155,7 +181,7 @@ export const CaptionedVideo = () => (
 
     <AnimatedCaptions
       captions={captions}
-      style="word-highlight"
+      style="${defaultStyle}"
       position="bottom"
       highlightColor="#e4e4e7"
       fontSize={58}
@@ -232,7 +258,7 @@ export { CaptionedVideo } from "./Video";
   // README
   writeFileSync(
     join(projectDir, "README.md"),
-    `# ${projectName}
+    `# ${safeName}
 
 A captioned video project built with [Remotion](https://remotion.dev) and [remotion-captioneer](https://github.com/neutral-Stage/remotion-captioneer).
 
@@ -321,7 +347,7 @@ out/
   console.log("  📄 src/Root.tsx — Remotion compositions");
   console.log("  📄 src/captions.json — Sample caption data\n");
   console.log("  Next steps:");
-  console.log("    cd " + projectName);
+  console.log("    cd " + safeName);
   console.log("    npm install");
   console.log("    npm start\n");
 }

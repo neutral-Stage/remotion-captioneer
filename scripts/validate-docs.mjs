@@ -95,6 +95,38 @@ if (!previewJs.includes("setupWordDrag") && !previewJs.includes("word-handle")) 
   fail("preview should support word timing drag editor");
 }
 
+if (!previewJs.includes("snapMs") && !previewJs.includes("cfg-snap-beat")) {
+  fail("preview should support snap-to-beat editing");
+}
+
+if (!previewJs.includes("undo") || !previewJs.includes("redo")) {
+  fail("preview should support undo/redo for editor");
+}
+
+if (!previewJs.includes("exportCaptions") && !previewJs.includes("downloadExport")) {
+  fail("preview should export SRT/VTT from edited captions");
+}
+
+if (!existsSync(join(root, "src/preview/export-client.js"))) {
+  fail("src/preview/export-client.js missing");
+}
+
+const cliSrc = readFileSync(join(root, "src/cli.ts"), "utf8");
+if (!cliSrc.includes('.command("analyze")')) {
+  fail("CLI should include captioneer analyze command");
+}
+if (!cliSrc.includes('case "json"')) {
+  fail("CLI export should support json format");
+}
+
+const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+if (!pkg.scripts["test:e2e"]) {
+  fail("package.json should define test:e2e Playwright script");
+}
+if (!existsSync(join(root, "playwright.config.ts"))) {
+  fail("playwright.config.ts missing for Phase 30 smoke tests");
+}
+
 if (!existsSync(join(root, "src/ui/components.css"))) {
   fail("src/ui/components.css missing (UI kit)");
 }

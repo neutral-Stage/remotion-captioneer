@@ -2,6 +2,8 @@
  * Captioneer preview app — upload, Remotion Player, configurator, editor.
  */
 
+import { downloadExport } from "./export-client.js";
+
 let meta = { styles: [], presets: [] };
 let currentStyle = "word-highlight";
 let currentPreset = "tiktok";
@@ -32,6 +34,13 @@ const SPEAKER_COLORS = [
 
 let diarizeEnabled = false;
 const MS_PER_DRAG_PX = 8;
+const SNAP_THRESHOLD_MS = 80;
+let snapToBeat = false;
+
+const undoStack = [];
+let undoIndex = 0;
+const MAX_UNDO = 40;
+let dragSnapshot = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -58,9 +67,26 @@ async function init() {
   meta = await res.json();
   populateSelects();
   bindEvents();
+  await loadServerConfig();
   applyUrlParams();
   loadLocalConfig();
   clearWaveform();
+  updateUndoButtons();
+}
+
+async function loadServerConfig() {
+  try {
+    const res = await fetch("/api/config");
+    if (!res.ok) return;
+    const cfg = await res.json();
+    if (cfg.defaultStyle && !localStorage.getItem("captioneer-preview-config")) {
+      currentStyle = cfg.defaultStyle;
+      $("style-select").value = currentStyle;
+      $("stat-style").textContent = currentStyle;
+    }
+  } catch {
+    // Optional — preview works without .captioneerrc
+  }
 }
 
 function populateSelects() {
@@ -132,6 +158,7 @@ function bindEvents() {
     "cfg-smart-wrap",
     "cfg-diarize",
     "cfg-speakers",
+    "cfg-snap-beat",
   ].forEach((id) => {
     $(id).addEventListener("change", onConfigChange);
     $(id).addEventListener("input", onConfigChange);
@@ -140,7 +167,11 @@ function bindEvents() {
   $("play-btn").addEventListener("click", togglePlay);
   $("restart-btn").addEventListener("click", restart);
   $("speed-btn").addEventListener("click", cycleSpeed);
-  $("export-json-btn").addEventListener("click", exportJson);
+  $("export-json-btn").addEventListener("click", () => exportCaptions("json"));
+  $("export-srt-btn").addEventListener("click", () => exportCaptions("srt"));
+  $("export-vtt-btn").addEventListener("click", () => exportCaptions("vtt"));
+  $("undo-btn").addEventListener("click", undo);
+  $("redo-btn").addEventListener("click", redo);
 
   $("timeline").addEventListener("click", onTimelineClick);
   $("timeline").addEventListener("keydown", onTimelineKey);
@@ -154,6 +185,12 @@ function bindEvents() {
       seekBy(-1000);
     } else if (e.code === "ArrowRight") {
       seekBy(1000);
+    } else if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+      e.preventDefault();
+      undo();
+    } else if ((e.ctrlKey || e.metaKey) && (e.key === "Z" || (e.key === "z" && e.shiftKey))) {
+      e.preventDefault();
+      redo();
     }
   });
 }
@@ -187,6 +224,7 @@ function onConfigChange() {
   playerProps.wordsPerLine = Number($("cfg-words-per-line").value) || 0;
   playerProps.useSmartWrap = $("cfg-smart-wrap").checked;
   diarizeEnabled = $("cfg-diarize").checked;
+  snapToBeat = $("cfg-snap-beat").checked;
   $("speakers-count-group").style.display = diarizeEnabled ? "block" : "none";
   remountPlayer();
   saveLocalConfig();
@@ -281,6 +319,7 @@ function showPreviewUI() {
   renderSpeakersSummary();
   renderBeatMarkers();
   remountPlayer();
+  resetHistory();
   setTimeout(clearStatus, 2500);
 }
 
@@ -438,7 +477,7 @@ function updateProgress() {
 
 function renderBeatMarkers() {
   const container = $("timeline-beats");
-  container.innerHTML = "";
+  container.replaceChildren();
   if (!audioAnalysis?.beats?.length || !captions?.durationMs) return;
   for (const beat of audioAnalysis.beats) {
     const marker = document.createElement("div");
@@ -517,6 +556,90 @@ function renderSpeakersSummary() {
   });
 }
 
+function cloneCaptions(data) {
+  return JSON.parse(JSON.stringify(data));
+}
+
+function resetHistory() {
+  undoStack.length = 0;
+  if (captions) undoStack.push(cloneCaptions(captions));
+  undoIndex = 0;
+  updateUndoButtons();
+}
+
+function commitEdit() {
+  if (!captions) return;
+  const current = cloneCaptions(captions);
+  if (
+    undoStack[undoIndex] &&
+    JSON.stringify(undoStack[undoIndex]) === JSON.stringify(current)
+  ) {
+    return;
+  }
+  if (undoIndex < undoStack.length - 1) {
+    undoStack.length = undoIndex + 1;
+  }
+  undoStack.push(current);
+  undoIndex = undoStack.length - 1;
+  if (undoStack.length > MAX_UNDO) {
+    undoStack.shift();
+    undoIndex -= 1;
+  }
+  updateUndoButtons();
+}
+
+function restoreCaptionsState(next) {
+  captions = cloneCaptions(next);
+  $("stat-segments").textContent = String(captions.segments.length);
+  $("stat-duration").textContent = (captions.durationMs / 1000).toFixed(1) + "s";
+  syncJsonOutput();
+  buildEditor();
+  renderSpeakersSummary();
+  remountPlayer();
+}
+
+function undo() {
+  if (undoIndex <= 0) return;
+  undoIndex -= 1;
+  restoreCaptionsState(undoStack[undoIndex]);
+  updateUndoButtons();
+}
+
+function redo() {
+  if (undoIndex >= undoStack.length - 1) return;
+  undoIndex += 1;
+  restoreCaptionsState(undoStack[undoIndex]);
+  updateUndoButtons();
+}
+
+function updateUndoButtons() {
+  const undoBtn = $("undo-btn");
+  const redoBtn = $("redo-btn");
+  if (undoBtn) undoBtn.disabled = undoIndex <= 0;
+  if (redoBtn) redoBtn.disabled = undoIndex >= undoStack.length - 1;
+}
+
+function getBeatTimesMs() {
+  if (!audioAnalysis?.beats?.length) return [];
+  return audioAnalysis.beats.map((b) => b.timeMs);
+}
+
+function snapMs(ms) {
+  if (!snapToBeat) return ms;
+  const beats = getBeatTimesMs();
+  if (!beats.length) return ms;
+  let nearest = ms;
+  let minDist = SNAP_THRESHOLD_MS + 1;
+  for (const beatMs of beats) {
+    const dist = Math.abs(beatMs - ms);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = beatMs;
+    }
+  }
+  return minDist <= SNAP_THRESHOLD_MS ? nearest : ms;
+}
+
 function syncSegmentText(seg) {
   seg.text = seg.words.map((w) => w.word).join(" ").trim();
   if (seg.words.length) {
@@ -529,7 +652,7 @@ function syncJsonOutput() {
   $("json-output").textContent = JSON.stringify(captions, null, 2);
 }
 
-function onWordTimingChange() {
+function onWordTimingChange(opts = {}) {
   if (!captions) return;
   captions.durationMs = Math.max(
     captions.durationMs,
@@ -550,13 +673,13 @@ function setupWordDrag(handle, word, seg, edge) {
 
     if (edge === "start") {
       const maxStart = word.endMs - minDur;
-      word.startMs = Math.max(0, Math.min(maxStart, origMs + deltaMs));
+      word.startMs = snapMs(Math.max(0, Math.min(maxStart, origMs + deltaMs)));
     } else {
       const minEnd = word.startMs + minDur;
-      word.endMs = Math.min(captions.durationMs, Math.max(minEnd, origMs + deltaMs));
+      word.endMs = snapMs(Math.min(captions.durationMs, Math.max(minEnd, origMs + deltaMs)));
     }
     syncSegmentText(seg);
-    onWordTimingChange();
+    onWordTimingChange({ skipHistory: true });
     handle.closest(".word-chip").querySelector(".word-chip-inner").title =
       `${word.startMs}–${word.endMs}ms`;
   };
@@ -566,12 +689,17 @@ function setupWordDrag(handle, word, seg, edge) {
     document.removeEventListener("mouseup", onUp);
     document.removeEventListener("touchmove", onMove);
     document.removeEventListener("touchend", onUp);
+    if (dragSnapshot && JSON.stringify(captions) !== dragSnapshot) {
+      commitEdit();
+    }
+    dragSnapshot = null;
     buildEditor();
   };
 
   handle.addEventListener("mousedown", (e) => {
     e.preventDefault();
     e.stopPropagation();
+    dragSnapshot = JSON.stringify(captions);
     startX = e.clientX;
     origMs = edge === "start" ? word.startMs : word.endMs;
     document.addEventListener("mousemove", onMove);
@@ -582,6 +710,7 @@ function setupWordDrag(handle, word, seg, edge) {
     "touchstart",
     (e) => {
       e.stopPropagation();
+      dragSnapshot = JSON.stringify(captions);
       startX = e.touches[0].clientX;
       origMs = edge === "start" ? word.startMs : word.endMs;
       document.addEventListener("touchmove", onMove, { passive: true });
@@ -593,10 +722,11 @@ function setupWordDrag(handle, word, seg, edge) {
 
 function buildEditor() {
   const panel = $("editor-panel");
-  panel.innerHTML = "";
+  panel.replaceChildren();
   const hint = document.createElement("p");
   hint.style.cssText = "color:var(--color-text-secondary);font-size:var(--text-xs);margin-bottom:8px";
-  hint.textContent = "Drag word edges to adjust timing. Click a word to seek.";
+  hint.textContent =
+    "Drag word edges to adjust timing. Click a word to seek. Ctrl+Z undo, Ctrl+Shift+Z redo.";
   panel.appendChild(hint);
 
   captions.segments.forEach((seg) => {
@@ -645,8 +775,7 @@ function buildEditor() {
 }
 
 function clearWaveform() {
-  const wf = $("waveform");
-  wf.innerHTML = "";
+  $("waveform").replaceChildren();
 }
 
 async function buildWaveformFromFile(file) {
@@ -703,14 +832,15 @@ function copyJsx() {
   setTimeout(clearStatus, 2000);
 }
 
-function exportJson() {
+function exportCaptions(format) {
   if (!captions) return;
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(
-    new Blob([JSON.stringify(captions, null, 2)], { type: "application/json" })
-  );
-  a.download = "captions.json";
-  a.click();
+  try {
+    downloadExport(captions, format);
+    setStatus(`Exported ${format.toUpperCase()}`, "success");
+    setTimeout(clearStatus, 2000);
+  } catch (err) {
+    setStatus(err.message || "Export failed", "error");
+  }
 }
 
 function updateStudioLink() {
@@ -729,6 +859,7 @@ function saveLocalConfig() {
         preset: currentPreset,
         diarize: diarizeEnabled,
         speakers: speakersRaw,
+        snapToBeat,
         ...playerProps,
       })
     );
@@ -754,6 +885,10 @@ function loadLocalConfig() {
       diarizeEnabled = c.diarize;
     }
     if (c.speakers) $("cfg-speakers").value = c.speakers;
+    if (typeof c.snapToBeat === "boolean") {
+      $("cfg-snap-beat").checked = c.snapToBeat;
+      snapToBeat = c.snapToBeat;
+    }
     $("speakers-count-group").style.display = diarizeEnabled ? "block" : "none";
     onConfigChange();
   } catch (_) {}

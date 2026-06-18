@@ -10,9 +10,9 @@ import { AnimatedCaptions } from "../components/AnimatedCaptions.js";
 import { STYLE_HIGHLIGHT } from "./style-highlights.js";
 
 interface CaptionShowcaseProps {
-  captions: CaptionData;
-  style: CaptionStyle;
-  audioSrc?: string;
+  readonly captions: CaptionData;
+  readonly style: CaptionStyle;
+  readonly audioSrc?: string;
 }
 
 const STYLE_HIGHLIGHT_LEGACY = STYLE_HIGHLIGHT;

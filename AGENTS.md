@@ -26,6 +26,8 @@ npm run preview:web
 
 Open http://localhost:3456 — Remotion Player preview, configurator, timeline editor. Upload **audio** (`POST /api/process`) or **caption JSON**.
 
+Preview binds **127.0.0.1** by default (dev only). Use `captioneer preview --host 0.0.0.0` only on trusted networks.
+
 Deep links: `?style=karaoke&preset=tiktok`
 
 ## Design tokens
@@ -38,10 +40,12 @@ Deep links: `?style=karaoke&preset=tiktok`
 
 ```bash
 npm test
+npm run test:e2e        # Playwright smoke (docs + preview; run build first)
 npx tsc --noEmit
 npx remotion compositions
 npm run validate:docs
 npm run generate:meta
+npm run lint:incremental
 ```
 
 ## Environment variables
@@ -53,6 +57,8 @@ npm run generate:meta
 | `DEEPGRAM_API_KEY` | Deepgram STT |
 | `ASSEMBLYAI_API_KEY` | AssemblyAI STT |
 | `ELEVENLABS_API_KEY` | ElevenLabs Scribe STT |
+| `YOUTUBE_API_KEY` | YouTube hosting metadata (optional) |
+| `VIMEO_ACCESS_TOKEN` | Vimeo hosting metadata (optional) |
 
 Local whisper: `captioneer process audio.mp4 --provider local` (requires whisper.cpp setup).
 

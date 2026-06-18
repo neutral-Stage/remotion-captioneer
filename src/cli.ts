@@ -12,8 +12,29 @@
 
 import { Command } from "commander";
 import { existsSync, readFileSync, writeFileSync } from "fs";
-import { dirname, join, resolve, basename, extname } from "path";
+import { dirname, join, resolve, basename } from "path";
 import { fileURLToPath } from "url";
+
+/** Commander action options (subset used across subcommands). */
+type ProcessOpts = {
+  provider?: string;
+  model?: string;
+  apiKey?: string;
+  language?: string;
+  output?: string;
+  diarize?: boolean;
+  speakers?: number;
+  verbose?: boolean;
+};
+
+type ExportOpts = { format?: string; output?: string };
+type TranslateOpts = { target: string; output?: string; apiKey?: string; model?: string };
+type BatchOpts = ProcessOpts & {
+  outputDir?: string;
+  extensions?: string;
+};
+type PreviewOpts = { port?: string; host?: string };
+type AnalyzeOpts = { output?: string };
 
 const program = new Command();
 
@@ -39,7 +60,7 @@ program
   .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
   .option("--speakers <n>", "Expected number of speakers (with --diarize)", parseInt)
   .option("-v, --verbose", "Verbose output", false)
-  .action(async (audioPath: string, opts: any) => {
+  .action(async (audioPath: string, opts: ProcessOpts) => {
     const resolved = resolve(audioPath);
     if (!existsSync(resolved)) {
       console.error(`❌ File not found: ${resolved}`);
@@ -95,10 +116,14 @@ program
         }
       }
       console.log(`\n💡 Use in your Remotion project:`);
+      const { resolveDefaultStyle } = await import("./config.js");
+      const style = resolveDefaultStyle(config);
       console.log(`   import { AnimatedCaptions } from "remotion-captioneer";`);
       console.log(`   import captions from "./${basename(outputPath)}";`);
-    } catch (error: any) {
-      console.error(`❌ Error: ${error.message}`);
+      console.log(`   <AnimatedCaptions captions={captions} style="${style}" />`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error: ${message}`);
       process.exit(1);
     }
   });
@@ -140,7 +165,7 @@ program
 
 program
   .command("styles")
-  .description("List available caption styles")
+  .description("Caption styles and marketplace packages")
   .action(() => {
     console.log("\n🎨 Available Caption Styles (14):\n");
     console.log("  word-highlight    — Each word lights up as spoken");
@@ -156,25 +181,102 @@ program
     console.log("  blur              — Words come into focus from blur");
     console.log("  rainbow           — Cycling rainbow colors");
     console.log("  scale             — Words grow from small to full");
-    console.log("  spotlight         — Radial spotlight behind word\n");
-  });
+    console.log("  spotlight         — Radial spotlight behind word");
+    console.log("\nInstall marketplace presets: captioneer styles install <path|url>\n");
+  })
+  .addCommand(
+    new Command("install")
+      .description("Install a style package from a JSON file or URL")
+      .argument("<source>", "Path or URL to style package JSON")
+      .option("--project", "Install into .captioneer/styles in the current project")
+      .action(async (source: string, opts: { project?: boolean }) => {
+        const {
+          loadStylePackageFromFile,
+          loadStylePackageFromUrl,
+          installStylePackage,
+          invalidateMarketplaceCache,
+        } = await import("./marketplace/index.js");
+
+        try {
+          const pkg = source.startsWith("http://") || source.startsWith("https://")
+            ? await loadStylePackageFromUrl(source)
+            : loadStylePackageFromFile(resolve(source));
+
+          const dest = installStylePackage(pkg, {
+            target: opts.project ? "project" : "user",
+          });
+          invalidateMarketplaceCache();
+          console.log(`✅ Installed style "${pkg.meta.name}" → ${dest}`);
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error(`❌ ${message}`);
+          process.exit(1);
+        }
+      })
+  );
 
 program
   .command("init")
   .description("Scaffold a new Remotion caption project")
   .argument("[name]", "Project name", "my-captioned-video")
   .action(async (name: string) => {
-    const { scaffoldProject } = await import("./scaffold.js");
-    scaffoldProject(name);
+    try {
+      const { loadConfig, resolveDefaultStyle } = await import("./config.js");
+      const config = await loadConfig();
+      const { scaffoldProject } = await import("./scaffold.js");
+      scaffoldProject(name, ".", resolveDefaultStyle(config));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("analyze")
+  .description("Analyze audio for beats, BPM, and volume envelope")
+  .argument("<audio>", "Path to audio or video file")
+  .option("-o, --output <path>", "Output JSON path (default: <audio>-analysis.json)")
+  .action(async (audioPath: string, opts: AnalyzeOpts) => {
+    const { resolve, basename, extname } = await import("path");
+    const resolved = resolve(audioPath);
+    if (!existsSync(resolved)) {
+      console.error(`❌ File not found: ${resolved}`);
+      process.exit(1);
+    }
+
+    console.log(`🎵 Analyzing: ${basename(resolved)}`);
+
+    try {
+      const { analyzeAudio } = await import("./sync/audio-analysis.js");
+      const analysis = await analyzeAudio(resolved);
+      const outputPath =
+        opts.output ??
+        resolve(process.cwd(), `${basename(resolved, extname(resolved))}-analysis.json`);
+
+      writeFileSync(outputPath, JSON.stringify(analysis, null, 2));
+      console.log(`\n✅ Analysis saved to: ${outputPath}`);
+      console.log(`📊 BPM: ${analysis.bpm ?? "—"}, beats: ${analysis.beats?.length ?? 0}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Error: ${message}`);
+      process.exit(1);
+    }
   });
 
 program
   .command("preview")
-  .description("Start a real-time preview server")
+  .description("Start a real-time preview server (dev only, localhost by default)")
   .option("-p, --port <port>", "Port number", "3456")
-  .action(async (opts: any) => {
+  .option("--host <host>", "Bind host (default 127.0.0.1)", "127.0.0.1")
+  .action(async (opts: PreviewOpts) => {
     const { startPreviewServer } = await import("./preview-server.js");
-    startPreviewServer(parseInt(opts.port));
+    const port = Number.parseInt(opts.port ?? "3456", 10);
+    if (!Number.isFinite(port) || port < 1 || port > 65535) {
+      console.error("❌ Invalid port number");
+      process.exit(1);
+    }
+    startPreviewServer({ port, host: opts.host ?? "127.0.0.1" });
   });
 
 program
@@ -182,7 +284,9 @@ program
   .description("List available caption presets")
   .action(async () => {
     const { getPresetCategories, presets } = await import("./presets/index.js");
+    const { getMarketplacePresets } = await import("./marketplace/registry.js");
     const categories = getPresetCategories();
+    const marketplace = getMarketplacePresets();
 
     console.log("\n🎨 Available Caption Presets:\n");
     for (const [category, names] of Object.entries(categories)) {
@@ -193,15 +297,23 @@ program
       }
       console.log();
     }
+
+    if (Object.keys(marketplace).length > 0) {
+      console.log("  Marketplace:");
+      for (const [key, p] of Object.entries(marketplace)) {
+        console.log(`    ${key.padEnd(22)} ${p.style.padEnd(18)} ${p.description}`);
+      }
+      console.log();
+    }
   });
 
 program
   .command("export")
   .description("Export captions to different formats")
   .argument("<caption-file>", "Path to caption JSON file")
-  .option("-f, --format <format>", "Output format: srt, vtt, ass, txt, srt-words, vtt-words", "srt")
+  .option("-f, --format <format>", "Output format: srt, vtt, ass, txt, json, srt-words, vtt-words", "srt")
   .option("-o, --output <path>", "Output file path")
-  .action(async (captionFile: string, opts: any) => {
+  .action(async (captionFile: string, opts: ExportOpts) => {
     const { readFileSync, writeFileSync: wfs } = await import("fs");
     const { resolve, basename, extname } = await import("path");
 
@@ -211,9 +323,18 @@ program
       process.exit(1);
     }
 
-    const captions = JSON.parse(readFileSync(filePath, "utf-8"));
+    let captions: import("./types.js").CaptionData;
+    try {
+      const raw = JSON.parse(readFileSync(filePath, "utf-8")) as unknown;
+      const { assertCaptionDataShape } = await import("./translate.js");
+      captions = assertCaptionDataShape(raw);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Invalid caption JSON";
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
 
-    const { toSRT, toVTT, toASS, toPlainText, toWordLevelSRT, toWordLevelVTT } = await import("./exporters.js");
+    const { toSRT, toVTT, toASS, toPlainText, toJSON, toWordLevelSRT, toWordLevelVTT } = await import("./exporters.js");
 
     let output: string;
     let ext: string;
@@ -235,6 +356,10 @@ program
         output = toPlainText(captions);
         ext = ".txt";
         break;
+      case "json":
+        output = toJSON(captions);
+        ext = ".json";
+        break;
       case "srt-words":
         output = toWordLevelSRT(captions);
         ext = ".srt";
@@ -245,7 +370,7 @@ program
         break;
       default:
         console.error(`❌ Unknown format: ${opts.format}`);
-        console.error(`   Available: srt, vtt, ass, txt, srt-words, vtt-words`);
+        console.error(`   Available: srt, vtt, ass, txt, json, srt-words, vtt-words`);
         process.exit(1);
     }
 
@@ -267,7 +392,7 @@ program
   .option("-o, --output <path>", "Output JSON path")
   .option("-k, --api-key <key>", "OpenAI API key (defaults to OPENAI_API_KEY)")
   .option("-m, --model <model>", "OpenAI chat model", "gpt-4o-mini")
-  .action(async (captionFile: string, opts: any) => {
+  .action(async (captionFile: string, opts: TranslateOpts) => {
     const { resolve: res, basename: bn, extname: ext } = await import("path");
 
     const filePath = res(captionFile);
@@ -334,8 +459,8 @@ program
   .option("-e, --extensions <exts>", "File extensions (comma-separated)", "mp3,wav,m4a,mp4,ogg,flac")
   .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
   .option("--speakers <n>", "Expected number of speakers", parseInt)
-  .action(async (directory: string, opts: any) => {
-    const { readdirSync, statSync } = await import("fs");
+  .action(async (directory: string, opts: BatchOpts) => {
+    const { readdirSync } = await import("fs");
     const { join, resolve, basename, extname } = await import("path");
 
     const dirPath = resolve(directory);
@@ -344,7 +469,9 @@ program
       process.exit(1);
     }
 
-    const extensions = opts.extensions.split(",").map((e: string) => `.${e.trim().toLowerCase()}`);
+    const extensions = (opts.extensions ?? "mp3,wav,m4a,mp4,ogg,flac")
+      .split(",")
+      .map((e: string) => `.${e.trim().toLowerCase()}`);
 
     const files = readdirSync(dirPath)
       .filter((f) => extensions.includes(extname(f).toLowerCase()))
@@ -400,14 +527,45 @@ program
         wfs(outputPath, JSON.stringify(captions, null, 2));
         console.log(`  ✅ ${captions.segments.length} segments → ${basename(outputPath)}`);
         success++;
-      } catch (error: any) {
-        console.error(`  ❌ Failed: ${error.message}`);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`  ❌ Failed: ${message}`);
         failed++;
       }
     }
 
     console.log(`\n${"─".repeat(40)}`);
     console.log(`📊 Done: ${success} succeeded, ${failed} failed out of ${files.length} files`);
+  });
+
+const hosting = program.command("hosting").description("Resolve video hosting URLs");
+
+hosting
+  .command("providers")
+  .description("List supported video hosting providers")
+  .action(async () => {
+    const { listHostingProviders } = await import("./hosting/index.js");
+    console.log("\n📺 Video hosting providers:\n");
+    for (const name of listHostingProviders()) {
+      console.log(`  • ${name}`);
+    }
+    console.log("\nSet YOUTUBE_API_KEY or VIMEO_ACCESS_TOKEN for richer metadata.\n");
+  });
+
+hosting
+  .command("info")
+  .description("Resolve a YouTube or Vimeo URL to metadata")
+  .argument("<url>", "Public video URL")
+  .action(async (url: string) => {
+    const { resolveVideoUrl } = await import("./hosting/index.js");
+    try {
+      const info = await resolveVideoUrl(url);
+      console.log(JSON.stringify(info, null, 2));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
   });
 
 // Helpers

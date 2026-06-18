@@ -179,6 +179,7 @@ body {
   margin-top: var(--space-3);
   width: 100%;
   max-width: 960px;
+  flex-wrap: wrap;
 }
 
 .audio-controls button {

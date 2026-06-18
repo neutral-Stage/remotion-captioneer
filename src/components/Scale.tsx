@@ -10,13 +10,13 @@ import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface ScaleProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  scaleColor?: string;
-  maxScale?: number;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly scaleColor?: string;
+  readonly maxScale?: number;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Scale: React.FC<ScaleProps> = ({
@@ -28,8 +28,6 @@ export const Scale: React.FC<ScaleProps> = ({
   maxScale = 1.4,
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -92,7 +90,6 @@ export const Scale: React.FC<ScaleProps> = ({
                 textShadow: isActive
                   ? `0 0 15px ${scaleColor}60`
                   : "0 2px 8px rgba(0,0,0,0.5)",
-                transition: "transform 0.15s ease",
               }}
             >
               {word.word}

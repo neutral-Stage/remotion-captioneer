@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toSRT, toVTT, toPlainText } from "./exporters.js";
+import { toSRT, toVTT, toPlainText, toJSON } from "./exporters.js";
 import type { CaptionData } from "./types.js";
 
 const sample: CaptionData = {
@@ -31,5 +31,12 @@ describe("exporters", () => {
 
   it("toPlainText", () => {
     expect(toPlainText(sample).trim()).toBe("Hello world");
+  });
+
+  it("toJSON round-trips segments", () => {
+    const json = toJSON(sample);
+    const parsed = JSON.parse(json);
+    expect(parsed.segments[0].text).toBe("Hello world");
+    expect(parsed.language).toBe("en");
   });
 });

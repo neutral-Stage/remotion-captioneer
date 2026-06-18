@@ -60,7 +60,8 @@ export function chunkWordsIntoSegments(
 }
 
 function stripSpeakerFromWord(word: WordWithSpeaker): Word {
-  const { speaker: _speaker, ...rest } = word;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- strip speaker label
+  const { speaker, ...rest } = word;
   return rest;
 }
 

@@ -59,7 +59,40 @@ export {
   type TranslateCaptionsOptions,
 } from "./translate.js";
 
-export { loadConfig } from "./config.js";
+export {
+  loadConfig,
+  resolveDefaultStyle,
+} from "./config.js";
 export type { CaptioneerConfig } from "./config.js";
+
+export {
+  resolveVideoUrl,
+  listHostingProviders,
+  detectHostingProvider,
+  parseYouTubeId,
+  parseVimeoId,
+  type VideoHostingInfo,
+  type HostingProviderName,
+} from "./hosting/index.js";
+
+export {
+  validateStylePackage,
+  loadStylePackageFromFile,
+  loadStylePackageFromUrl,
+  installStylePackage,
+  loadInstalledStylePackages,
+  getMarketplacePresets,
+  getAllPresets,
+  invalidateMarketplaceCache,
+  type StylePackage,
+} from "./marketplace/index.js";
+
+export {
+  analyzeAudio,
+  type AudioAnalysis,
+  type BeatInfo,
+  type VolumeFrame,
+  type AnalyzeOptions,
+} from "./sync/audio-analysis.js";
 
 export type { CaptionData, CaptionSegment, Word } from "./types.js";

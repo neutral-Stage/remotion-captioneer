@@ -42,6 +42,10 @@
         <button type="button" id="play-btn" aria-label="Play">▶ Play</button>
         <button type="button" id="restart-btn">⟲ Restart</button>
         <button type="button" id="speed-btn">1x</button>
+        <button type="button" id="undo-btn" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+        <button type="button" id="redo-btn" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button>
+        <button type="button" id="export-srt-btn">↓ SRT</button>
+        <button type="button" id="export-vtt-btn">↓ VTT</button>
         <button type="button" id="export-json-btn">↓ JSON</button>
       </div>
     </section>
@@ -84,6 +88,10 @@
         <input type="number" id="cfg-speakers" value="" min="2" max="10" placeholder="Auto">
       </div>
 
+      <div class="config-group">
+        <label><input type="checkbox" id="cfg-snap-beat"> Snap word edges to beats</label>
+      </div>
+
       <h3>Stats</h3>
       <div class="stats">
         <div class="stat"><div class="stat-label">Segments</div><div class="stat-value" id="stat-segments">0</div></div>
@@ -97,7 +105,7 @@
 
       <h3>Timeline editor</h3>
       <div class="editor-panel" id="editor-panel">
-        <p style="color:var(--color-text-secondary);font-size:var(--text-xs)">Drag word edges to adjust timing. Click a word to seek.</p>
+        <p style="color:var(--color-text-secondary);font-size:var(--text-xs)">Drag word edges to adjust timing. Click a word to seek. Ctrl+Z undo, Ctrl+Shift+Z redo.</p>
       </div>
 
       <h3>Caption data</h3>
