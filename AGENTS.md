@@ -26,6 +26,8 @@ npm run preview:web
 
 Open http://localhost:3456 — Remotion Player preview, configurator, timeline editor. Upload **audio** (`POST /api/process`) or **caption JSON**.
 
+Preview binds **127.0.0.1** by default (dev only). Use `captioneer preview --host 0.0.0.0` only on trusted networks.
+
 Deep links: `?style=karaoke&preset=tiktok`
 
 ## Design tokens

@@ -5,7 +5,7 @@
  * and energy data for frame-perfect animation synchronization.
  */
 
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { resolve, basename, extname } from "path";
 
@@ -82,11 +82,23 @@ export async function analyzeAudio(
   let volumeData: string;
   try {
     // Use ffmpeg astats filter to get per-segment volume
-    const statsCmd = `"${ffmpegPath}" -i "${resolved}" -af "astats=metadata=1:reset=${Math.round(sampleIntervalMs / 1000 * 30)}" -f null - 2>&1`;
-    volumeData = execSync(statsCmd, {
-      encoding: "utf-8",
-      maxBuffer: 50 * 1024 * 1024,
-    });
+    const resetSeconds = Math.round((sampleIntervalMs / 1000) * 30);
+    volumeData = execFileSync(
+      ffmpegPath,
+      [
+        "-i",
+        resolved,
+        "-af",
+        `astats=metadata=1:reset=${resetSeconds}`,
+        "-f",
+        "null",
+        "-",
+      ],
+      {
+        encoding: "utf-8",
+        maxBuffer: 50 * 1024 * 1024,
+      }
+    );
   } catch {
     // Fallback: generate synthetic volume from duration
     console.warn("⚠️ ffmpeg not available, generating synthetic audio analysis");

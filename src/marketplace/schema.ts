@@ -4,6 +4,7 @@
 
 import type { CaptionPreset } from "../presets/index.js";
 import type { CaptionStyle } from "../types.js";
+import { assertValidPackageId } from "./id.js";
 
 export const STYLE_PACKAGE_VERSION = 1 as const;
 
@@ -63,9 +64,8 @@ export function validateStylePackage(raw: unknown): StylePackage {
   }
 
   const meta = pkg.meta as StylePackageMeta;
+  const packageId = assertValidPackageId(meta.id);
   if (
-    typeof meta.id !== "string" ||
-    !meta.id ||
     typeof meta.name !== "string" ||
     !meta.name ||
     typeof meta.description !== "string" ||
@@ -113,7 +113,7 @@ export function validateStylePackage(raw: unknown): StylePackage {
   return {
     schemaVersion: STYLE_PACKAGE_VERSION,
     meta: {
-      id: meta.id,
+      id: packageId,
       name: meta.name,
       description: meta.description,
       version: meta.version,

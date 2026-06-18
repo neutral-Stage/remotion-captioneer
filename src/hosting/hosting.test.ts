@@ -21,14 +21,19 @@ describe("hosting", () => {
     );
   });
 
-  it("resolves YouTube metadata without API key", async () => {
+  it("resolves YouTube metadata without network", async () => {
     const provider = detectHostingProvider("https://youtu.be/dQw4w9WgXcQ");
     expect(provider?.name).toBe("youtube");
 
-    const info = await resolveVideoUrl("https://youtu.be/dQw4w9WgXcQ");
+    const info = await provider!.resolve("https://youtu.be/dQw4w9WgXcQ");
     expect(info.provider).toBe("youtube");
     expect(info.videoId).toBe("dQw4w9WgXcQ");
     expect(info.thumbnailUrl).toContain("dQw4w9WgXcQ");
+  });
+
+  it("resolveVideoUrl delegates to provider", async () => {
+    const info = await resolveVideoUrl("https://youtu.be/dQw4w9WgXcQ");
+    expect(info.videoId).toBe("dQw4w9WgXcQ");
   });
 });
 

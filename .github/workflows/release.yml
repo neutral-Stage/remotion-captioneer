@@ -29,6 +29,21 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Validate docs
+        run: npm run validate:docs
+
+      - name: Install Playwright browser
+        run: npm run test:e2e:install
+
+      - name: E2E smoke tests
+        run: npm run test:e2e
+
       - name: Build
         run: npm run build
 

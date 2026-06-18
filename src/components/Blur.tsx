@@ -84,7 +84,6 @@ export const Blur: React.FC<BlurProps> = ({
                 textShadow: isActive
                   ? "0 0 20px rgba(255,255,255,0.3)"
                   : "0 2px 8px rgba(0,0,0,0.5)",
-                transition: "filter 0.3s ease, opacity 0.3s ease",
               }}
             >
               {word.word}

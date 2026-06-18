@@ -87,7 +87,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
           background: "rgba(0,0,0,0.6)",
           borderRadius: "12px",
           border: `2px solid ${isErasing ? eraseColor + "40" : cursorColor + "40"}`,
-          transition: "border-color 0.3s ease",
         }}
       >
         <span
@@ -97,7 +96,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
             fontWeight: 500,
             color: isErasing ? eraseColor : fontColor,
             textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-            transition: "color 0.2s ease",
           }}
         >
           {visibleWords.join(" ")}

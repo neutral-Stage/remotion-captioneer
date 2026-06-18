@@ -36,25 +36,32 @@ interface TemplateCompositionProps {
 export const TemplateComposition: React.FC<TemplateCompositionProps> = ({
   template,
 }) => {
-  let frameOffset = 0;
+  const sceneOffsets = React.useMemo(() => {
+    const offsets: number[] = [];
+    let cursor = 0;
+    for (const scene of template.scenes) {
+      offsets.push(cursor);
+      cursor += scene.durationInFrames;
+    }
+    return offsets;
+  }, [template.scenes]);
 
   return (
     <AbsoluteFill>
-      {template.scenes.map((scene) => {
-        const from = frameOffset;
-        frameOffset += scene.durationInFrames;
-
-        return (
-          <Sequence key={scene.id} from={from} durationInFrames={scene.durationInFrames}>
-            <SceneRenderer
-              scene={scene}
-              tokens={template.tokens}
-              width={template.width}
-              height={template.height}
-            />
-          </Sequence>
-        );
-      })}
+      {template.scenes.map((scene, index) => (
+        <Sequence
+          key={scene.id}
+          from={sceneOffsets[index] ?? 0}
+          durationInFrames={scene.durationInFrames}
+        >
+          <SceneRenderer
+            scene={scene}
+            tokens={template.tokens}
+            width={template.width}
+            height={template.height}
+          />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };

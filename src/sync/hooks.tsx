@@ -95,10 +95,7 @@ export function useEnergy(): number {
   const currentTimeMs = (frame / fps) * 1000;
 
   return useMemo(() => {
-    const segment = analysis.energy.find(
-      (e) => currentTimeMs >= e.startMs && currentTimeMs < e.endMs
-    );
-    return segment?.level ?? 0;
+    return findEnergyAtTime(analysis.energy, currentTimeMs);
   }, [analysis.energy, currentTimeMs]);
 }
 
@@ -112,12 +109,10 @@ export function useBeatPulse(threshold: number = 0.3): number {
   const { fps } = useVideoConfig();
   const currentTimeMs = (frame / fps) * 1000;
 
-  // Find the most recent beat
-  const lastBeat = useMemo(() => {
-    return [...analysis.beats]
-      .reverse()
-      .find((b) => b.timeMs <= currentTimeMs);
-  }, [analysis.beats, currentTimeMs]);
+  const lastBeat = useMemo(
+    () => findLastBeatBefore(analysis.beats, currentTimeMs),
+    [analysis.beats, currentTimeMs]
+  );
 
   if (!lastBeat || lastBeat.strength < threshold) return 0;
 
@@ -160,12 +155,82 @@ export function useTimeToNextBeat(): number {
   const currentTimeMs = (frame / fps) * 1000;
 
   return useMemo(() => {
-    const next = analysis.beats.find((b) => b.timeMs > currentTimeMs);
+    const next = findNextBeatAfter(analysis.beats, currentTimeMs);
     return next ? next.timeMs - currentTimeMs : Infinity;
   }, [analysis.beats, currentTimeMs]);
 }
 
 // ─── Utilities ────────────────────────────────────────────────────
+
+function findLastBeatBefore(
+  beats: BeatInfo[],
+  timeMs: number
+): BeatInfo | undefined {
+  if (beats.length === 0) return undefined;
+
+  let lo = 0;
+  let hi = beats.length - 1;
+  let best = -1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (beats[mid]!.timeMs <= timeMs) {
+      best = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  return best >= 0 ? beats[best] : undefined;
+}
+
+function findNextBeatAfter(
+  beats: BeatInfo[],
+  timeMs: number
+): BeatInfo | undefined {
+  if (beats.length === 0) return undefined;
+
+  let lo = 0;
+  let hi = beats.length - 1;
+  let best = -1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (beats[mid]!.timeMs > timeMs) {
+      best = mid;
+      hi = mid - 1;
+    } else {
+      lo = mid + 1;
+    }
+  }
+
+  return best >= 0 ? beats[best] : undefined;
+}
+
+function findEnergyAtTime(
+  energy: AudioAnalysis["energy"],
+  timeMs: number
+): number {
+  if (energy.length === 0) return 0;
+
+  let lo = 0;
+  let hi = energy.length - 1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const seg = energy[mid]!;
+    if (timeMs < seg.startMs) {
+      hi = mid - 1;
+    } else if (timeMs >= seg.endMs) {
+      lo = mid + 1;
+    } else {
+      return seg.level;
+    }
+  }
+
+  return 0;
+}
 
 /**
  * Get volume at a specific time from volume frames
@@ -176,20 +241,23 @@ function getVolumeAtTime(
 ): number {
   if (volumeFrames.length === 0) return 0;
 
-  // Find surrounding frames and interpolate
-  let before = volumeFrames[0];
-  let after = volumeFrames[volumeFrames.length - 1];
+  let lo = 0;
+  let hi = volumeFrames.length - 1;
 
-  for (let i = 0; i < volumeFrames.length - 1; i++) {
-    if (
-      volumeFrames[i].timeMs <= timeMs &&
-      volumeFrames[i + 1].timeMs >= timeMs
-    ) {
-      before = volumeFrames[i];
-      after = volumeFrames[i + 1];
-      break;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const frame = volumeFrames[mid]!;
+    if (timeMs < frame.timeMs) {
+      hi = mid - 1;
+    } else {
+      lo = mid + 1;
     }
   }
+
+  const afterIndex = Math.min(lo, volumeFrames.length - 1);
+  const beforeIndex = Math.max(0, afterIndex - 1);
+  const before = volumeFrames[beforeIndex]!;
+  const after = volumeFrames[afterIndex]!;
 
   if (after.timeMs === before.timeMs) return before.volume;
 

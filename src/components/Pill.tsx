@@ -87,7 +87,6 @@ export const Pill: React.FC<PillProps> = ({
                 borderRadius: isActive ? "999px" : "0",
                 transform: `scale(${scale})`,
                 textShadow: isActive ? "none" : "0 2px 8px rgba(0,0,0,0.5)",
-                transition: "all 0.2s ease",
               }}
             >
               {word.word}

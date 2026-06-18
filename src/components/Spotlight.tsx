@@ -84,7 +84,6 @@ export const Spotlight: React.FC<SpotlightProps> = ({
                 boxShadow: isActive
                   ? `0 0 30px ${spotlightColor}80, 0 0 60px ${spotlightColor}40`
                   : "none",
-                transition: "all 0.2s ease",
               }}
             >
               {word.word}

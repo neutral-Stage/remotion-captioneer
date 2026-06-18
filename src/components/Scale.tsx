@@ -90,7 +90,6 @@ export const Scale: React.FC<ScaleProps> = ({
                 textShadow: isActive
                   ? `0 0 15px ${scaleColor}60`
                   : "0 2px 8px rgba(0,0,0,0.5)",
-                transition: "transform 0.15s ease",
               }}
             >
               {word.word}

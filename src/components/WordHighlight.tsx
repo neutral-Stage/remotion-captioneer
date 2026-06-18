@@ -113,7 +113,6 @@ export const WordHighlight: React.FC<WordHighlightProps> = ({
                         ? "white"
                         : fontColor,
                     transform: `scale(${scale})`,
-                    transition: "color 0.15s ease",
                     textShadow: isActive
                       ? `0 0 20px ${highlightColor}80`
                       : "0 2px 8px rgba(0,0,0,0.5)",

@@ -1,11 +1,13 @@
 /**
  * Real-time Preview Server — serves dist/preview/ + STT API
+ *
+ * Dev-only: binds localhost by default. Do not expose on untrusted networks.
  */
 
 import { createServer, type IncomingMessage, type ServerResponse } from "http";
 import { existsSync, readFileSync } from "fs";
 import { writeFile, unlink } from "fs/promises";
-import { join, extname, resolve, relative } from "path";
+import { join } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { getAllPresets } from "./marketplace/registry.js";
@@ -15,18 +17,25 @@ import { loadConfig, resolveDefaultStyle } from "./config.js";
 import { resolveVideoUrl } from "./hosting/index.js";
 import { parseProcessHeaders } from "./preview/headers.js";
 import { createTempUploadPath } from "./preview/temp-path.js";
+import {
+  readRequestBody,
+  RequestBodyTooLargeError,
+} from "./preview/request-body.js";
+import {
+  getStaticMime,
+  resolvePreviewStaticPath,
+} from "./preview/static-path.js";
 
-const PORT = 3456;
+const DEFAULT_PORT = 3456;
+const DEFAULT_HOST = "127.0.0.1";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PREVIEW_DIR = join(__dirname, "preview");
 
-const MIME: Record<string, string> = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "application/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-};
+export interface PreviewServerOptions {
+  port?: number;
+  host?: string;
+}
 
 function readUiMeta(): string {
   const paths = [
@@ -51,12 +60,15 @@ function buildPresetPayload(): Record<
   return out;
 }
 
-async function readRequestBody(req: IncomingMessage): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+function sendJson(res: ServerResponse, status: number, body: unknown): void {
+  if (!res.headersSent) {
+    res.writeHead(status, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(body));
   }
-  return Buffer.concat(chunks);
+}
+
+function logApiError(route: string, e: unknown): void {
+  console.error(`Preview ${route} failed:`, e);
 }
 
 async function handleAnalyze(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -66,23 +78,24 @@ async function handleAnalyze(req: IncomingMessage, res: ServerResponse): Promise
     await writeFile(tmpPath, body);
     try {
       const analysis = await analyzeAudio(tmpPath);
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(analysis));
+      sendJson(res, 200, analysis);
     } finally {
       await unlink(tmpPath).catch(() => undefined);
     }
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Audio analysis failed";
-    console.error("Preview /api/analyze failed:", e);
-    res.writeHead(500, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: msg }));
+    if (e instanceof RequestBodyTooLargeError) {
+      sendJson(res, 413, { error: "Upload too large" });
+      return;
+    }
+    logApiError("/api/analyze", e);
+    sendJson(res, 500, { error: "Audio analysis failed" });
   }
 }
 
 async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise<void> {
   try {
     const body = await readRequestBody(req);
-    const { diarize, numSpeakers } = parseProcessHeaders(req.headers);
+    const { diarize, numSpeakers, language } = parseProcessHeaders(req.headers);
     const tmpPath = createTempUploadPath();
     await writeFile(tmpPath, body);
     try {
@@ -90,47 +103,37 @@ async function handleProcess(req: IncomingMessage, res: ServerResponse): Promise
         onProgress: (m) => console.log(`   ${m}`),
         diarize,
         numSpeakers,
-        language: typeof req.headers["x-language"] === "string" ? req.headers["x-language"] : undefined,
+        language,
       });
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(captions));
+      sendJson(res, 200, captions);
     } finally {
       await unlink(tmpPath).catch(() => undefined);
     }
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Transcription failed";
-    console.error("Preview /api/process failed:", e);
-    res.writeHead(500, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: msg }));
+    if (e instanceof RequestBodyTooLargeError) {
+      sendJson(res, 413, { error: "Upload too large" });
+      return;
+    }
+    logApiError("/api/process", e);
+    sendJson(res, 500, { error: "Transcription failed" });
   }
-}
-
-function resolvePreviewStaticPath(requestPath: string): string | null {
-  const relativePath = requestPath === "/" ? "index.html" : requestPath.replace(/^\//, "");
-  if (!relativePath || relativePath.includes("\0")) return null;
-  const resolvedRoot = resolve(PREVIEW_DIR);
-  const resolvedFile = resolve(PREVIEW_DIR, relativePath);
-  const rel = relative(resolvedRoot, resolvedFile);
-  if (rel.startsWith("..") || resolve(resolvedRoot, rel) !== resolvedFile) {
-    return null;
-  }
-  return resolvedFile;
 }
 
 function serveStatic(path: string, res: ServerResponse): boolean {
-  const filePath = resolvePreviewStaticPath(path);
+  const filePath = resolvePreviewStaticPath(PREVIEW_DIR, path);
   if (!filePath || !existsSync(filePath)) return false;
-  const ext = extname(filePath);
-  const type = MIME[ext] ?? "application/octet-stream";
-  res.writeHead(200, { "Content-Type": type });
+  res.writeHead(200, { "Content-Type": getStaticMime(filePath) });
   res.end(readFileSync(filePath));
   return true;
 }
 
 /**
- * Start the preview server
+ * Start the preview server (localhost by default).
  */
-export function startPreviewServer(port: number = PORT): void {
+export function startPreviewServer(options: PreviewServerOptions = {}): void {
+  const port = options.port ?? DEFAULT_PORT;
+  const host = options.host ?? DEFAULT_HOST;
+
   if (!existsSync(PREVIEW_DIR)) {
     console.warn(
       `Preview bundle not found at ${PREVIEW_DIR}. Run: npm run build:preview`
@@ -142,27 +145,27 @@ export function startPreviewServer(port: number = PORT): void {
 
     if (req.method === "POST" && url === "/api/process") {
       handleProcess(req, res).catch((e: unknown) => {
-        console.error("Unhandled /api/process error:", e);
+        logApiError("/api/process (unhandled)", e);
+        sendJson(res, 500, { error: "Transcription failed" });
       });
       return;
     }
 
     if (req.method === "POST" && url === "/api/analyze") {
       handleAnalyze(req, res).catch((e: unknown) => {
-        console.error("Unhandled /api/analyze error:", e);
+        logApiError("/api/analyze (unhandled)", e);
+        sendJson(res, 500, { error: "Audio analysis failed" });
       });
       return;
     }
 
     if (req.method === "GET" && url === "/api/presets") {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(buildPresetPayload()));
+      sendJson(res, 200, buildPresetPayload());
       return;
     }
 
     if (req.method === "GET" && url === "/api/styles") {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify(buildPresetPayload()));
+      sendJson(res, 200, buildPresetPayload());
       return;
     }
 
@@ -170,19 +173,16 @@ export function startPreviewServer(port: number = PORT): void {
       const query = new URL(req.url ?? "", "http://localhost").searchParams;
       const videoUrl = query.get("url");
       if (!videoUrl) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Missing url query parameter" }));
+        sendJson(res, 400, { error: "Missing url query parameter" });
         return;
       }
       resolveVideoUrl(videoUrl)
         .then((info) => {
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify(info));
+          sendJson(res, 200, info);
         })
         .catch((e: unknown) => {
-          const msg = e instanceof Error ? e.message : "Failed to resolve video URL";
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: msg }));
+          logApiError("/api/hosting/resolve", e);
+          sendJson(res, 400, { error: "Failed to resolve video URL" });
         });
       return;
     }
@@ -196,19 +196,15 @@ export function startPreviewServer(port: number = PORT): void {
     if (req.method === "GET" && url === "/api/config") {
       loadConfig()
         .then((config) => {
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(
-            JSON.stringify({
-              defaultStyle: resolveDefaultStyle(config),
-              defaultProvider: config?.defaultProvider ?? null,
-              defaultLanguage: config?.defaultLanguage ?? null,
-            })
-          );
+          sendJson(res, 200, {
+            defaultStyle: resolveDefaultStyle(config),
+            defaultProvider: config?.defaultProvider ?? null,
+            defaultLanguage: config?.defaultLanguage ?? null,
+          });
         })
         .catch((e: unknown) => {
-          console.error("Preview /api/config failed:", e);
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "Config load failed" }));
+          logApiError("/api/config", e);
+          sendJson(res, 500, { error: "Config load failed" });
         });
       return;
     }
@@ -222,9 +218,15 @@ export function startPreviewServer(port: number = PORT): void {
     res.end("Not found");
   });
 
-  server.listen(port, () => {
-    console.log(`\nCaptioneer preview server`);
-    console.log(`   Local: http://localhost:${port}\n`);
+  server.listen(port, host, () => {
+    console.log(`\nCaptioneer preview server (dev only)`);
+    console.log(`   Local: http://${host}:${port}\n`);
     console.log(`   Upload audio (STT) or caption JSON.\n`);
+    if (host !== "127.0.0.1" && host !== "localhost") {
+      console.warn(`   Warning: listening on ${host} — do not expose on untrusted networks.\n`);
+    }
   });
 }
+
+// Re-export for tests
+export { resolvePreviewStaticPath } from "./preview/static-path.js";

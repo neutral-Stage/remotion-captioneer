@@ -83,7 +83,6 @@ export const Highlighter: React.FC<HighlighterProps> = ({
                 borderRadius: "4px",
                 transform: isActive ? "rotate(-1deg)" : "none",
                 textShadow: isActive ? "none" : "0 2px 8px rgba(0,0,0,0.5)",
-                transition: "all 0.15s ease",
               }}
             >
               {word.word}

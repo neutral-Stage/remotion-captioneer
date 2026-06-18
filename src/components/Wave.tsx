@@ -91,7 +91,6 @@ export const Wave: React.FC<WaveProps> = ({
                 textShadow: isActive
                   ? `0 0 15px ${waveColor}60`
                   : "0 2px 8px rgba(0,0,0,0.5)",
-                transition: "transform 0.15s ease-out",
               }}
             >
               {word.word}

@@ -33,7 +33,7 @@ type BatchOpts = ProcessOpts & {
   outputDir?: string;
   extensions?: string;
 };
-type PreviewOpts = { port?: string };
+type PreviewOpts = { port?: string; host?: string };
 type AnalyzeOpts = { output?: string };
 
 const program = new Command();
@@ -220,10 +220,16 @@ program
   .description("Scaffold a new Remotion caption project")
   .argument("[name]", "Project name", "my-captioned-video")
   .action(async (name: string) => {
-    const { loadConfig, resolveDefaultStyle } = await import("./config.js");
-    const config = await loadConfig();
-    const { scaffoldProject } = await import("./scaffold.js");
-    scaffoldProject(name, ".", resolveDefaultStyle(config));
+    try {
+      const { loadConfig, resolveDefaultStyle } = await import("./config.js");
+      const config = await loadConfig();
+      const { scaffoldProject } = await import("./scaffold.js");
+      scaffoldProject(name, ".", resolveDefaultStyle(config));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
   });
 
 program
@@ -259,11 +265,18 @@ program
   });
 
 program
-  .description("Start a real-time preview server")
+  .command("preview")
+  .description("Start a real-time preview server (dev only, localhost by default)")
   .option("-p, --port <port>", "Port number", "3456")
+  .option("--host <host>", "Bind host (default 127.0.0.1)", "127.0.0.1")
   .action(async (opts: PreviewOpts) => {
     const { startPreviewServer } = await import("./preview-server.js");
-    startPreviewServer(parseInt(opts.port ?? "3456", 10));
+    const port = Number.parseInt(opts.port ?? "3456", 10);
+    if (!Number.isFinite(port) || port < 1 || port > 65535) {
+      console.error("❌ Invalid port number");
+      process.exit(1);
+    }
+    startPreviewServer({ port, host: opts.host ?? "127.0.0.1" });
   });
 
 program
@@ -310,7 +323,16 @@ program
       process.exit(1);
     }
 
-    const captions = JSON.parse(readFileSync(filePath, "utf-8"));
+    let captions: import("./types.js").CaptionData;
+    try {
+      const raw = JSON.parse(readFileSync(filePath, "utf-8")) as unknown;
+      const { assertCaptionDataShape } = await import("./translate.js");
+      captions = assertCaptionDataShape(raw);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Invalid caption JSON";
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
 
     const { toSRT, toVTT, toASS, toPlainText, toJSON, toWordLevelSRT, toWordLevelVTT } = await import("./exporters.js");
 
