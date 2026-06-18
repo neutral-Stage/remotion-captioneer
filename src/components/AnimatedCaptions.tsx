@@ -22,7 +22,7 @@ import { Rainbow } from "./Rainbow.js";
 import { Scale } from "./Scale.js";
 import { Spotlight } from "./Spotlight.js";
 
-const styleMap: Record<CaptionStyle, React.FC<any>> = {
+const styleMap: Record<CaptionStyle, React.FC<CaptionComponentProps>> = {
   "word-highlight": WordHighlight,
   karaoke: Karaoke,
   typewriter: Typewriter,
@@ -41,7 +41,18 @@ const styleMap: Record<CaptionStyle, React.FC<any>> = {
 
 const sharedStyleProps = (
   props: CaptionComponentProps
-): Record<string, unknown> => ({
+): Pick<
+  CaptionComponentProps,
+  | "captions"
+  | "fontFamily"
+  | "fontSize"
+  | "fontColor"
+  | "highlightColor"
+  | "position"
+  | "maxWidth"
+  | "wordsPerLine"
+  | "useSmartWrap"
+> => ({
   captions: props.captions,
   fontFamily: props.fontFamily,
   fontSize: props.fontSize,
@@ -70,8 +81,8 @@ function activeSegment(
 }
 
 const SpeakerLabel: React.FC<{
-  segment: CaptionSegment;
-  colors: string[];
+  readonly segment: CaptionSegment;
+  readonly colors: string[];
 }> = ({ segment, colors }) => {
   if (!segment.speaker) return null;
   const idx = speakerColorIndex(segment.speaker, colors.length);
@@ -126,6 +137,7 @@ export const AnimatedCaptions: React.FC<CaptionComponentProps> = (props) => {
 
   const childProps = {
     ...sharedStyleProps(props),
+    captions,
     highlightColor,
     waveColor: highlightColor,
     glowColor: highlightColor,
@@ -148,7 +160,7 @@ export const AnimatedCaptions: React.FC<CaptionComponentProps> = (props) => {
     );
     return (
       <AbsoluteFill style={fillStyle}>
-        <WordHighlight {...(childProps as any)} />
+        <WordHighlight {...childProps} />
       </AbsoluteFill>
     );
   }

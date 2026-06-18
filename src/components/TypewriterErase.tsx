@@ -4,19 +4,19 @@
  */
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
-import { getActiveSegment, getActiveWordIndex } from "../utils.js";
+import { getActiveSegment } from "../utils.js";
 
 interface TypewriterEraseProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  cursorColor?: string;
-  eraseColor?: string;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly cursorColor?: string;
+  readonly eraseColor?: string;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
@@ -28,8 +28,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
   eraseColor = "#FF4444",
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -38,7 +36,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
   const segment = getActiveSegment(captions, currentTimeMs);
   if (!segment) return null;
 
-  const activeIndex = getActiveWordIndex(segment, currentTimeMs);
   const segmentProgress =
     (currentTimeMs - segment.startMs) / (segment.endMs - segment.startMs);
 

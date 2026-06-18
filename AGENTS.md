@@ -55,6 +55,8 @@ npm run lint:incremental
 | `DEEPGRAM_API_KEY` | Deepgram STT |
 | `ASSEMBLYAI_API_KEY` | AssemblyAI STT |
 | `ELEVENLABS_API_KEY` | ElevenLabs Scribe STT |
+| `YOUTUBE_API_KEY` | YouTube hosting metadata (optional) |
+| `VIMEO_ACCESS_TOKEN` | Vimeo hosting metadata (optional) |
 
 Local whisper: `captioneer process audio.mp4 --provider local` (requires whisper.cpp setup).
 

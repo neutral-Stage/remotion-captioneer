@@ -10,13 +10,13 @@ import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface HighlighterProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  highlightColor?: string;
-  highlightOpacity?: number;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly highlightColor?: string;
+  readonly highlightOpacity?: number;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Highlighter: React.FC<HighlighterProps> = ({
@@ -28,8 +28,6 @@ export const Highlighter: React.FC<HighlighterProps> = ({
   highlightOpacity = 0.7,
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

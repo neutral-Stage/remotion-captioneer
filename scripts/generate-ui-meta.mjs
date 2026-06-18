@@ -50,7 +50,7 @@ function parsePresets() {
   }
 
   const presetEntries = [];
-  const presetBlock = src.match(/export const presets[^=]*=\s*\{([\s\S]*?)\};\s*\n\/\*\*/);
+  const presetBlock = src.match(/export const presets[^=]*=\s*\{([\s\S]*?)\};\s*\n/);
   if (!presetBlock) throw new Error("presets block not found");
 
   const chunks = presetBlock[1].split(/\n\s*"/);

@@ -4,19 +4,19 @@
  */
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface BlurProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  focusColor?: string;
-  blurAmount?: number;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly focusColor?: string;
+  readonly blurAmount?: number;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Blur: React.FC<BlurProps> = ({
@@ -28,8 +28,6 @@ export const Blur: React.FC<BlurProps> = ({
   blurAmount = 8,
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -68,7 +66,6 @@ export const Blur: React.FC<BlurProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
-          const isFuture = i > activeWordIndex;
 
           const blur = isActive ? 0 : isPast ? 0 : blurAmount;
           const opacity = isActive ? 1 : isPast ? 0.9 : 0.3;

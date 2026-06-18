@@ -66,6 +66,28 @@ export {
 export type { CaptioneerConfig } from "./config.js";
 
 export {
+  resolveVideoUrl,
+  listHostingProviders,
+  detectHostingProvider,
+  parseYouTubeId,
+  parseVimeoId,
+  type VideoHostingInfo,
+  type HostingProviderName,
+} from "./hosting/index.js";
+
+export {
+  validateStylePackage,
+  loadStylePackageFromFile,
+  loadStylePackageFromUrl,
+  installStylePackage,
+  loadInstalledStylePackages,
+  getMarketplacePresets,
+  getAllPresets,
+  invalidateMarketplaceCache,
+  type StylePackage,
+} from "./marketplace/index.js";
+
+export {
   analyzeAudio,
   type AudioAnalysis,
   type BeatInfo,

@@ -20,12 +20,12 @@ import {
 } from "./style-props.js";
 
 interface WordHighlightProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  highlightColor?: string;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly highlightColor?: string;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const WordHighlight: React.FC<WordHighlightProps> = ({

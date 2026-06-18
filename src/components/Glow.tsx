@@ -4,19 +4,19 @@
  */
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface GlowProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  glowColor?: string;
-  glowIntensity?: number;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly glowColor?: string;
+  readonly glowIntensity?: number;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Glow: React.FC<GlowProps> = ({
@@ -28,8 +28,6 @@ export const Glow: React.FC<GlowProps> = ({
   glowIntensity = 30,
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

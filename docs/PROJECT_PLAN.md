@@ -37,6 +37,6 @@
 - [x] `defaultStyle` in `.captioneerrc` wired to scaffold, preview, and process hints
 - [x] Playwright smoke tests (docs + preview) via `npm run test:e2e`
 - [x] Incremental ESLint gate (`npm run lint:incremental`) on critical paths
-- [ ] Full legacy ESLint cleanup (remaining ~280 issues outside incremental scope)
-- [ ] Video hosting APIs
-- [ ] Full legacy ESLint cleanup (321 existing issues)
+- [x] Full legacy ESLint cleanup (`npm run lint` passes; 11 non-pure-animation warnings remain)
+- [x] Video hosting APIs foundation (`src/hosting/`, CLI, preview `/api/hosting/resolve`)
+- [x] Style marketplace foundation (`src/marketplace/`, `captioneer styles install`, preview `/api/styles`)

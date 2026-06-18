@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useMemo } from "react";
-import { useCurrentFrame, useVideoConfig, interpolate, spring } from "remotion";
+import { useCurrentFrame, useVideoConfig, spring } from "remotion";
 import type { AudioAnalysis, BeatInfo, VolumeFrame } from "./audio-analysis.js";
 
 // ─── Context ──────────────────────────────────────────────────────
@@ -18,8 +18,8 @@ const AudioSyncContext = createContext<AudioAnalysis | null>(null);
  * Wrap your composition with this.
  */
 export const AudioSyncProvider: React.FC<{
-  analysis: AudioAnalysis;
-  children: React.ReactNode;
+  readonly analysis: AudioAnalysis;
+  readonly children: React.ReactNode;
 }> = ({ analysis, children }) => {
   return (
     <AudioSyncContext.Provider value={analysis}>
@@ -119,7 +119,7 @@ export function useBeatPulse(threshold: number = 0.3): number {
       .find((b) => b.timeMs <= currentTimeMs);
   }, [analysis.beats, currentTimeMs]);
 
-  if (!lastBeat) return 0;
+  if (!lastBeat || lastBeat.strength < threshold) return 0;
 
   const framesSinceBeat = ((currentTimeMs - lastBeat.timeMs) / 1000) * fps;
 

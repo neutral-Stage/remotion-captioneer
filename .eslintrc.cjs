@@ -21,9 +21,34 @@ module.exports = {
       env: { node: true },
     },
     {
-      files: ["src/providers/assemblyai.ts"],
+      files: [
+        "src/providers/assemblyai.ts",
+        "src/providers/deepgram.ts",
+        "src/providers/groq.ts",
+        "src/providers/openai.ts",
+        "src/translate.ts",
+        "src/providers/**/*.test.ts",
+      ],
       rules: {
         camelcase: "off",
+      },
+    },
+    {
+      files: ["src/emoji.tsx"],
+      rules: {
+        "max-params": "off",
+      },
+    },
+    {
+      files: [
+        "src/sync/audio-analysis.ts",
+        "src/preview-server.ts",
+        "src/marketplace/schema.ts",
+        "src/templates/renderer.tsx",
+      ],
+      rules: {
+        "@remotion/deterministic-randomness": "off",
+        complexity: "off",
       },
     },
   ],

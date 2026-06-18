@@ -4,20 +4,20 @@
  */
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface WaveProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  waveColor?: string;
-  waveHeight?: number;
-  waveDelay?: number;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly waveColor?: string;
+  readonly waveHeight?: number;
+  readonly waveDelay?: number;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Wave: React.FC<WaveProps> = ({
@@ -30,8 +30,6 @@ export const Wave: React.FC<WaveProps> = ({
   waveDelay = 3,
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

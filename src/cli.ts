@@ -165,7 +165,7 @@ program
 
 program
   .command("styles")
-  .description("List available caption styles")
+  .description("Caption styles and marketplace packages")
   .action(() => {
     console.log("\n🎨 Available Caption Styles (14):\n");
     console.log("  word-highlight    — Each word lights up as spoken");
@@ -181,8 +181,39 @@ program
     console.log("  blur              — Words come into focus from blur");
     console.log("  rainbow           — Cycling rainbow colors");
     console.log("  scale             — Words grow from small to full");
-    console.log("  spotlight         — Radial spotlight behind word\n");
-  });
+    console.log("  spotlight         — Radial spotlight behind word");
+    console.log("\nInstall marketplace presets: captioneer styles install <path|url>\n");
+  })
+  .addCommand(
+    new Command("install")
+      .description("Install a style package from a JSON file or URL")
+      .argument("<source>", "Path or URL to style package JSON")
+      .option("--project", "Install into .captioneer/styles in the current project")
+      .action(async (source: string, opts: { project?: boolean }) => {
+        const {
+          loadStylePackageFromFile,
+          loadStylePackageFromUrl,
+          installStylePackage,
+          invalidateMarketplaceCache,
+        } = await import("./marketplace/index.js");
+
+        try {
+          const pkg = source.startsWith("http://") || source.startsWith("https://")
+            ? await loadStylePackageFromUrl(source)
+            : loadStylePackageFromFile(resolve(source));
+
+          const dest = installStylePackage(pkg, {
+            target: opts.project ? "project" : "user",
+          });
+          invalidateMarketplaceCache();
+          console.log(`✅ Installed style "${pkg.meta.name}" → ${dest}`);
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error(`❌ ${message}`);
+          process.exit(1);
+        }
+      })
+  );
 
 program
   .command("init")
@@ -240,7 +271,9 @@ program
   .description("List available caption presets")
   .action(async () => {
     const { getPresetCategories, presets } = await import("./presets/index.js");
+    const { getMarketplacePresets } = await import("./marketplace/registry.js");
     const categories = getPresetCategories();
+    const marketplace = getMarketplacePresets();
 
     console.log("\n🎨 Available Caption Presets:\n");
     for (const [category, names] of Object.entries(categories)) {
@@ -248,6 +281,14 @@ program
       for (const name of names) {
         const p = presets[name];
         console.log(`    ${name.padEnd(22)} ${p.style.padEnd(18)} ${p.description}`);
+      }
+      console.log();
+    }
+
+    if (Object.keys(marketplace).length > 0) {
+      console.log("  Marketplace:");
+      for (const [key, p] of Object.entries(marketplace)) {
+        console.log(`    ${key.padEnd(22)} ${p.style.padEnd(18)} ${p.description}`);
       }
       console.log();
     }
@@ -473,6 +514,36 @@ program
 
     console.log(`\n${"─".repeat(40)}`);
     console.log(`📊 Done: ${success} succeeded, ${failed} failed out of ${files.length} files`);
+  });
+
+const hosting = program.command("hosting").description("Resolve video hosting URLs");
+
+hosting
+  .command("providers")
+  .description("List supported video hosting providers")
+  .action(async () => {
+    const { listHostingProviders } = await import("./hosting/index.js");
+    console.log("\n📺 Video hosting providers:\n");
+    for (const name of listHostingProviders()) {
+      console.log(`  • ${name}`);
+    }
+    console.log("\nSet YOUTUBE_API_KEY or VIMEO_ACCESS_TOKEN for richer metadata.\n");
+  });
+
+hosting
+  .command("info")
+  .description("Resolve a YouTube or Vimeo URL to metadata")
+  .argument("<url>", "Public video URL")
+  .action(async (url: string) => {
+    const { resolveVideoUrl } = await import("./hosting/index.js");
+    try {
+      const info = await resolveVideoUrl(url);
+      console.log(JSON.stringify(info, null, 2));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
   });
 
 // Helpers

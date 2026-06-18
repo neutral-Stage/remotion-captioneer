@@ -8,10 +8,11 @@ import { writeFile, unlink } from "fs/promises";
 import { join, extname, resolve, relative } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import { presets } from "./presets/index.js";
+import { getAllPresets } from "./marketplace/registry.js";
 import { transcribeMediaFile } from "./transcribe-media.js";
 import { analyzeAudio } from "./sync/audio-analysis.js";
 import { loadConfig, resolveDefaultStyle } from "./config.js";
+import { resolveVideoUrl } from "./hosting/index.js";
 import { parseProcessHeaders } from "./preview/headers.js";
 import { createTempUploadPath } from "./preview/temp-path.js";
 
@@ -44,7 +45,7 @@ function buildPresetPayload(): Record<
   { name: string; style: string; highlightColor: string }
 > {
   const out: Record<string, { name: string; style: string; highlightColor: string }> = {};
-  for (const [key, p] of Object.entries(presets)) {
+  for (const [key, p] of Object.entries(getAllPresets())) {
     out[key] = { name: p.name, style: p.style, highlightColor: p.highlightColor };
   }
   return out;
@@ -156,6 +157,33 @@ export function startPreviewServer(port: number = PORT): void {
     if (req.method === "GET" && url === "/api/presets") {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(buildPresetPayload()));
+      return;
+    }
+
+    if (req.method === "GET" && url === "/api/styles") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(buildPresetPayload()));
+      return;
+    }
+
+    if (req.method === "GET" && url.startsWith("/api/hosting/resolve")) {
+      const query = new URL(req.url ?? "", "http://localhost").searchParams;
+      const videoUrl = query.get("url");
+      if (!videoUrl) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Missing url query parameter" }));
+        return;
+      }
+      resolveVideoUrl(videoUrl)
+        .then((info) => {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify(info));
+        })
+        .catch((e: unknown) => {
+          const msg = e instanceof Error ? e.message : "Failed to resolve video URL";
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: msg }));
+        });
       return;
     }
 

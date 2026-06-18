@@ -251,7 +251,7 @@ export function createCaptionScene(config: {
   logo?: string;
 }): Scene {
   const fps = config.fps ?? 30;
-  const durationMs = config.captions.durationMs;
+  const {durationMs} = config.captions;
   const durationFrames = Math.ceil((durationMs / 1000) * fps);
 
   const blocks: Block[] = [];
