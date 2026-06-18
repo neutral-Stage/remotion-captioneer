@@ -174,10 +174,14 @@ function onConfigChange() {
   saveLocalConfig();
 }
 
+const STATUS_BANNER_TYPES = new Set(["loading", "error", "success"]);
+
 function setStatus(msg, type = "loading") {
   const el = $("status-banner");
   el.textContent = msg;
-  el.className = "status-banner show " + type;
+  el.className = "status-banner show";
+  el.classList.remove("loading", "error", "success");
+  el.classList.add(STATUS_BANNER_TYPES.has(type) ? type : "loading");
 }
 
 function clearStatus() {
