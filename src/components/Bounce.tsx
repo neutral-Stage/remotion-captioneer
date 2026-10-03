@@ -15,13 +15,13 @@ import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface BounceProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  bounceColor?: string;
-  bounceHeight?: number;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly bounceColor?: string;
+  readonly bounceHeight?: number;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Bounce: React.FC<BounceProps> = ({
@@ -33,8 +33,6 @@ export const Bounce: React.FC<BounceProps> = ({
   bounceHeight = 30,
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

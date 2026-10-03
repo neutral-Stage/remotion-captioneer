@@ -1,0 +1,16 @@
+{
+  "language": "en",
+  "durationMs": 3000,
+  "segments": [
+    {
+      "text": "Smoke test captions",
+      "startMs": 0,
+      "endMs": 3000,
+      "words": [
+        { "word": "Smoke", "startMs": 0, "endMs": 800, "confidence": 0.99 },
+        { "word": "test", "startMs": 800, "endMs": 1600, "confidence": 0.99 },
+        { "word": "captions", "startMs": 1600, "endMs": 3000, "confidence": 0.99 }
+      ]
+    }
+  ]
+}

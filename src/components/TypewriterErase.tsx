@@ -4,19 +4,19 @@
  */
 
 import React from "react";
-import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
 import type { CaptionData } from "../types.js";
-import { getActiveSegment, getActiveWordIndex } from "../utils.js";
+import { getActiveSegment } from "../utils.js";
 
 interface TypewriterEraseProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  cursorColor?: string;
-  eraseColor?: string;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly cursorColor?: string;
+  readonly eraseColor?: string;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
@@ -28,8 +28,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
   eraseColor = "#FF4444",
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -38,7 +36,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
   const segment = getActiveSegment(captions, currentTimeMs);
   if (!segment) return null;
 
-  const activeIndex = getActiveWordIndex(segment, currentTimeMs);
   const segmentProgress =
     (currentTimeMs - segment.startMs) / (segment.endMs - segment.startMs);
 
@@ -90,7 +87,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
           background: "rgba(0,0,0,0.6)",
           borderRadius: "12px",
           border: `2px solid ${isErasing ? eraseColor + "40" : cursorColor + "40"}`,
-          transition: "border-color 0.3s ease",
         }}
       >
         <span
@@ -100,7 +96,6 @@ export const TypewriterErase: React.FC<TypewriterEraseProps> = ({
             fontWeight: 500,
             color: isErasing ? eraseColor : fontColor,
             textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-            transition: "color 0.2s ease",
           }}
         >
           {visibleWords.join(" ")}

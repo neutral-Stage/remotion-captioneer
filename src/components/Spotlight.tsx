@@ -10,12 +10,12 @@ import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface SpotlightProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  spotlightColor?: string;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly spotlightColor?: string;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Spotlight: React.FC<SpotlightProps> = ({
@@ -26,8 +26,6 @@ export const Spotlight: React.FC<SpotlightProps> = ({
   spotlightColor = "#FBBF24",
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -86,7 +84,6 @@ export const Spotlight: React.FC<SpotlightProps> = ({
                 boxShadow: isActive
                   ? `0 0 30px ${spotlightColor}80, 0 0 60px ${spotlightColor}40`
                   : "none",
-                transition: "all 0.2s ease",
               }}
             >
               {word.word}

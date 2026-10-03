@@ -6,6 +6,11 @@ import { execFileSync, execSync } from "child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join, resolve, basename, extname } from "path";
 import type { CaptionData, CaptionSegment, Word, WhisperOptions } from "./types.js";
+import type {
+  WhisperCppOutput,
+  WhisperCppSegment,
+  WhisperCppToken,
+} from "./providers/whisper-api-types.js";
 
 const DEFAULT_WHISPER_PATH = join(process.cwd(), "whisper.cpp");
 const DEFAULT_MODEL_PATH = join(DEFAULT_WHISPER_PATH, "models", "ggml-base.bin");
@@ -79,23 +84,26 @@ export async function downloadModel(
  */
 function parseWhisperOutput(jsonPath: string): CaptionData {
   const raw = readFileSync(jsonPath, "utf-8");
-  const data = JSON.parse(raw);
+  const data = JSON.parse(raw) as WhisperCppOutput;
 
   const segments: CaptionSegment[] = (data.transcription || []).map(
-    (seg: any) => {
+    (seg: WhisperCppSegment) => {
       const words: Word[] = (seg.tokens || [])
-        .filter((t: any) => t.text && t.text.trim() && t.text.trim() !== "[BLANK_AUDIO]")
-        .map((t: any) => ({
-          word: t.text.trim(),
-          startMs: Math.round((t.t0 / 100) * 1000),
-          endMs: Math.round((t.t1 / 100) * 1000),
+        .filter(
+          (t: WhisperCppToken) =>
+            t.text && t.text.trim() && t.text.trim() !== "[BLANK_AUDIO]"
+        )
+        .map((t: WhisperCppToken) => ({
+          word: t.text!.trim(),
+          startMs: Math.round(((t.t0 ?? 0) / 100) * 1000),
+          endMs: Math.round(((t.t1 ?? 0) / 100) * 1000),
           confidence: t.p ?? 1.0,
         }));
 
       return {
         text: seg.text?.trim() ?? "",
-        startMs: Math.round((seg.t0 / 100) * 1000),
-        endMs: Math.round((seg.t1 / 100) * 1000),
+        startMs: Math.round(((seg.t0 ?? 0) / 100) * 1000),
+        endMs: Math.round(((seg.t1 ?? 0) / 100) * 1000),
         words,
       };
     }

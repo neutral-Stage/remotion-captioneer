@@ -5,7 +5,7 @@
  * Define animations declaratively tied to audio timing.
  */
 
-import { useCurrentFrame, useVideoConfig, interpolate, spring } from "remotion";
+import { useCurrentFrame, useVideoConfig, spring } from "remotion";
 
 export interface Keyframe {
   /** Time in ms when this keyframe triggers */
@@ -150,6 +150,8 @@ function applyEasing(
     case "easeOut":
       return 1 - (1 - t) * (1 - t);
     case "easeInOut":
-      return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2)**2 / 2;
+    default:
+      return t;
   }
 }

@@ -6,16 +6,36 @@
 
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
-import type { CaptionData, CaptionSegment } from "../types.js";
+import type { CaptionData } from "../types.js";
 import type { STTProvider, STTProviderOptions } from "./base.js";
+import { chunkWordsIntoSegments, type WordWithSpeaker } from "./diarization.js";
 
 const ASSEMBLYAI_API_URL = "https://api.assemblyai.com/v2";
+
+interface AssemblyAIWord {
+  text: string;
+  start: number;
+  end: number;
+  confidence?: number;
+  speaker?: string;
+}
+
+interface AssemblyAITranscript {
+  words?: AssemblyAIWord[];
+  language_code?: string;
+  status?: string;
+  error?: string;
+}
 
 export interface AssemblyAIProviderOptions extends STTProviderOptions {
   apiKey?: string;
   languageCode?: string;
   punctuate?: boolean;
   formatText?: boolean;
+  /** Enable speaker diarization (labels words with A, B, C, …) */
+  speakerLabels?: boolean;
+  /** Hint for number of speakers when diarization is enabled */
+  speakersExpected?: number;
 }
 
 export class AssemblyAIProvider implements STTProvider {
@@ -63,22 +83,33 @@ export class AssemblyAIProvider implements STTProvider {
       throw new Error(`AssemblyAI upload failed: ${uploadRes.statusText}`);
     }
 
-    const { upload_url } = await uploadRes.json();
+    const uploadPayload = (await uploadRes.json()) as { upload_url: string };
+    const uploadUrl = uploadPayload.upload_url;
+
+    const languageCode = options.languageCode ?? options.language;
 
     // Step 2: Request transcription
+    const transcriptBody: Record<string, unknown> = {
+      audio_url: uploadUrl,
+      punctuate: options.punctuate ?? true,
+      format_text: options.formatText ?? true,
+      word_boost: [],
+      speaker_labels: options.speakerLabels ?? false,
+    };
+    if (languageCode) {
+      transcriptBody.language_code = languageCode;
+    }
+    if (typeof options.speakersExpected === "number") {
+      transcriptBody.speakers_expected = options.speakersExpected;
+    }
+
     const transcriptRes = await fetch(`${ASSEMBLYAI_API_URL}/transcript`, {
       method: "POST",
       headers: {
         Authorization: this.apiKey,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        audio_url: upload_url,
-        language_code: options.languageCode ?? "en",
-        punctuate: options.punctuate ?? true,
-        format_text: options.formatText ?? true,
-        word_boost: [],
-      }),
+      body: JSON.stringify(transcriptBody),
     });
 
     if (!transcriptRes.ok) {
@@ -92,10 +123,12 @@ export class AssemblyAIProvider implements STTProvider {
 
     // Step 3: Poll for completion
     console.log("⏳ Waiting for transcription to complete...");
-    let result: any;
+    let result: AssemblyAITranscript | undefined;
 
-    while (true) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    for (;;) {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 2000);
+      });
 
       const statusRes = await fetch(
         `${ASSEMBLYAI_API_URL}/transcript/${transcriptId}`,
@@ -104,40 +137,30 @@ export class AssemblyAIProvider implements STTProvider {
         }
       );
 
-      result = await statusRes.json();
+      result = (await statusRes.json()) as AssemblyAITranscript;
 
-      if (result.status === "completed") break;
-      if (result.status === "error") {
-        throw new Error(`AssemblyAI error: ${result.error}`);
+      if (result.status === "completed" || result.status === "error") {
+        break;
       }
+    }
+
+    if (!result || result.status === "error") {
+      throw new Error(`AssemblyAI error: ${result?.error ?? "unknown"}`);
     }
 
     return this.parseResponse(result);
   }
 
-  private parseResponse(data: any): CaptionData {
-    const words = data.words ?? [];
+  private parseResponse(data: AssemblyAITranscript): CaptionData {
+    const words: WordWithSpeaker[] = (data.words ?? []).map((w) => ({
+      word: w.text,
+      startMs: w.start,
+      endMs: w.end,
+      confidence: w.confidence ?? 1.0,
+      speaker: w.speaker ? String(w.speaker) : undefined,
+    }));
 
-    // Group into segments of ~5 words
-    const segments: CaptionSegment[] = [];
-    const CHUNK_SIZE = 5;
-
-    for (let i = 0; i < words.length; i += CHUNK_SIZE) {
-      const chunk = words.slice(i, i + CHUNK_SIZE);
-      const segWords = chunk.map((w: any) => ({
-        word: w.text,
-        startMs: w.start,
-        endMs: w.end,
-        confidence: w.confidence ?? 1.0,
-      }));
-
-      segments.push({
-        text: segWords.map((w: any) => w.word).join(" "),
-        startMs: segWords[0].startMs,
-        endMs: segWords[segWords.length - 1].endMs,
-        words: segWords,
-      });
-    }
+    const segments = chunkWordsIntoSegments(words);
 
     const durationMs =
       segments.length > 0 ? segments[segments.length - 1].endMs : 0;

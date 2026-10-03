@@ -45,6 +45,13 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run validate:docs
+      - name: Install Playwright browser
+        run: npm run test:e2e:install
+      - run: npm run build
+      - run: npm run test:e2e
+      - name: npm audit (high severity)
+        continue-on-error: true
+        run: npm audit --audit-level=high
 
   studio-smoke:
     runs-on: ubuntu-latest
@@ -74,8 +81,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        continue-on-error: true
+      - name: Lint UI surfaces
+        run: npm run lint:ui
+
+      - name: Lint incremental (critical paths)
+        run: npm run lint:incremental
+
+      - name: Lint (full codebase)
         run: npm run lint
 
   pages:
@@ -99,6 +111,12 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate UI metadata
+        run: npm run generate:meta
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

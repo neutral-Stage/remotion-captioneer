@@ -251,7 +251,7 @@ export function createCaptionScene(config: {
   logo?: string;
 }): Scene {
   const fps = config.fps ?? 30;
-  const durationMs = config.captions.durationMs;
+  const {durationMs} = config.captions;
   const durationFrames = Math.ceil((durationMs / 1000) * fps);
 
   const blocks: Block[] = [];
@@ -399,7 +399,8 @@ export function buildTemplate(config: {
 
 // ─── Default Design Tokens ────────────────────────────────────────
 
-const DEFAULT_TOKENS: DesignTokens = {
+/** User-brandable template palette (purple/gold) */
+export const TEMPLATE_DEFAULT_TOKENS: DesignTokens = {
   colors: {
     primary: "#6366F1",
     secondary: "#8B5CF6",
@@ -419,6 +420,30 @@ const DEFAULT_TOKENS: DesignTokens = {
   borderRadius: 12,
   spacing: 16,
 };
+
+/** Captioneer product chrome — zinc + blue accent (scaffold default) */
+export const CAPTIONEER_CHROME_TOKENS: DesignTokens = {
+  colors: {
+    primary: "#3b82f6",
+    secondary: "#60a5fa",
+    accent: "#3b82f6",
+    background: "#09090b",
+    text: "#fafafa",
+    textMuted: "#a1a1aa",
+  },
+  typography: {
+    headingFont: "Inter, sans-serif",
+    bodyFont: "Inter, sans-serif",
+    monoFont: "ui-monospace, Menlo, monospace",
+    headingSize: 64,
+    bodySize: 32,
+    captionSize: 56,
+  },
+  borderRadius: 10,
+  spacing: 16,
+};
+
+const DEFAULT_TOKENS: DesignTokens = TEMPLATE_DEFAULT_TOKENS;
 
 function mergeTokens(partial?: Partial<DesignTokens>): DesignTokens {
   if (!partial) return DEFAULT_TOKENS;

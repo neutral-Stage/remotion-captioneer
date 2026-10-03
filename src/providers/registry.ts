@@ -3,12 +3,9 @@
  * Factory for creating and managing STT providers
  */
 
-import type { CaptionData } from "../types.js";
 import type {
   STTProvider,
-  STTProviderOptions,
   ProviderName,
-  ProviderConfig,
 } from "./base.js";
 import { OpenAIProvider } from "./openai.js";
 import { GroqProvider } from "./groq.js";

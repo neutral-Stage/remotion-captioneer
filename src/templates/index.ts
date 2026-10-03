@@ -17,6 +17,8 @@ export {
   type ColumnsBlock,
   type GridBlock,
   type LogoBlock,
+  TEMPLATE_DEFAULT_TOKENS,
+  CAPTIONEER_CHROME_TOKENS,
   // Presets
   createIntroScene,
   createCaptionScene,

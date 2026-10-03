@@ -287,7 +287,14 @@ export const presets: Record<string, CaptionPreset> = {
 };
 
 /**
- * Get a preset by name
+ * This module is bundled into Remotion's browser bundle and the public npm
+ * entry, so it must stay free of Node-only imports. Marketplace presets live
+ * in `marketplace/registry.ts` (`getAllPresets`/`getPresetWithMarketplace`),
+ * which is used by the CLI and preview server.
+ */
+
+/**
+ * Get a preset by name (built-in presets only)
  */
 export function getPreset(name: string): CaptionPreset | null {
   return presets[name] ?? null;

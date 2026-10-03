@@ -10,14 +10,14 @@ import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
 interface PillProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fontColor?: string;
-  pillColor?: string;
-  pillTextColor?: string;
-  pillPadding?: number;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontColor?: string;
+  readonly pillColor?: string;
+  readonly pillTextColor?: string;
+  readonly pillPadding?: number;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 export const Pill: React.FC<PillProps> = ({
@@ -30,8 +30,6 @@ export const Pill: React.FC<PillProps> = ({
   pillPadding = 12,
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -89,7 +87,6 @@ export const Pill: React.FC<PillProps> = ({
                 borderRadius: isActive ? "999px" : "0",
                 transform: `scale(${scale})`,
                 textShadow: isActive ? "none" : "0 2px 8px rgba(0,0,0,0.5)",
-                transition: "all 0.2s ease",
               }}
             >
               {word.word}

@@ -10,22 +10,22 @@ import type { CaptionData, Word } from "../types.js";
 import { getActiveSegment, getActiveWordIndex, getWordProgress } from "../utils.js";
 
 interface KaraokeProps extends CaptionStyleLayoutProps {
-  captions: CaptionData;
-  fontFamily?: string;
-  fontSize?: number;
-  fillColor?: string;
-  baseColor?: string;
-  position?: "top" | "center" | "bottom";
+  readonly captions: CaptionData;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fillColor?: string;
+  readonly baseColor?: string;
+  readonly position?: "top" | "center" | "bottom";
 }
 
 const KaraokeWord: React.FC<{
-  word: Word;
-  isActive: boolean;
-  progress: number;
-  fontFamily: string;
-  fontSize: number;
-  fillColor: string;
-  baseColor: string;
+  readonly word: Word;
+  readonly isActive: boolean;
+  readonly progress: number;
+  readonly fontFamily: string;
+  readonly fontSize: number;
+  readonly fillColor: string;
+  readonly baseColor: string;
 }> = ({ word, isActive, progress, fontFamily, fontSize, fillColor, baseColor }) => {
   if (!isActive) {
     const isPast = progress >= 1;
@@ -74,8 +74,6 @@ export const Karaoke: React.FC<KaraokeProps> = ({
   baseColor = "rgba(255,255,255,0.4)",
   position = "bottom",
   maxWidth,
-  wordsPerLine,
-  useSmartWrap,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

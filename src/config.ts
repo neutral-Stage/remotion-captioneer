@@ -16,7 +16,31 @@ export interface CaptioneerConfig {
   defaultProvider?: ProviderName;
   defaultModel?: string;
   defaultLanguage?: string;
+  /** Default caption animation style (e.g. word-highlight, karaoke) */
   defaultStyle?: string;
+}
+
+const VALID_STYLES = new Set([
+  "word-highlight",
+  "karaoke",
+  "typewriter",
+  "bounce",
+  "wave",
+  "glow",
+  "typewriter-erase",
+  "pill",
+  "flicker",
+  "highlighter",
+  "blur",
+  "rainbow",
+  "scale",
+  "spotlight",
+]);
+
+/** Resolve default caption style from config with validation. */
+export function resolveDefaultStyle(config: CaptioneerConfig | null | undefined): string {
+  const style = config?.defaultStyle ?? "word-highlight";
+  return VALID_STYLES.has(style) ? style : "word-highlight";
 }
 
 export async function loadConfig(): Promise<CaptioneerConfig | null> {

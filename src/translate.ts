@@ -63,7 +63,7 @@ export function assertCaptionDataShape(data: unknown): CaptionData {
     if (!seg || typeof seg !== "object") {
       throw new Error(`Invalid segment at index ${i}: expected object`);
     }
-    const words = (seg as Record<string, unknown>).words;
+    const {words} = (seg as Record<string, unknown>);
     if (!Array.isArray(words)) {
       throw new Error(`Invalid segment at index ${i}: expected "words" array`);
     }

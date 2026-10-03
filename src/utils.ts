@@ -11,11 +11,35 @@ export function getActiveSegment(
   captions: CaptionData,
   currentTimeMs: number
 ): CaptionSegment | null {
-  return (
-    captions.segments.find(
-      (seg) => currentTimeMs >= seg.startMs && currentTimeMs <= seg.endMs
-    ) ?? null
-  );
+  return findSegmentAtTime(captions.segments, currentTimeMs);
+}
+
+/**
+ * Binary search for a segment containing currentTimeMs.
+ */
+export function findSegmentAtTime(
+  segments: CaptionSegment[],
+  currentTimeMs: number
+): CaptionSegment | null {
+  if (segments.length === 0) return null;
+
+  let lo = 0;
+  let hi = segments.length - 1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const seg = segments[mid]!;
+
+    if (currentTimeMs < seg.startMs) {
+      hi = mid - 1;
+    } else if (currentTimeMs > seg.endMs) {
+      lo = mid + 1;
+    } else {
+      return seg;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -25,11 +49,8 @@ export function getActiveWord(
   segment: CaptionSegment,
   currentTimeMs: number
 ): Word | null {
-  return (
-    segment.words.find(
-      (w) => currentTimeMs >= w.startMs && currentTimeMs <= w.endMs
-    ) ?? null
-  );
+  const index = findWordIndexAtTime(segment.words, currentTimeMs);
+  return index >= 0 ? segment.words[index]! : null;
 }
 
 /**
@@ -39,9 +60,35 @@ export function getActiveWordIndex(
   segment: CaptionSegment,
   currentTimeMs: number
 ): number {
-  return segment.words.findIndex(
-    (w) => currentTimeMs >= w.startMs && currentTimeMs <= w.endMs
-  );
+  return findWordIndexAtTime(segment.words, currentTimeMs);
+}
+
+/**
+ * Binary search for word index at a given time (-1 if none active).
+ */
+export function findWordIndexAtTime(
+  words: Word[],
+  currentTimeMs: number
+): number {
+  if (words.length === 0) return -1;
+
+  let lo = 0;
+  let hi = words.length - 1;
+
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const word = words[mid]!;
+
+    if (currentTimeMs < word.startMs) {
+      hi = mid - 1;
+    } else if (currentTimeMs > word.endMs) {
+      lo = mid + 1;
+    } else {
+      return mid;
+    }
+  }
+
+  return -1;
 }
 
 /**

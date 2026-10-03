@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .captioneer-cache/
+.captioneer/
 whisper.cpp/
 
 # OS
@@ -17,3 +18,8 @@ Thumbs.db
 
 # Build
 *.tsbuildinfo
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

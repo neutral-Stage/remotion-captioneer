@@ -5,7 +5,7 @@
  * and energy data for frame-perfect animation synchronization.
  */
 
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { resolve, basename, extname } from "path";
 
@@ -82,15 +82,27 @@ export async function analyzeAudio(
   let volumeData: string;
   try {
     // Use ffmpeg astats filter to get per-segment volume
-    const statsCmd = `"${ffmpegPath}" -i "${resolved}" -af "astats=metadata=1:reset=${Math.round(sampleIntervalMs / 1000 * 30)}" -f null - 2>&1`;
-    volumeData = execSync(statsCmd, {
-      encoding: "utf-8",
-      maxBuffer: 50 * 1024 * 1024,
-    });
-  } catch (e: any) {
+    const resetSeconds = Math.round((sampleIntervalMs / 1000) * 30);
+    volumeData = execFileSync(
+      ffmpegPath,
+      [
+        "-i",
+        resolved,
+        "-af",
+        `astats=metadata=1:reset=${resetSeconds}`,
+        "-f",
+        "null",
+        "-",
+      ],
+      {
+        encoding: "utf-8",
+        maxBuffer: 50 * 1024 * 1024,
+      }
+    );
+  } catch {
     // Fallback: generate synthetic volume from duration
     console.warn("⚠️ ffmpeg not available, generating synthetic audio analysis");
-    return generateSyntheticAnalysis(resolved);
+    return generateSyntheticAnalysis();
   }
 
   // Parse RMS volume from astats output
@@ -116,7 +128,7 @@ export async function analyzeAudio(
   // If we couldn't parse volume data, fall back to synthetic
   if (volumeFrames.length === 0) {
     console.warn("⚠️ Could not parse volume data, generating synthetic analysis");
-    return generateSyntheticAnalysis(resolved);
+    return generateSyntheticAnalysis();
   }
 
   // Detect beats using onset detection
@@ -241,10 +253,15 @@ function computeEnergy(
   return energy;
 }
 
+function pseudoRandom(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
 /**
  * Generate synthetic analysis when ffmpeg is not available
  */
-function generateSyntheticAnalysis(audioPath: string): AudioAnalysis {
+function generateSyntheticAnalysis(): AudioAnalysis {
   // Estimate duration from file (rough)
   const durationMs = 30000; // Default 30s
 
@@ -253,14 +270,14 @@ function generateSyntheticAnalysis(audioPath: string): AudioAnalysis {
   for (let t = 0; t < durationMs; t += intervalMs) {
     volumeFrames.push({
       timeMs: t,
-      volume: 0.3 + Math.random() * 0.3,
-      peak: 0.5 + Math.random() * 0.3,
+      volume: 0.3 + pseudoRandom(t) * 0.3,
+      peak: 0.5 + pseudoRandom(t + 1) * 0.3,
     });
   }
 
   const beats: BeatInfo[] = [];
   for (let t = 0; t < durationMs; t += 500) {
-    beats.push({ timeMs: t, strength: 0.5 + Math.random() * 0.5 });
+    beats.push({ timeMs: t, strength: 0.5 + pseudoRandom(t + 2) * 0.5 });
   }
 
   return {

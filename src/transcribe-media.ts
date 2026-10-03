@@ -5,6 +5,7 @@
 import { basename, extname, resolve } from "path";
 import type { CaptionData } from "./types.js";
 import type { ProviderName } from "./providers/base.js";
+import type { WhisperOptions } from "./types.js";
 import { loadConfig } from "./config.js";
 import { createProvider } from "./providers/registry.js";
 
@@ -15,6 +16,10 @@ export type TranscribeMediaOptions = {
   language?: string;
   whisperPath?: string;
   modelPath?: string;
+  /** Enable speaker diarization (AssemblyAI, ElevenLabs) */
+  diarize?: boolean;
+  /** Expected speaker count hint */
+  numSpeakers?: number;
   onProgress?: (message: string) => void;
 };
 
@@ -23,6 +28,7 @@ function detectDefaultProvider(): ProviderName | null {
   if (process.env.OPENAI_API_KEY) return "openai";
   if (process.env.DEEPGRAM_API_KEY) return "deepgram";
   if (process.env.ASSEMBLYAI_API_KEY) return "assemblyai";
+  if (process.env.ELEVENLABS_API_KEY) return "elevenlabs";
   return null;
 }
 
@@ -32,6 +38,7 @@ function getApiKeyForProvider(provider: string): string | undefined {
     groq: "GROQ_API_KEY",
     deepgram: "DEEPGRAM_API_KEY",
     assemblyai: "ASSEMBLYAI_API_KEY",
+    elevenlabs: "ELEVENLABS_API_KEY",
   };
   return process.env[envMap[provider]];
 }
@@ -62,7 +69,9 @@ export async function transcribeMediaFile(
   if (providerName === "local") {
     const { processAudio } = await import("./whisper.js");
     return processAudio(resolved, {
-      model: (options.model as any) ?? config?.defaultModel ?? "base",
+      model: (options.model as WhisperOptions["model"] | undefined) ??
+        (config?.defaultModel as WhisperOptions["model"] | undefined) ??
+        "base",
       language: options.language ?? config?.defaultLanguage,
       whisperPath: options.whisperPath ?? config?.whisperPath,
       modelPath: options.modelPath ?? config?.modelPath,
@@ -81,6 +90,14 @@ export async function transcribeMediaFile(
   return provider.transcribe(resolved, {
     model: options.model,
     language: options.language,
+    ...(options.diarize
+      ? {
+          diarize: true,
+          speakerLabels: true,
+          numSpeakers: options.numSpeakers,
+          speakersExpected: options.numSpeakers,
+        }
+      : {}),
   });
 }
 
