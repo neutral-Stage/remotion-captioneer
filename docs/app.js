@@ -76,7 +76,7 @@ async function init() {
 function updateHeroMarketplaceCount() {
   const count = META.marketplacePresetCount ?? 0;
   if (count <= 0) return;
-  const heroP = document.querySelector(".hero > p");
+  const heroP = document.querySelector(".hero-copy > p");
   if (!heroP) return;
   const base = heroP.textContent?.replace(/\s*·\s*\d+ marketplace.*$/, "") ?? heroP.textContent;
   heroP.textContent = `${base} · ${count} marketplace style${count === 1 ? "" : "s"} installed`;
