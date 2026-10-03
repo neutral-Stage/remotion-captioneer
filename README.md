@@ -262,6 +262,25 @@ const tiktokStyle = applyPreset("cinematic-gold");
 npx captioneer presets
 ```
 
+### 🛍️ Style Marketplace
+
+Install style packages from a JSON file or raw URL, and **create your own in one command**:
+
+```bash
+# Scaffold a style package (schema-validated before it's written)
+npx captioneer styles create "Sunday Gold" \
+  --style glow --color "#D4AF37" --font "Playfair Display, serif" --author "You"
+
+# Check any package against the marketplace schema
+npx captioneer styles validate sunday-gold.captioneer-style.json
+
+# Install locally (project or user scope) and see it in the preview picker
+npx captioneer styles install sunday-gold.captioneer-style.json --project
+npx captioneer preview
+```
+
+A style package is a small JSON file that layers colors/fonts on top of the 14 built-in animations — share the file (gist, repo raw URL) and anyone can `styles install` it.
+
 ---
 
 ## 📤 Export Formats
@@ -828,7 +847,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 
 ### 🔮 Future
 
-- [x] Caption style marketplace (JSON packages, install/list, preview preset picker)
+- [x] Caption style marketplace (JSON packages, create/validate/install/list, preview preset picker)
 - [x] ~~AI-powered auto-emoji~~ (`autoGenerateReactions()` — keyword-based emoji generation from 60+ word→emoji mappings)
 - [x] Multi-language caption support with RTL (OpenAI `translateCaptionData` + `captioneer translate`; `AnimatedCaptions` `textDirection="rtl"`)
 - [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)
