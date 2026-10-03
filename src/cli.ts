@@ -739,4 +739,228 @@ program
     }
   });
 
+program
+  .command("pacing")
+  .description("Analyze caption reading speed (broadcast CPS / WPM QA report)")
+  .argument("<caption-file>", "Path to caption JSON file")
+  .option("--max-cps <n>", "CPS at or above which segments are flagged", "20")
+  .option("--fast-cps <n>", "CPS at or above which segments are marked fast", "17")
+  .option("--strict", "Exit non-zero when any segment is flagged")
+  .action(async (captionFile: string, opts: Record<string, string | boolean | undefined>) => {
+    const filePath = resolve(captionFile);
+    if (!existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      process.exit(1);
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(readFileSync(filePath, "utf-8"));
+      const { assertCaptionDataShape } = await import("./translate.js");
+      const captions = assertCaptionDataShape(parsed);
+      const { analyzePacing } = await import("./pacing.js");
+
+      const report = analyzePacing(captions, {
+        maxCps: Number(opts.maxCps ?? 20),
+        fastCps: Number(opts.fastCps ?? 17),
+      });
+
+      console.log(`\n📊 Pacing report (${filePath})\n`);
+      console.log(
+        `   average ${report.averageCps.toFixed(1)} CPS · ${Math.round(report.averageWpm)} WPM · readability ${report.readabilityScore}%\n`
+      );
+      for (const s of report.segments) {
+        const flag =
+          s.status === "too-fast" ? "🚨 too-fast" : s.status === "fast" ? "⚠️  fast" : "  ok";
+        console.log(
+          `   [${String(s.segmentIndex).padStart(2)}] ${s.cps.toFixed(1).padStart(5)} CPS ${flag}  ${s.text.slice(0, 60)}`
+        );
+      }
+      console.log("");
+
+      if (report.flaggedCount > 0) {
+        console.log(
+          `   ${report.flaggedCount} segment(s) exceed ${opts.maxCps} CPS — split them or trim words\n`
+        );
+        if (opts.strict) process.exit(1);
+      } else {
+        console.log("   ✅ all segments within reading-speed limits\n");
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("clean")
+  .description("Filter profanity from a captions JSON (mask, remove, or flag)")
+  .argument("<caption-file>", "Path to caption JSON file")
+  .option("--mode <mode>", "mask | remove | flag", "mask")
+  .option("--keep-first-letter", "Mask as d*** instead of ****")
+  .option("--extra <words>", "Comma-separated extra words to flag")
+  .option("--allow <words>", "Comma-separated words to never flag")
+  .option("--in-place", "Rewrite the file in place (default: print to stdout)")
+  .action(async (captionFile: string, opts: Record<string, string | boolean | undefined>) => {
+    const filePath = resolve(captionFile);
+    if (!existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      process.exit(1);
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(readFileSync(filePath, "utf-8"));
+      const { assertCaptionDataShape } = await import("./translate.js");
+      const captions = assertCaptionDataShape(parsed);
+      const { filterProfanity } = await import("./profanity.js");
+
+      const list = (v: string | boolean | undefined): string[] | undefined =>
+        typeof v === "string" && v.trim().length > 0
+          ? v.split(",").map((w) => w.trim()).filter(Boolean)
+          : undefined;
+
+      const mode =
+        opts.mode === "mask" || opts.mode === "remove" || opts.mode === "flag"
+          ? opts.mode
+          : undefined;
+      if (!mode) {
+        throw new Error(`Invalid mode "${opts.mode}" — use mask, remove, or flag`);
+      }
+
+      const { captions: cleaned, matches } = filterProfanity(captions, {
+        mode,
+        keepFirstLetter: opts.keepFirstLetter === true,
+        extraWords: list(opts.extra),
+        allowWords: list(opts.allow),
+      });
+
+      if (opts.inPlace) {
+        writeFileSync(filePath, `${JSON.stringify(cleaned, null, 2)}\n`, "utf8");
+        console.log(`✅ Wrote ${filePath} (${matches.length} word(s) ${mode}ed)\n`);
+      } else {
+        process.stdout.write(`${JSON.stringify(cleaned, null, 2)}\n`);
+        console.error(`(${matches.length} word(s) ${mode}ed)`);
+      }
+      for (const m of matches) {
+        console.error(`   [seg ${m.segmentIndex}] ${m.word} → ${m.maskedTo}`);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("render")
+  .description("Render a captioned MP4 from captions JSON — no React project needed")
+  .argument("<caption-file>", "Path to caption JSON file")
+  .requiredOption("--audio <path>", "Audio file to render with the captions")
+  .option("--style <style>", "Built-in caption style (word-highlight, karaoke, glow, ...)")
+  .option("--preset <preset>", "Built-in preset (tiktok, cinematic-gold, ...)")
+  .option("--color <color>", "Highlight color")
+  .option("--emphasis <mode>", "Emphasis rendering: scale | color | glow")
+  .option("--fps <n>", "Frames per second", "30")
+  .option("--width <n>", "Output width", "1080")
+  .option("--height <n>", "Output height", "1920")
+  .option("-o, --out <path>", "Output MP4 path", "captioneer-output.mp4")
+  .action(async (captionFile: string, opts: Record<string, string | undefined>) => {
+    const filePath = resolve(captionFile);
+    if (!existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      process.exit(1);
+    }
+    const audioPath = resolve(opts.audio!);
+    if (!existsSync(audioPath)) {
+      console.error(`❌ Audio file not found: ${audioPath}`);
+      process.exit(1);
+    }
+
+    let bundleFn: typeof import("@remotion/bundler").bundle;
+    let renderer: typeof import("@remotion/renderer");
+    try {
+      ({ bundle: bundleFn } = await import("@remotion/bundler"));
+      renderer = await import("@remotion/renderer");
+    } catch {
+      console.error(
+        "❌ captioneer render needs the Remotion renderer packages.\n" +
+          "   Install them next to remotion-captioneer:\n" +
+          "   npm i -D @remotion/bundler@4 @remotion/renderer@4"
+      );
+      process.exit(1);
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(readFileSync(filePath, "utf-8"));
+      const { assertCaptionDataShape } = await import("./translate.js");
+      const captions = assertCaptionDataShape(parsed);
+      const { assertRenderableCaptions, computeRenderMetadata, RENDER_COMPOSITION_ID } =
+        await import("./render/pipeline.js");
+      assertRenderableCaptions(captions);
+
+      // Remotion serves <Audio src> from the bundle's public dir, so stage
+      // the audio there under a fixed name and reference it via staticFile().
+      const { copyFileSync, mkdtempSync, rmSync } = await import("fs");
+      const { tmpdir } = await import("os");
+      const { basename: bn, extname: ext } = await import("path");
+      const audioExt = (ext(audioPath).toLowerCase().match(/^\.[a-z0-9]+$/)?.[0] ?? ".mp3");
+      const audioFile = `captioneer-audio${audioExt}`;
+      const publicDir = mkdtempSync(join(tmpdir(), "captioneer-render-"));
+      copyFileSync(audioPath, join(publicDir, audioFile));
+
+      type RenderProps = import("./render/pipeline.js").RenderInputProps;
+      const inputProps: RenderProps = {
+        captions,
+        audioFile,
+        ...(opts.style ? { style: opts.style as RenderProps["style"] } : {}),
+        ...(opts.preset ? { preset: opts.preset } : {}),
+        ...(opts.color ? { highlightColor: opts.color } : {}),
+        ...(opts.emphasis
+          ? { emphasisStyle: opts.emphasis as RenderProps["emphasisStyle"] }
+          : {}),
+        fps: Number(opts.fps ?? 30),
+        width: Number(opts.width ?? 1080),
+        height: Number(opts.height ?? 1920),
+      };
+      // Fail fast on invalid fps/resolution before the slow bundling step.
+      computeRenderMetadata(inputProps);
+
+      const entryPoint = join(__dirname, "render", "render-entry.js");
+      console.log("🎬 Bundling render entry...");
+      const serveUrl = await bundleFn({
+        entryPoint,
+        publicDir,
+        onProgress: (progress: number) => {
+          if (progress % 25 === 0) process.stderr.write(`   bundle ${progress}%\n`);
+        },
+      });
+
+      console.log("🎞  Selecting composition...");
+      const composition = await renderer.selectComposition({
+        serveUrl,
+        id: RENDER_COMPOSITION_ID,
+        inputProps,
+      });
+
+      const outPath = resolve(opts.out ?? "captioneer-output.mp4");
+      console.log(`🎥 Rendering ${composition.durationInFrames} frames → ${outPath}`);
+      try {
+        await renderer.renderMedia({
+          composition,
+          serveUrl,
+          codec: "h264",
+          outputLocation: outPath,
+          inputProps,
+        });
+      } finally {
+        rmSync(publicDir, { recursive: true, force: true });
+      }
+      console.log(`\n✅ Rendered ${outPath} (${bn(outPath)})`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+  });
+
 program.parse();

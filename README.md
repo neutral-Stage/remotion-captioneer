@@ -101,6 +101,8 @@ Active word bounces up with spring physics.
 ## ✨ Features
 
 - 🧠 **Smart Captions** — Auto-emphasis detection, per-speaker caption colors, beat-snapped word timing
+- 🎥 **Zero-React Rendering** — `captioneer render captions.json --audio clip.mp3` outputs a captioned MP4
+- 📺 **Broadcast QA** — Characters-per-second pacing analysis + profanity filtering (mask/remove/flag)
 - 🎙️ **6 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs
 - 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
 - 🎭 **23 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun
@@ -328,6 +330,60 @@ const analysis = await analyzeAudio("./voice.mp3"); // or useAudioAnalysis() ins
 const snapped = snapCaptionsToBeats(captions, analysis.beats, { toleranceMs: 120 });
 
 <AnimatedCaptions captions={snapped} style="bounce" />
+```
+
+---
+
+## 🎥 Render Without React
+
+Not writing a Remotion app? Get a captioned MP4 straight from the CLI — captions JSON plus an audio file is all it takes:
+
+```bash
+npx captioneer process clip.mp3                    # 1. transcribe → captions.json
+npx captioneer emphasize captions.json --in-place  # 2. (optional) flag the juicy words
+npx captioneer render captions.json \
+  --audio clip.mp3 --preset tiktok --out clip-captioned.mp4   # 3. render
+```
+
+Style options mirror the component props (`--style`, `--preset`, `--color`, `--emphasis`, `--fps`, `--width`, `--height`). The first run needs the renderer packages — the CLI tells you if they're missing: `npm i -D @remotion/bundler@4 @remotion/renderer@4`.
+
+---
+
+## 📺 Broadcast QA
+
+### Pacing analysis
+
+Subtitle standards recommend keeping captions under ~17–20 characters per second. `analyzePacing` measures every segment against that (plus spoken WPM) so you catch unreadable captions before publishing:
+
+```ts
+import { analyzePacing } from "remotion-captioneer";
+
+const report = analyzePacing(captions, { fastCps: 17, maxCps: 20 });
+report.segments.forEach((s) => console.log(s.status, s.cps.toFixed(1), s.text));
+// readabilityScore: 0-100 share of captioned time that reads comfortably
+```
+
+From the CLI (exit code 1 with `--strict` — handy as a CI gate):
+
+```bash
+npx captioneer pacing captions.json --max-cps 20 --strict
+```
+
+### Profanity filtering
+
+Family-friendly captions without re-transcribing. `filterProfanity` masks, removes, or just reports flagged words; matching is conservative (punctuation-stripped, case-insensitive, suffixed/compound forms; "hello" never trips "hell"). Extend with `extraWords`, override with `allowWords`:
+
+```ts
+import { filterProfanity } from "remotion-captioneer";
+
+const { captions: clean, matches } = filterProfanity(captions, {
+  mode: "mask",           // "mask" | "remove" | "flag"
+  keepFirstLetter: true,  // damn → d***
+});
+```
+
+```bash
+npx captioneer clean captions.json --mode mask --keep-first-letter --in-place
 ```
 
 ---
@@ -889,7 +945,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Export formats (SRT, VTT, ASS, TXT, word-level SRT & VTT)
 - [x] Project scaffolder (`npx captioneer init`)
 - [x] 10 working examples covering all features
-- [x] 11 CLI commands (init, process, batch, export, translate, emphasize, preview, presets, providers, styles, demo)
+- [x] 13 CLI commands (init, process, batch, export, translate, emphasize, clean, pacing, render, preview, presets, providers, styles, demo)
 - [x] GitHub Pages demo with all 14 styles animated
 - [x] GitHub Actions CI/CD (build, test, release to npm, CodeQL)
 - [x] 0 vulnerabilities in npm audit
@@ -900,6 +956,8 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Auto-emphasis detection (`markEmphasis` + `emphasisStyle` rendering; `captioneer emphasize`)
 - [x] Per-speaker caption colors (`speakerHighlight`)
 - [x] Beat-snapped word timing (`snapCaptionsToBeats`)
+- [x] Zero-React MP4 rendering (`captioneer render captions.json --audio clip.mp3`)
+- [x] Broadcast QA (pacing/CPS analysis `captioneer pacing`; profanity filter `captioneer clean`)
 - [x] ~~AI-powered auto-emoji~~ (`autoGenerateReactions()` — keyword-based emoji generation from 60+ word→emoji mappings)
 - [x] Multi-language caption support with RTL (OpenAI `translateCaptionData` + `captioneer translate`; `AnimatedCaptions` `textDirection="rtl"`)
 - [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)
