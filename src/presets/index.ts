@@ -6,7 +6,6 @@
  */
 
 import type { CaptionComponentProps, CaptionStyle } from "../types.js";
-import { loadInstalledStylePackages } from "../marketplace/loader.js";
 
 export interface CaptionPreset {
   name: string;
@@ -287,19 +286,18 @@ export const presets: Record<string, CaptionPreset> = {
   },
 };
 
-function installedPresets(): Record<string, CaptionPreset> {
-  const out: Record<string, CaptionPreset> = {};
-  for (const pkg of loadInstalledStylePackages()) {
-    out[`marketplace:${pkg.meta.id}`] = pkg.preset;
-  }
-  return out;
-}
+/**
+ * This module is bundled into Remotion's browser bundle and the public npm
+ * entry, so it must stay free of Node-only imports. Marketplace presets live
+ * in `marketplace/registry.ts` (`getAllPresets`/`getPresetWithMarketplace`),
+ * which is used by the CLI and preview server.
+ */
 
 /**
- * Get a preset by name
+ * Get a preset by name (built-in presets only)
  */
 export function getPreset(name: string): CaptionPreset | null {
-  return presets[name] ?? installedPresets()[name] ?? null;
+  return presets[name] ?? null;
 }
 
 /**
