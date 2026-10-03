@@ -4,6 +4,7 @@
 
 import type { CaptionPreset } from "../presets/index.js";
 import type { CaptionStyle } from "../types.js";
+import { validateAnimationSpec } from "../animation.js";
 import { assertValidPackageId } from "./id.js";
 
 export const STYLE_PACKAGE_VERSION = 1 as const;
@@ -110,6 +111,11 @@ export function validateStylePackage(raw: unknown): StylePackage {
     throw new Error("Style package preset.fontSize must be a positive number");
   }
 
+  let animation: StylePackage["preset"]["animation"];
+  if (preset.animation !== undefined && preset.animation !== null) {
+    animation = validateAnimationSpec(preset.animation);
+  }
+
   return {
     schemaVersion: STYLE_PACKAGE_VERSION,
     meta: {
@@ -129,6 +135,7 @@ export function validateStylePackage(raw: unknown): StylePackage {
       fontColor: preset.fontColor as string,
       highlightColor: preset.highlightColor as string,
       position: preset.position as "top" | "center" | "bottom",
+      ...(animation ? { animation } : {}),
     },
   };
 }

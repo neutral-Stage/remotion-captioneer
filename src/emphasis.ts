@@ -13,6 +13,16 @@
  */
 
 import type { CaptionData, CaptionSegment, Word } from "./types.js";
+import type { VolumeFrame } from "./sync/audio-analysis.js";
+
+export interface EmphasisAudioOptions {
+  /** Per-frame volume from `analyzeAudio()` — enables loud-word detection */
+  volumeFrames: VolumeFrame[];
+  /** Energy multiplier over the median word energy that marks a loud word (default 1.6) */
+  loudFactor?: number;
+  /** Minimum word energy (0-1 mean volume) before loudness counts (default 0.05) */
+  minLoudEnergy?: number;
+}
 
 export interface EmphasisOptions {
   /** Duration multiplier over the median word duration that marks a stretched word (default 1.8) */
@@ -25,9 +35,11 @@ export interface EmphasisOptions {
   detectCaps?: boolean;
   /** Re-detect from scratch: drop existing flags instead of treating them as manual (default false) */
   clearExisting?: boolean;
+  /** Audio volume analysis — flags words spoken far louder than the baseline */
+  audio?: EmphasisAudioOptions;
 }
 
-export type EmphasisReason = "caps" | "stretched" | "manual";
+export type EmphasisReason = "caps" | "stretched" | "loud" | "manual";
 
 export interface EmphasizedWord {
   segmentIndex: number;
@@ -37,13 +49,34 @@ export interface EmphasizedWord {
   reason: EmphasisReason;
 }
 
-const DEFAULTS: Required<EmphasisOptions> = {
+const DEFAULTS: Omit<Required<EmphasisOptions>, "audio"> = {
   stretchFactor: 1.8,
   minStretchedMs: 350,
   maxPerSegment: 2,
   detectCaps: true,
   clearExisting: false,
 };
+
+const AUDIO_DEFAULTS: Required<Pick<EmphasisAudioOptions, "loudFactor" | "minLoudEnergy">> = {
+  loudFactor: 1.6,
+  minLoudEnergy: 0.05,
+};
+
+/** Mean volume of frames inside the word's time span. */
+function wordEnergy(
+  word: Pick<Word, "startMs" | "endMs">,
+  volumeFrames: VolumeFrame[]
+): number {
+  let sum = 0;
+  let count = 0;
+  for (const frame of volumeFrames) {
+    if (frame.timeMs >= word.startMs && frame.timeMs <= word.endMs) {
+      sum += frame.volume;
+      count++;
+    }
+  }
+  return count > 0 ? sum / count : 0;
+}
 
 const CAPS_MIN_LETTERS = 2;
 
@@ -83,6 +116,34 @@ export function detectEmphasis(
     median > 0 ? median * opts.stretchFactor : opts.minStretchedMs
   );
 
+  // Audio-aware detection: words spoken far louder than the baseline.
+  let wordLoudness: Map<Word, number> | null = null;
+  if (options.audio && options.audio.volumeFrames.length > 0) {
+    const audioOpts = { ...AUDIO_DEFAULTS, ...options.audio };
+    const energies = captions.segments
+      .flatMap((s) => s.words)
+      .map((w) => wordEnergy(w, options.audio!.volumeFrames))
+      .sort((a, b) => a - b);
+    const mid = Math.floor(energies.length / 2);
+    const medianEnergy =
+      energies.length === 0
+        ? 0
+        : energies.length % 2 === 0
+          ? (energies[mid - 1]! + energies[mid]!) / 2
+          : energies[mid]!;
+    const loudThreshold = Math.max(
+      audioOpts.minLoudEnergy,
+      medianEnergy * audioOpts.loudFactor
+    );
+    wordLoudness = new Map();
+    for (const segment of captions.segments) {
+      for (const w of segment.words) {
+        const energy = wordEnergy(w, options.audio.volumeFrames);
+        if (energy >= loudThreshold) wordLoudness.set(w, energy);
+      }
+    }
+  }
+
   const results: EmphasizedWord[] = [];
 
   captions.segments.forEach((segment, segmentIndex) => {
@@ -105,6 +166,7 @@ export function detectEmphasis(
       const reasons: EmphasisReason[] = [];
       if (opts.detectCaps && isCapsWord(w.word)) reasons.push("caps");
       if (durationMs >= stretchedThreshold) reasons.push("stretched");
+      if (wordLoudness?.has(w)) reasons.push("loud");
       if (reasons.length === 0) return;
 
       candidates.push({
@@ -112,7 +174,11 @@ export function detectEmphasis(
         wordIndex,
         word: w.word,
         durationMs,
-        reason: reasons.includes("caps") ? "caps" : "stretched",
+        reason: reasons.includes("caps")
+          ? "caps"
+          : reasons.includes("loud")
+            ? "loud"
+            : "stretched",
       });
     });
 

@@ -21,6 +21,7 @@ import { Blur } from "./Blur.js";
 import { Rainbow } from "./Rainbow.js";
 import { Scale } from "./Scale.js";
 import { Spotlight } from "./Spotlight.js";
+import { Custom } from "./Custom.js";
 
 const styleMap: Record<CaptionStyle, React.FC<CaptionComponentProps>> = {
   "word-highlight": WordHighlight,
@@ -169,6 +170,17 @@ export const AnimatedCaptions: React.FC<CaptionComponentProps> = (props) => {
     cursorColor: effectiveHighlight,
     eraseColor: "#FF4444",
   };
+
+  // A custom keyframe animation (from a marketplace package or inline)
+  // overrides the named style entirely.
+  if (props.animation) {
+    return (
+      <AbsoluteFill style={fillStyle}>
+        {currentSeg && <SpeakerLabel segment={currentSeg} colors={speakerColors} />}
+        <Custom {...childProps} animation={props.animation} />
+      </AbsoluteFill>
+    );
+  }
 
   const Component = styleMap[style];
 

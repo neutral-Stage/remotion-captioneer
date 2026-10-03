@@ -89,6 +89,8 @@ export interface CaptionComponentProps {
   emphasisStyle?: "scale" | "color" | "glow";
   /** Color used by `emphasisStyle` (defaults to `highlightColor`) */
   emphasisColor?: string;
+  /** Data-only keyframe animation — overrides `style` when present */
+  animation?: import("./animation.js").AnimationSpec;
 }
 
 /**

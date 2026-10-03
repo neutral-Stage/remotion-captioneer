@@ -7,6 +7,7 @@
  */
 
 import type { CaptionData, CaptionStyle } from "../types.js";
+import type { AnimationSpec } from "../animation.js";
 
 /** Type alias (not interface) so Remotion's Composition accepts it as props. */
 export type RenderInputProps = {
@@ -16,6 +17,8 @@ export type RenderInputProps = {
    * user's audio there and the entry resolves it with `staticFile()`.
    */
   audioFile?: string;
+  /** Filename of a background video inside the bundle's public dir */
+  videoFile?: string;
   style?: CaptionStyle;
   preset?: string;
   highlightColor?: string;
@@ -24,6 +27,10 @@ export type RenderInputProps = {
   position?: "top" | "center" | "bottom";
   backgroundColor?: string;
   emphasisStyle?: "scale" | "color" | "glow";
+  /** Custom keyframe animation — overrides `style` when present */
+  animation?: AnimationSpec;
+  /** Override output duration in seconds (e.g. video longer than captions) */
+  durationSeconds?: number;
   fps?: number;
   width?: number;
   height?: number;
@@ -71,8 +78,9 @@ export function computeRenderMetadata(props: RenderInputProps): RenderMetadata {
     ...props.captions.segments.map((s) => s.endMs),
     0
   );
-  const durationInFrames =
-    Math.ceil((durationMs / 1000) * fps) + DEFAULT_RENDER.tailPaddingFrames;
+  const durationInFrames = props.durationSeconds
+    ? Math.max(1, Math.ceil(props.durationSeconds * fps))
+    : Math.ceil((durationMs / 1000) * fps) + DEFAULT_RENDER.tailPaddingFrames;
 
   return { durationInFrames, fps, width, height };
 }

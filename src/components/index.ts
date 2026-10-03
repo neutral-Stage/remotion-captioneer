@@ -12,4 +12,5 @@ export { Blur } from "./Blur.js";
 export { Rainbow } from "./Rainbow.js";
 export { Scale } from "./Scale.js";
 export { Spotlight } from "./Spotlight.js";
+export { Custom } from "./Custom.js";
 export { AnimatedCaptions } from "./AnimatedCaptions.js";

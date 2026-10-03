@@ -91,6 +91,29 @@ describe("detectEmphasis", () => {
     });
     expect(detectEmphasis(captions, { detectCaps: false })).toHaveLength(0);
   });
+
+  it("flags loud words when audio volume frames are provided", () => {
+    const captions = data({
+      text: "this is HUGE",
+      words: [word("this", 0, 300), word("is", 300, 500), word("HUGE", 500, 800)],
+    });
+    const volume = (from: number, to: number, v: number) =>
+      Array.from({ length: Math.ceil((to - from) / 10) }, (_, i) => ({
+        timeMs: from + i * 10,
+        volume: v,
+      }));
+    const volumeFrames = [
+      ...volume(0, 300, 0.1),
+      ...volume(300, 500, 0.1),
+      ...volume(500, 800, 0.45), // far louder than baseline
+    ];
+    const hits = detectEmphasis(captions, {
+      detectCaps: false,
+      audio: { volumeFrames, loudFactor: 1.5 },
+    });
+    expect(hits).toHaveLength(1);
+    expect(hits[0]).toMatchObject({ word: "HUGE", reason: "loud" });
+  });
 });
 
 describe("markEmphasis", () => {

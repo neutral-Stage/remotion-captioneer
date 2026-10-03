@@ -6,6 +6,7 @@
  */
 
 import type { CaptionComponentProps, CaptionStyle } from "../types.js";
+import type { AnimationSpec } from "../animation.js";
 
 export interface CaptionPreset {
   name: string;
@@ -16,6 +17,8 @@ export interface CaptionPreset {
   fontColor: string;
   highlightColor: string;
   position: "top" | "center" | "bottom";
+  /** Custom keyframe animation — overrides `style` when present */
+  animation?: AnimationSpec;
 }
 
 /**
@@ -335,5 +338,6 @@ export function applyPreset(presetName: string): Partial<CaptionComponentProps> 
     fontColor: preset.fontColor,
     highlightColor: preset.highlightColor,
     position: preset.position,
+    ...(preset.animation ? { animation: preset.animation } : {}),
   };
 }

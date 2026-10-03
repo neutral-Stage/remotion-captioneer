@@ -7,7 +7,14 @@
  */
 
 import React from "react";
-import { AbsoluteFill, Audio, Composition, registerRoot, staticFile } from "remotion";
+import {
+  AbsoluteFill,
+  Audio,
+  Composition,
+  OffthreadVideo,
+  registerRoot,
+  staticFile,
+} from "remotion";
 import { AnimatedCaptions } from "../components/AnimatedCaptions.js";
 import { applyPreset } from "../presets/index.js";
 import {
@@ -23,6 +30,7 @@ const PLACEHOLDER: RenderInputProps = {
 const RenderedVideo: React.FC<RenderInputProps> = ({
   captions,
   audioFile,
+  videoFile,
   style,
   preset,
   highlightColor,
@@ -31,11 +39,15 @@ const RenderedVideo: React.FC<RenderInputProps> = ({
   position,
   backgroundColor,
   emphasisStyle,
+  animation,
 }) => {
   const presetProps = preset ? applyPreset(preset) : {};
 
   return (
     <AbsoluteFill style={{ backgroundColor: backgroundColor ?? "#000000" }}>
+      {videoFile ? (
+        <OffthreadVideo src={staticFile(videoFile)} style={{ width: "100%", height: "100%" }} />
+      ) : null}
       {audioFile ? <Audio src={staticFile(audioFile)} /> : null}
       <AnimatedCaptions
         captions={captions}
@@ -45,6 +57,7 @@ const RenderedVideo: React.FC<RenderInputProps> = ({
         fontSize={fontSize ?? presetProps.fontSize}
         position={position ?? presetProps.position}
         emphasisStyle={emphasisStyle}
+        animation={animation ?? presetProps.animation}
       />
     </AbsoluteFill>
   );
