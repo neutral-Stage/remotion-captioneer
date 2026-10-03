@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -18,6 +19,8 @@ interface PillProps extends CaptionStyleLayoutProps {
   readonly pillTextColor?: string;
   readonly pillPadding?: number;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Pill: React.FC<PillProps> = ({
@@ -30,6 +33,8 @@ export const Pill: React.FC<PillProps> = ({
   pillPadding = 12,
   position = "bottom",
   maxWidth,
+  emphasisStyle,
+  emphasisColor,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -68,10 +73,11 @@ export const Pill: React.FC<PillProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: pillColor });
 
-          const scale = isActive
+          const scale = (isActive
             ? spring({ frame, fps, config: { damping: 10, stiffness: 200 } })
-            : 1;
+            : 1) * emph.scaleBoost;
 
           return (
             <span
@@ -80,13 +86,23 @@ export const Pill: React.FC<PillProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 600,
-                color: isActive ? pillTextColor : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? pillTextColor
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
                 padding: isActive ? `4px ${pillPadding}px` : "4px 2px",
                 backgroundColor: isActive ? pillColor : "transparent",
                 borderRadius: isActive ? "999px" : "0",
                 transform: `scale(${scale})`,
-                textShadow: isActive ? "none" : "0 2px 8px rgba(0,0,0,0.5)",
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? "none"
+                    : "0 2px 8px rgba(0,0,0,0.5)",
               }}
             >
               {word.word}

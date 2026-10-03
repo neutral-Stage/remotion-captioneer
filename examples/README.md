@@ -37,6 +37,7 @@ All `*.tsx` examples import `./captions.json` in this folder. Use the same shape
 | `11-translate.tsx` | `translateCaptionData` (Node) |
 | `12-rtl.tsx` | RTL captions with `textDirection="rtl"` |
 | `13-hosting.tsx` | `resolveVideoUrl` for YouTube / Vimeo metadata (Node) |
+| `14-emphasis.tsx` | Auto-emphasis (`markEmphasis` + `emphasisStyle`) and per-speaker colors (`speakerHighlight`) |
 
 ## Run in this repo
 

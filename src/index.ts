@@ -29,6 +29,15 @@ export type {
 
 export { toCaptionArray, fromCaptionArray } from "./types.js";
 
+// Emphasis detection
+export {
+  detectEmphasis,
+  markEmphasis,
+  type EmphasisOptions,
+  type EmphasizedWord,
+  type EmphasisReason,
+} from "./emphasis.js";
+
 // Components
 export {
   AnimatedCaptions,
@@ -89,6 +98,8 @@ export {
   type BeatInfo,
   type VolumeFrame,
   type AnalyzeOptions,
+  snapCaptionsToBeats,
+  type BeatSnapOptions,
   AudioSyncProvider,
   useAudioAnalysis,
   useVolume,

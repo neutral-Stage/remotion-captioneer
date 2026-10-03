@@ -100,6 +100,7 @@ Active word bounces up with spring physics.
 
 ## ✨ Features
 
+- 🧠 **Smart Captions** — Auto-emphasis detection, per-speaker caption colors, beat-snapped word timing
 - 🎙️ **6 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs
 - 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
 - 🎭 **23 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun
@@ -108,7 +109,7 @@ Active word bounces up with spring physics.
 - 🧱 **Layout Primitives** — Stack, Row, Columns, Grid, Center, FadeIn, SlideUp
 - 📤 **7 Export Formats** — SRT, VTT, ASS, TXT, word-level SRT & VTT
 - ⚡ **Drop-in Components** — `<AnimatedCaptions>` works out of the box
-- 🔧 **CLI Tool** — process, batch, export, translate, preview, presets, providers, styles, init, demo
+- 🔧 **CLI Tool** — process, batch, export, translate, emphasize, preview, presets, providers, styles, init, demo
 - 📐 **Zero Config** — Works with sensible defaults, customizable everything
 - 🔷 **TypeScript** — Full type definitions included
 - 🐳 **Docker** — `Dockerfile` for headless preview (see repo root)
@@ -280,6 +281,54 @@ npx captioneer preview
 ```
 
 A style package is a small JSON file that layers colors/fonts on top of the 14 built-in animations — share the file (gist, repo raw URL) and anyone can `styles install` it.
+
+---
+
+## 🧠 Smart Captions
+
+### Auto-Emphasis
+
+Pro captioners manually flag the "juicy" words so they pop harder. `markEmphasis` does it automatically from word timings — stretched words (dragged-out delivery) and ALL-CAPS words (shouting) get flagged, your manual flags are kept:
+
+```tsx
+import { AnimatedCaptions, markEmphasis } from "remotion-captioneer";
+
+const emphasized = markEmphasis(captions); // pure: returns a new CaptionData
+
+<AnimatedCaptions
+  captions={emphasized}
+  emphasisStyle="scale"     // "scale" | "color" | "glow"
+  emphasisColor="#f59e0b"   // defaults to highlightColor
+/>
+```
+
+Emphasis rendering is supported by the `word-highlight`, `karaoke`, `bounce`, `pill`, and `glow` styles. Set `word.emphasis = true` yourself for full manual control, and use `detectEmphasis(captions)` to inspect what would be flagged. From the CLI: `npx captioneer emphasize captions.json --in-place`.
+
+### Per-Speaker Colors
+
+With diarized captions, `speakerHighlight` recolors the whole animation to the active speaker's palette color — multi-speaker clips read like pro captions:
+
+```tsx
+<AnimatedCaptions
+  captions={diarizedCaptions}
+  speakerHighlight                    // one color per speaker
+  speakerColors={["#3b82f6", "#f59e0b"]}
+  showSpeakerLabels                   // optional label chip
+/>
+```
+
+### Beat-Snapped Timing
+
+Make word pops land on the music. `snapCaptionsToBeats` nudges word starts to the nearest detected beat (within a tolerance, durations and ordering preserved):
+
+```tsx
+import { analyzeAudio, snapCaptionsToBeats } from "remotion-captioneer";
+
+const analysis = await analyzeAudio("./voice.mp3"); // or useAudioAnalysis() inside compositions
+const snapped = snapCaptionsToBeats(captions, analysis.beats, { toleranceMs: 120 });
+
+<AnimatedCaptions captions={snapped} style="bounce" />
+```
 
 ---
 
@@ -840,7 +889,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Export formats (SRT, VTT, ASS, TXT, word-level SRT & VTT)
 - [x] Project scaffolder (`npx captioneer init`)
 - [x] 10 working examples covering all features
-- [x] 10 CLI commands (init, process, batch, export, translate, preview, presets, providers, styles, demo)
+- [x] 11 CLI commands (init, process, batch, export, translate, emphasize, preview, presets, providers, styles, demo)
 - [x] GitHub Pages demo with all 14 styles animated
 - [x] GitHub Actions CI/CD (build, test, release to npm, CodeQL)
 - [x] 0 vulnerabilities in npm audit
@@ -848,6 +897,9 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 ### 🔮 Future
 
 - [x] Caption style marketplace (JSON packages, create/validate/install/list, preview preset picker)
+- [x] Auto-emphasis detection (`markEmphasis` + `emphasisStyle` rendering; `captioneer emphasize`)
+- [x] Per-speaker caption colors (`speakerHighlight`)
+- [x] Beat-snapped word timing (`snapCaptionsToBeats`)
 - [x] ~~AI-powered auto-emoji~~ (`autoGenerateReactions()` — keyword-based emoji generation from 60+ word→emoji mappings)
 - [x] Multi-language caption support with RTL (OpenAI `translateCaptionData` + `captioneer translate`; `AnimatedCaptions` `textDirection="rtl"`)
 - [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)
