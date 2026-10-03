@@ -4,27 +4,89 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#09090b">
-<meta name="description" content="Drop-in animated captions for Remotion — 14 styles, 6 STT providers, presets, and CLI.">
-<title>Remotion Captioneer — Live Demo</title>
+<meta name="description" content="Word-perfect animated captions for Remotion. 14 styles, 6 STT providers, auto-emphasis, beat snapping, broadcast QA — and a CLI that renders captioned MP4s with zero React.">
+<meta property="og:title" content="Remotion Captioneer — animated captions for programmatic video">
+<meta property="og:description" content="Feed it audio. Get word-level synced, beautifully animated captions. Renders MP4s straight from the CLI.">
+<meta property="og:type" content="website">
+<title>Remotion Captioneer — Word-perfect animated captions for Remotion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="components.css">
+<link rel="stylesheet" href="landing.css">
 </head>
 <body>
 
+<header class="nav" id="top">
+  <div class="nav-inner">
+    <a class="brand" href="#top" aria-label="Remotion Captioneer home">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2" y="5" width="15" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M17 10l5-3v10l-5-3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <rect x="5.5" y="12" width="4" height="4" rx="1" fill="currentColor" opacity=".9"/>
+      </svg>
+      <span class="brand-name">remotion<b>‑captioneer</b></span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#demo">Demo</a>
+      <a href="#features">Features</a>
+      <a href="#pipeline">Pipeline</a>
+      <a href="#styles">Styles</a>
+      <a href="#cli">CLI</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="nav-star" href="https://github.com/neutral-Stage/remotion-captioneer" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.35c-2.23.49-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.81.06 1.23.83 1.23.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>
+        Star
+      </a>
+      <a class="nav-npm" href="https://www.npmjs.com/package/remotion-captioneer" target="_blank" rel="noopener">npm</a>
+    </div>
+  </div>
+</header>
+
 <div class="hero">
-  <h1>Remotion Captioneer</h1>
-  <p>Animated captions for Remotion — 6 STT providers, 14 styles, presets, exports, sync hooks, and CLI.</p>
-  <div class="hero-links">
-    <a href="https://github.com/neutral-Stage/remotion-captioneer" target="_blank" rel="noopener" class="bt bt1">GitHub</a>
-    <a href="https://www.npmjs.com/package/remotion-captioneer" target="_blank" rel="noopener" class="bt bt2">npm</a>
-    <a href="#demo" class="bt bt2">Live demo</a>
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="w hero-inner">
+    <div class="hero-copy">
+      <div class="hero-badge">
+        <span class="dot"></span> MIT · Remotion 4.x · TypeScript
+      </div>
+      <h1>
+        <span class="hero-kicker">Remotion Captioneer</span>
+        <span class="hero-line">Captions that keep people <span class="grad">watching.</span></span>
+      </h1>
+      <p>Word-level synced, animated captions for Remotion. Feed it audio — get 14 studio-grade styles, auto-emphasis on the words that matter, and MP4s rendered straight from the CLI.</p>
+      <div class="hero-install">
+        <span class="hero-install-prompt" aria-hidden="true">$</span>
+        <code class="install-cmd" id="icmd" role="button" tabindex="0">npx captioneer init my-video</code>
+      </div>
+      <p class="hero-hint">Click to copy · works with existing Remotion projects too</p>
+      <div class="hero-links">
+        <a href="#demo" class="bt bt1">Try the live demo
+          <svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="https://github.com/neutral-Stage/remotion-captioneer" target="_blank" rel="noopener" class="bt bt2">GitHub</a>
+        <a href="https://www.npmjs.com/package/remotion-captioneer" target="_blank" rel="noopener" class="bt bt2">npm</a>
+      </div>
+    </div>
+    <div class="hero-stats" aria-label="Package stats">
+      <div class="stat"><b>14</b><span>caption styles</span></div>
+      <div class="stat"><b>23</b><span>presets</span></div>
+      <div class="stat"><b>6</b><span>STT providers</span></div>
+      <div class="stat"><b>7</b><span>export formats</span></div>
+    </div>
   </div>
 </div>
 
 <section class="sec" id="demo">
   <div class="w">
-    <h2>Live Caption Demo</h2>
-    <p class="sub">Auto-cycles through all 14 styles — click a style below to lock it</p>
+    <div class="sec-head">
+      <span class="eyebrow">Live demo</span>
+      <h2>Every style, in motion</h2>
+      <p class="sub">Auto-cycles through all 14 styles — click a style below to lock it, then tune colors, font, and position in the configurator.</p>
+    </div>
     <div class="player" role="region" aria-label="Caption style demo player">
       <div class="scene"><canvas id="bgC" aria-hidden="true"></canvas><div class="cap-layer pos-bottom" id="capLayer"><div class="cap-el" id="cap" aria-live="polite"></div></div></div>
       <div class="ctrls">
@@ -40,18 +102,135 @@
   </div>
 </section>
 
-<section class="sec">
+<section class="sec" id="features">
   <div class="w">
-    <h2>Caption styles</h2>
-    <p class="sub">Each style animates differently — click to preview in the player above</p>
+    <div class="sec-head">
+      <span class="eyebrow">Features</span>
+      <h2>A caption engine, not just a component</h2>
+      <p class="sub">Everything between raw audio and a finished, watchable clip.</p>
+    </div>
+    <div class="feat-grid feat-grid-lg">
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
+        </div>
+        <h4>Smart emphasis</h4>
+        <p>Stretched, shouted, and loud words get flagged from timing and audio energy alone — then pop with scale, color, or glow treatments.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5l5 2.5-5 2.5v-5Z"/></svg>
+        </div>
+        <h4>Zero-React rendering</h4>
+        <p><code>captioneer render</code> turns captions plus audio — or existing footage with <code>--video</code> — into a captioned MP4. No React project required.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V9M9 17V5M14 17v-6M19 17v-9"/><path d="M3 21h18"/></svg>
+        </div>
+        <h4>Beat-snapped timing</h4>
+        <p>Word pops land on the music. Beat detection nudges word starts to the nearest beat with strict monotonic ordering.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c.6-3.4 2.8-5 5.5-5s4.9 1.6 5.5 5"/><path d="M16 4l4 4-4 4"/></svg>
+        </div>
+        <h4>Speaker-aware</h4>
+        <p>Diarized captions recolor per speaker automatically, with label chips and a stable palette across the whole clip.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.4"/></svg>
+        </div>
+        <h4>Custom animations</h4>
+        <p>Style packages ship their own keyframe word motion as pure data — bounded numbers and hex colors, no code execution.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6l7-3Z"/></svg>
+        </div>
+        <h4>Broadcast QA</h4>
+        <p>Characters-per-second pacing gates for readability, conservative profanity filtering, and filler-word removal that closes timing gaps.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="pipeline">
+  <div class="w">
+    <div class="sec-head">
+      <span class="eyebrow">Pipeline</span>
+      <h2>From audio to captioned MP4 in four commands</h2>
+      <p class="sub">The same primitives work in your own Remotion compositions — or skip React entirely.</p>
+    </div>
+    <div class="code-cols">
+      <div class="code-window">
+        <div class="code-titlebar"><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-name">CaptionedClip.tsx</span></div>
+        <div class="code"><span class="cm">// In your Remotion composition</span>
+<span class="kw">import</span> { AnimatedCaptions, applyPreset, markEmphasis } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+
+<span class="kw">const</span> emphasized = markEmphasis(captions);
+
+&lt;AnimatedCaptions
+  captions={emphasized}
+  {...applyPreset(<span class="st">'tiktok'</span>)}
+  emphasisStyle=<span class="st">"scale"</span>
+/&gt;</div>
+      </div>
+      <div class="code-window">
+        <div class="code-titlebar"><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-name">terminal</span></div>
+        <div class="code"><span class="cm"># No React project needed</span>
+npx captioneer process clip.mp3
+npx captioneer tighten captions.json --in-place
+npx captioneer emphasize captions.json --in-place
+npx captioneer render captions.json \
+  --audio clip.mp3 --preset tiktok --out clip.mp4</div>
+      </div>
+    </div>
+    <div class="feat-grid" style="margin-top:14px">
+      <div class="feat"><h4>SRT · VTT · ASS · TXT</h4><p>Plus word-level SRT and WebVTT, and full <code>@remotion/captions</code> compatibility.</p></div>
+      <div class="feat"><h4>Translation + RTL</h4><p>Translate caption data with preserved word timing; RTL scripts render correctly with one prop.</p></div>
+      <div class="feat"><h4>Audio sync hooks</h4><p><code>useBeatPulse</code>, <code>useVolume</code>, <code>useEnergy</code> — frame-accurate reactive animation.</p></div>
+    </div>
+    <div class="sync-bars" id="syncBars" aria-hidden="true"></div>
+  </div>
+</section>
+
+<section class="sec" id="styles">
+  <div class="w">
+    <div class="sec-head">
+      <span class="eyebrow">Styles</span>
+      <h2>Fourteen ways to say it</h2>
+      <p class="sub">Each style animates differently — click a card to preview it in the player above.</p>
+    </div>
     <div class="style-grid" id="showGrid"></div>
   </div>
 </section>
 
 <section class="sec">
   <div class="w">
-    <h2>Speech-to-text</h2>
-    <p class="sub">Six providers — choose your speed, accuracy, and privacy trade-off</p>
+    <div class="sec-head">
+      <span class="eyebrow">Presets</span>
+      <h2>Tuned for where your video lives</h2>
+      <p class="sub">Click a preset to apply it in the demo player.</p>
+    </div>
+    <div id="presetArea"></div>
+    <div class="code-window" style="margin-top:14px">
+      <div class="code-titlebar"><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-name">App.tsx</span></div>
+      <div class="code"><span class="kw">import</span> { applyPreset } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+
+&lt;AnimatedCaptions captions={captions} {...applyPreset(<span class="st">'tiktok'</span>)} /&gt;</div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="w">
+    <div class="sec-head">
+      <span class="eyebrow">Speech-to-text</span>
+      <h2>Six providers, one interface</h2>
+      <p class="sub">Choose your speed, accuracy, and privacy trade-off — swap with a flag.</p>
+    </div>
     <div class="feat-grid">
       <div class="feat"><div class="feat-tag">Local</div><h4>Whisper.cpp</h4><p>Offline transcription on your machine.</p></div>
       <div class="feat"><div class="feat-tag">Cloud</div><h4>OpenAI Whisper</h4><p>Production-grade accuracy.</p></div>
@@ -60,41 +239,46 @@
       <div class="feat"><div class="feat-tag">Accurate</div><h4>AssemblyAI</h4><p>Word-level timestamps and optional speaker diarization.</p></div>
       <div class="feat"><div class="feat-tag">Scribe</div><h4>ElevenLabs</h4><p>Word-level Scribe transcription via API.</p></div>
     </div>
-    <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+    <div class="code-window" style="margin-top:14px">
+      <div class="code-titlebar"><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-name">transcribe.ts</span></div>
+      <div class="code"><span class="kw">import</span> { createProvider } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
 <span class="cm">// npx captioneer process audio.mp3 --provider elevenlabs --diarize</span>
 <span class="kw">const</span> provider = createProvider(<span class="st">'elevenlabs'</span>);
-<span class="kw">const</span> captions = <span class="kw">await</span> provider.transcribe(<span class="st">'audio.mp3'</span>);
+<span class="kw">const</span> captions = <span class="kw">await</span> provider.transcribe(<span class="st">'audio.mp3'</span>);</div>
     </div>
+  </div>
+</section>
+
+<section class="sec" id="cli">
+  <div class="w">
+    <div class="sec-head">
+      <span class="eyebrow">CLI</span>
+      <h2>Everything from scaffolding to MP4</h2>
+      <p class="sub">One binary covers the whole pipeline.</p>
+    </div>
+    <table class="cli-table">
+      <tr><th>Command</th><th>What it does</th></tr>
+      <tr><td><code>npx captioneer init my-video</code></td><td>Scaffold a new project</td></tr>
+      <tr><td><code>npx captioneer process audio.mp3</code></td><td>Transcribe with any of the 6 STT providers</td></tr>
+      <tr><td><code>npx captioneer tighten captions.json</code></td><td>Remove filler words and close timing gaps</td></tr>
+      <tr><td><code>npx captioneer emphasize captions.json</code></td><td>Auto-flag the words worth popping</td></tr>
+      <tr><td><code>npx captioneer pacing captions.json --strict</code></td><td>Broadcast readability gate (CI-ready exit code)</td></tr>
+      <tr><td><code>npx captioneer clean captions.json</code></td><td>Mask or remove profanity</td></tr>
+      <tr><td><code>npx captioneer render captions.json --audio clip.mp3</code></td><td>Render a captioned MP4 — or <code>--video</code> for footage</td></tr>
+      <tr><td><code>npx captioneer styles create "My Style"</code></td><td>Scaffold a shareable marketplace style package</td></tr>
+      <tr><td><code>npx captioneer preview</code></td><td>Live preview editor with the Remotion Player</td></tr>
+      <tr><td><code>npx captioneer demo</code></td><td>Open Remotion Studio (all 14 styles)</td></tr>
+    </table>
   </div>
 </section>
 
 <section class="sec">
   <div class="w">
-    <h2>Presets</h2>
-    <p class="sub">Click a preset to apply it in the demo player</p>
-    <div id="presetArea"></div>
-    <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { applyPreset } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
-
-&lt;AnimatedCaptions captions={captions} {...applyPreset(<span class="st">'tiktok'</span>)} /&gt;
-    </div>
-  </div>
-</section>
-
-<section class="sec">
-  <div class="w">
-    <h2>Export formats</h2>
-    <p class="sub">From word-level timing to industry standard subtitle formats</p>
-    <div class="feat-grid">
-      <div class="feat"><h4>SRT</h4><p>Universal subtitle format</p></div>
-      <div class="feat"><h4>VTT</h4><p>Web video text tracks</p></div>
-      <div class="feat"><h4>ASS</h4><p>Advanced Substation Alpha</p></div>
-      <div class="feat"><h4>TXT</h4><p>Plain text transcript</p></div>
-      <div class="feat"><h4>Word SRT</h4><p>Word-level SRT timing</p></div>
-      <div class="feat"><h4>Word VTT</h4><p>Word-level WebVTT</p></div>
-      <div class="feat"><h4>@remotion/captions</h4><p>Official package compat</p></div>
+    <div class="sec-head">
+      <span class="eyebrow">Exports</span>
+      <h2>Take your captions anywhere</h2>
+      <p class="sub">From word-level timing to industry-standard subtitle formats — try them on the demo captions.</p>
     </div>
     <div class="export-row">
       <button type="button" class="xbtn" data-f="srt">Export SRT</button>
@@ -105,43 +289,39 @@
   </div>
 </section>
 
-<section class="sec">
+<section class="sec cta-band">
   <div class="w">
-    <h2>Audio sync</h2>
-    <p class="sub">Frame-accurate hooks for reactive caption animation</p>
-    <div class="sync-bars" id="syncBars" aria-hidden="true"></div>
-    <div class="code" style="margin-top:14px">
-<span class="kw">import</span> { useBeatPulse, useVolume, useEnergy } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
+    <h2>Ship captions people actually read.</h2>
+    <p class="sub">Free, MIT-licensed, and fully typed. Star the repo if it saves you an afternoon.</p>
+    <div class="hero-links">
+      <a href="https://github.com/neutral-Stage/remotion-captioneer" target="_blank" rel="noopener" class="bt bt1">Star on GitHub
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.35c-2.23.49-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.81.06 1.23.83 1.23.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/></svg>
+      </a>
+      <a href="#demo" class="bt bt2">Play with the demo</a>
     </div>
   </div>
 </section>
 
-<section class="sec">
-  <div class="w">
-    <h2>CLI</h2>
-    <p class="sub">Everything from scaffolding to batch processing</p>
-    <table class="cli-table">
-      <tr><th>Command</th><th>What it does</th></tr>
-      <tr><td><code>npx captioneer init my-video</code></td><td>Scaffold a new project</td></tr>
-      <tr><td><code>npx captioneer process audio.mp3</code></td><td>Transcribe with STT</td></tr>
-      <tr><td><code>npx captioneer preview</code></td><td>Live preview server</td></tr>
-      <tr><td><code>npx captioneer demo</code></td><td>Open Remotion Studio (all 14 styles)</td></tr>
-    </table>
-  </div>
-</section>
-
-<section class="sec">
-  <div class="install-box">
-    <h2>Get Started</h2>
-    <div class="install-cmd" id="icmd" role="button" tabindex="0">npx captioneer init my-video</div>
-    <p style="font-size:10px;color:var(--color-text-secondary);margin-top:4px">Click to copy</p>
-  </div>
-</section>
-
 <footer>
-  <a href="https://github.com/neutral-Stage/remotion-captioneer">GitHub</a> ·
-  <a href="https://www.npmjs.com/package/remotion-captioneer">npm</a> ·
-  MIT License
+  <div class="w footer-inner">
+    <div class="footer-col">
+      <span class="brand-name">remotion<b>‑captioneer</b></span>
+      <p>Animated captions for programmatic video. Built with Remotion.</p>
+    </div>
+    <div class="footer-col">
+      <h5>Project</h5>
+      <a href="https://github.com/neutral-Stage/remotion-captioneer">GitHub</a>
+      <a href="https://github.com/neutral-Stage/remotion-captioneer/releases">Releases</a>
+      <a href="https://github.com/neutral-Stage/remotion-captioneer/blob/main/CHANGELOG.md">Changelog</a>
+    </div>
+    <div class="footer-col">
+      <h5>Package</h5>
+      <a href="https://www.npmjs.com/package/remotion-captioneer">npm</a>
+      <a href="https://github.com/neutral-Stage/remotion-captioneer#readme">Documentation</a>
+      <a href="https://github.com/neutral-Stage/remotion-captioneer/blob/main/CONTRIBUTING.md">Contributing</a>
+    </div>
+  </div>
+  <div class="footer-base">MIT License · Made with <a href="https://remotion.dev">Remotion</a></div>
 </footer>
 <div class="toast" id="toast" role="status"></div>
 
