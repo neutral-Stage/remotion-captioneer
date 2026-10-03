@@ -11,7 +11,7 @@
  */
 
 import { Command } from "commander";
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join, resolve, basename } from "path";
 import { fileURLToPath } from "url";
 
@@ -182,7 +182,9 @@ program
     console.log("  rainbow           — Cycling rainbow colors");
     console.log("  scale             — Words grow from small to full");
     console.log("  spotlight         — Radial spotlight behind word");
-    console.log("\nInstall marketplace presets: captioneer styles install <path|url>\n");
+    console.log("\nCreate your own: captioneer styles create \"My Style\" --style glow --color \"#00FF88\"");
+    console.log("Validate a package: captioneer styles validate <file>");
+    console.log("Install marketplace presets: captioneer styles install <path|url>\n");
     console.log("List installed packages: captioneer styles list\n");
   })
   .addCommand(
@@ -228,6 +230,81 @@ program
           });
           invalidateMarketplaceCache();
           console.log(`✅ Installed style "${pkg.meta.name}" → ${dest}`);
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error(`❌ ${message}`);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command("create")
+      .description("Scaffold a new marketplace style package")
+      .argument("<name>", "Display name, e.g. \"Sunday Gold\"")
+      .option("--style <style>", "Built-in animation (word-highlight, karaoke, glow, ...)")
+      .option("--color <color>", "Highlight color (default #FE2C55)")
+      .option("--font-color <color>", "Idle text color (default rgba(255,255,255,0.4))")
+      .option("--font <family>", "CSS font-family (default \"Inter, sans-serif\")")
+      .option("--size <pixels>", "Font size in px (default 56)")
+      .option("--position <position>", "top | center | bottom (default bottom)")
+      .option("--author <name>", "Your name for the package metadata")
+      .option("--description <text>", "Short package description")
+      .option("--out <dir>", "Output directory (default current directory)")
+      .action(async (name: string, opts: Record<string, string | undefined>) => {
+        const { createStylePackageDraft } = await import("./marketplace/scaffold.js");
+        try {
+          const { pkg, fileName } = createStylePackageDraft({
+            name,
+            style: opts.style,
+            highlightColor: opts.color,
+            fontColor: opts.fontColor,
+            fontFamily: opts.font,
+            fontSize: opts.size !== undefined ? Number(opts.size) : undefined,
+            position: opts.position,
+            author: opts.author,
+            description: opts.description,
+          });
+
+          const outDir = opts.out ? resolve(opts.out) : process.cwd();
+          const target = join(outDir, fileName);
+          if (existsSync(target)) {
+            console.error(`❌ ${fileName} already exists in ${outDir} — move it or pass --out`);
+            process.exit(1);
+          }
+          mkdirSync(outDir, { recursive: true });
+          writeFileSync(target, `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
+
+          console.log(`✨ Created ${target}\n`);
+          console.log(`   id:     ${pkg.meta.id}`);
+          console.log(`   style:  ${pkg.preset.style}`);
+          console.log(`   color:  ${pkg.preset.highlightColor}\n`);
+          console.log("Next steps:");
+          console.log(`  1. captioneer styles validate ${fileName}`);
+          console.log(`  2. captioneer styles install ${fileName} --project`);
+          console.log("  3. captioneer preview   # your style appears under marketplace presets");
+          console.log("  4. share the JSON file — anyone can install it from a raw URL");
+          console.log("");
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error(`❌ ${message}`);
+          process.exit(1);
+        }
+      })
+  )
+  .addCommand(
+    new Command("validate")
+      .description("Validate a style package JSON against the marketplace schema")
+      .argument("<file>", "Path to style package JSON")
+      .action(async (file: string) => {
+        const { loadStylePackageFromFile } = await import("./marketplace/index.js");
+        try {
+          const pkg = loadStylePackageFromFile(resolve(file));
+          console.log("✅ Valid style package\n");
+          console.log(`   id:      ${pkg.meta.id}`);
+          console.log(`   name:    ${pkg.meta.name}`);
+          console.log(`   version: ${pkg.meta.version}`);
+          console.log(`   style:   ${pkg.preset.style}`);
+          console.log(`   install: captioneer styles install ${resolve(file)}\n`);
         } catch (error: unknown) {
           const message = error instanceof Error ? error.message : String(error);
           console.error(`❌ ${message}`);
