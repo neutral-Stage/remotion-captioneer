@@ -687,4 +687,56 @@ function getApiKeyForProvider(provider: string): string | undefined {
   return process.env[envMap[provider]];
 }
 
+program
+  .command("emphasize")
+  .description("Auto-detect emphasis words (stretched / ALL-CAPS) in a captions JSON")
+  .argument("<caption-file>", "Path to caption JSON file")
+  .option("--in-place", "Rewrite the file in place (default: print to stdout)")
+  .option("--stretch-factor <n>", "Duration multiplier over median that counts as stretched", "1.8")
+  .option("--max-per-segment <n>", "Max auto-detected emphasis words per segment", "2")
+  .option("--no-caps", "Skip ALL-CAPS detection")
+  .action(async (captionFile: string, opts: Record<string, string | boolean | undefined>) => {
+    const filePath = resolve(captionFile);
+    if (!existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      process.exit(1);
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(readFileSync(filePath, "utf-8"));
+      const { assertCaptionDataShape } = await import("./translate.js");
+      const captions = assertCaptionDataShape(parsed);
+      const { markEmphasis, detectEmphasis } = await import("./emphasis.js");
+
+      const options = {
+        stretchFactor: Number(opts.stretchFactor ?? 1.8),
+        maxPerSegment: Number(opts.maxPerSegment ?? 2),
+        detectCaps: opts.caps !== false,
+      };
+      const detections = detectEmphasis(captions, options);
+      const emphasized = markEmphasis(captions, options);
+
+      const out = `${JSON.stringify(emphasized, null, 2)}\n`;
+      if (opts.inPlace) {
+        writeFileSync(filePath, out, "utf8");
+        console.log(`✅ Wrote ${filePath} with ${detections.length} emphasized word(s)\n`);
+      } else {
+        process.stdout.write(out);
+        console.error(`(${detections.length} emphasized word(s))`);
+      }
+
+      const counts = detections.reduce<Record<string, number>>((acc, d) => {
+        acc[d.reason] = (acc[d.reason] ?? 0) + 1;
+        return acc;
+      }, {});
+      console.error(
+        `   stretched: ${counts.stretched ?? 0} · caps: ${counts.caps ?? 0} · manual: ${counts.manual ?? 0}`
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+  });
+
 program.parse();

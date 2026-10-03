@@ -11,6 +11,7 @@ import {
   spring,
 } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -22,6 +23,8 @@ interface BounceProps extends CaptionStyleLayoutProps {
   readonly bounceColor?: string;
   readonly bounceHeight?: number;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Bounce: React.FC<BounceProps> = ({
@@ -33,6 +36,8 @@ export const Bounce: React.FC<BounceProps> = ({
   bounceHeight = 30,
   position = "bottom",
   maxWidth,
+  emphasisStyle,
+  emphasisColor,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -71,6 +76,7 @@ export const Bounce: React.FC<BounceProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: bounceColor });
 
           // Bounce spring — rises then falls
           const bounce = isActive
@@ -86,7 +92,7 @@ export const Bounce: React.FC<BounceProps> = ({
             : 0;
 
           const yOffset = isActive ? -bounceHeight * Math.sin(bounce * Math.PI) : 0;
-          const scale = isActive ? 1 + 0.15 * Math.sin(bounce * Math.PI) : 1;
+          const scale = (isActive ? 1 + 0.15 * Math.sin(bounce * Math.PI) : 1) * emph.scaleBoost;
 
           return (
             <span
@@ -95,12 +101,20 @@ export const Bounce: React.FC<BounceProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 700,
-                color: isActive ? bounceColor : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? bounceColor
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
                 transform: `translateY(${yOffset}px) scale(${scale})`,
-                textShadow: isActive
-                  ? `0 4px 15px ${bounceColor}60`
-                  : "0 2px 8px rgba(0,0,0,0.5)",
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? `0 4px 15px ${bounceColor}60`
+                    : "0 2px 8px rgba(0,0,0,0.5)",
               }}
             >
               {word.word}

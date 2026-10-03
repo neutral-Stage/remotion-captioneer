@@ -27,3 +27,8 @@ export {
   type Keyframe,
   type TimelineAnimation,
 } from "./timeline.js";
+
+export {
+  snapCaptionsToBeats,
+  type BeatSnapOptions,
+} from "./beat-snap.js";

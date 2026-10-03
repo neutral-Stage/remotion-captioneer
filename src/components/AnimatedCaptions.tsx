@@ -52,6 +52,8 @@ const sharedStyleProps = (
   | "maxWidth"
   | "wordsPerLine"
   | "useSmartWrap"
+  | "emphasisStyle"
+  | "emphasisColor"
 > => ({
   captions: props.captions,
   fontFamily: props.fontFamily,
@@ -62,6 +64,8 @@ const sharedStyleProps = (
   maxWidth: props.maxWidth,
   wordsPerLine: props.wordsPerLine,
   useSmartWrap: props.useSmartWrap,
+  emphasisStyle: props.emphasisStyle,
+  emphasisColor: props.emphasisColor,
 });
 
 const DEFAULT_SPEAKER_COLORS = [
@@ -117,13 +121,27 @@ export const AnimatedCaptions: React.FC<CaptionComponentProps> = (props) => {
     textDirection,
     showSpeakerLabels = false,
     speakerColors = DEFAULT_SPEAKER_COLORS,
+    speakerHighlight = false,
     captions,
   } = props;
 
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const timeMs = (frame / fps) * 1000;
-  const currentSeg = showSpeakerLabels ? activeSegment(captions.segments, timeMs) : undefined;
+  const speakerSeg =
+    showSpeakerLabels || speakerHighlight
+      ? activeSegment(captions.segments, timeMs)
+      : undefined;
+  const currentSeg = showSpeakerLabels ? speakerSeg : undefined;
+
+  // Recolor the animation to the active speaker so multi-speaker clips read
+  // like pro captions (each voice pops in its own color).
+  const effectiveHighlight =
+    speakerHighlight && speakerSeg?.speaker
+      ? speakerColors[
+          speakerColorIndex(speakerSeg.speaker, speakerColors.length)
+        ] ?? speakerColors[0]
+      : highlightColor;
 
   const dirStyle: React.CSSProperties | undefined =
     textDirection && textDirection !== "auto"
@@ -138,17 +156,17 @@ export const AnimatedCaptions: React.FC<CaptionComponentProps> = (props) => {
   const childProps = {
     ...sharedStyleProps(props),
     captions,
-    highlightColor,
-    waveColor: highlightColor,
-    glowColor: highlightColor,
-    pillColor: highlightColor,
-    flickerColor: highlightColor,
-    focusColor: highlightColor,
-    scaleColor: highlightColor,
-    spotlightColor: highlightColor,
-    fillColor: highlightColor,
-    bounceColor: highlightColor,
-    cursorColor: highlightColor,
+    highlightColor: effectiveHighlight,
+    waveColor: effectiveHighlight,
+    glowColor: effectiveHighlight,
+    pillColor: effectiveHighlight,
+    flickerColor: effectiveHighlight,
+    focusColor: effectiveHighlight,
+    scaleColor: effectiveHighlight,
+    spotlightColor: effectiveHighlight,
+    fillColor: effectiveHighlight,
+    bounceColor: effectiveHighlight,
+    cursorColor: effectiveHighlight,
     eraseColor: "#FF4444",
   };
 

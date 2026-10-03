@@ -17,6 +17,8 @@ export interface Word {
   startMs: number;
   endMs: number;
   confidence: number;
+  /** Flagged by `markEmphasis()` or set manually; rendered by emphasis-aware styles */
+  emphasis?: boolean;
 }
 
 /**
@@ -81,6 +83,12 @@ export interface CaptionComponentProps {
   showSpeakerLabels?: boolean;
   /** Optional palette for speaker label chips */
   speakerColors?: string[];
+  /** Recolor the caption animation to the active speaker's palette color */
+  speakerHighlight?: boolean;
+  /** Render `word.emphasis` words with an extra treatment (emphasis-aware styles) */
+  emphasisStyle?: "scale" | "color" | "glow";
+  /** Color used by `emphasisStyle` (defaults to `highlightColor`) */
+  emphasisColor?: string;
 }
 
 /**

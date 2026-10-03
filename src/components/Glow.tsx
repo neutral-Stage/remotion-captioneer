@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -17,6 +18,8 @@ interface GlowProps extends CaptionStyleLayoutProps {
   readonly glowColor?: string;
   readonly glowIntensity?: number;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Glow: React.FC<GlowProps> = ({
@@ -28,6 +31,8 @@ export const Glow: React.FC<GlowProps> = ({
   glowIntensity = 30,
   position = "bottom",
   maxWidth,
+  emphasisStyle,
+  emphasisColor,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -69,8 +74,10 @@ export const Glow: React.FC<GlowProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: glowColor });
 
           const glowAmount = isActive ? glowIntensity * pulse : 0;
+          const scale = emph.scaleBoost;
 
           return (
             <span
@@ -79,12 +86,21 @@ export const Glow: React.FC<GlowProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 700,
-                color: isActive ? "#fff" : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? "#fff"
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
-                textShadow: isActive
-                  ? `0 0 ${glowAmount}px ${glowColor}, 0 0 ${glowAmount * 2}px ${glowColor}80, 0 0 ${glowAmount * 3}px ${glowColor}40`
-                  : "0 2px 8px rgba(0,0,0,0.5)",
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? `0 0 ${glowAmount}px ${glowColor}, 0 0 ${glowAmount * 2}px ${glowColor}80, 0 0 ${glowAmount * 3}px ${glowColor}40`
+                    : "0 2px 8px rgba(0,0,0,0.5)",
                 filter: isActive ? `brightness(${1 + pulse * 0.3})` : "none",
+                ...(scale !== 1 ? { transform: `scale(${scale})` } : {}),
               }}
             >
               {word.word}

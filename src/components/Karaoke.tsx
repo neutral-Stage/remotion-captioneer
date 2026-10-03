@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual, type EmphasisStyleProps } from "./emphasis.js";
 import type { CaptionData, Word } from "../types.js";
 import { getActiveSegment, getActiveWordIndex, getWordProgress } from "../utils.js";
 
@@ -16,6 +17,8 @@ interface KaraokeProps extends CaptionStyleLayoutProps {
   readonly fillColor?: string;
   readonly baseColor?: string;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 const KaraokeWord: React.FC<{
@@ -26,7 +29,11 @@ const KaraokeWord: React.FC<{
   readonly fontSize: number;
   readonly fillColor: string;
   readonly baseColor: string;
-}> = ({ word, isActive, progress, fontFamily, fontSize, fillColor, baseColor }) => {
+  readonly emphasis: EmphasisStyleProps;
+}> = ({ word, isActive, progress, fontFamily, fontSize, fillColor, baseColor, emphasis }) => {
+  const emph = emphasisVisual(word, emphasis);
+  const scale = emph.scaleBoost === 1 ? undefined : `scale(${emph.scaleBoost})`;
+
   if (!isActive) {
     const isPast = progress >= 1;
     return (
@@ -35,9 +42,10 @@ const KaraokeWord: React.FC<{
           fontFamily,
           fontSize,
           fontWeight: 700,
-          color: isPast ? fillColor : baseColor,
+          color: emph.color ?? (isPast ? fillColor : baseColor),
           display: "inline-block",
-          textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+          textShadow: emph.textShadow ?? "0 2px 8px rgba(0,0,0,0.5)",
+          ...(scale ? { transform: scale } : {}),
         }}
       >
         {word.word}
@@ -46,6 +54,7 @@ const KaraokeWord: React.FC<{
   }
 
   const fillPercent = Math.round(progress * 100);
+  const emphFill = emph.color ?? fillColor;
 
   return (
     <span
@@ -54,11 +63,14 @@ const KaraokeWord: React.FC<{
         fontSize,
         fontWeight: 700,
         display: "inline-block",
-        background: `linear-gradient(90deg, ${fillColor} ${fillPercent}%, ${baseColor} ${fillPercent}%)`,
+        background: `linear-gradient(90deg, ${emphFill} ${fillPercent}%, ${baseColor} ${fillPercent}%)`,
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
         textShadow: "none",
-        filter: `drop-shadow(0 0 8px ${fillColor}60)`,
+        filter: emph.textShadow
+          ? `drop-shadow(0 0 12px ${emphFill})`
+          : `drop-shadow(0 0 8px ${emphFill}60)`,
+        ...(scale ? { transform: scale } : {}),
       }}
     >
       {word.word}
@@ -74,6 +86,8 @@ export const Karaoke: React.FC<KaraokeProps> = ({
   baseColor = "rgba(255,255,255,0.4)",
   position = "bottom",
   maxWidth,
+  emphasisStyle,
+  emphasisColor,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -123,6 +137,7 @@ export const Karaoke: React.FC<KaraokeProps> = ({
               fontSize={fontSize}
               fillColor={fillColor}
               baseColor={baseColor}
+              emphasis={{ emphasisStyle, emphasisColor, highlightColor: fillColor }}
             />
           );
         })}
