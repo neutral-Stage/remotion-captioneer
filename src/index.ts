@@ -38,6 +38,26 @@ export {
   type EmphasisReason,
 } from "./emphasis.js";
 
+// Caption QA
+export {
+  analyzePacing,
+  type PacingOptions,
+  type PacingReport,
+  type SegmentPacing,
+  type PacingStatus,
+} from "./pacing.js";
+
+export {
+  filterProfanity,
+  type ProfanityOptions,
+  type ProfanityMode,
+  type ProfanityMatch,
+  type ProfanityResult,
+} from "./profanity.js";
+
+// Render pipeline
+export type { RenderInputProps } from "./render/pipeline.js";
+
 // Components
 export {
   AnimatedCaptions,
