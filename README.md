@@ -100,8 +100,9 @@ Active word bounces up with spring physics.
 
 ## ✨ Features
 
-- 🧠 **Smart Captions** — Auto-emphasis detection, per-speaker caption colors, beat-snapped word timing
-- 🎥 **Zero-React Rendering** — `captioneer render captions.json --audio clip.mp3` outputs a captioned MP4
+- 🧠 **Smart Captions** — Auto-emphasis (stretched / caps / loud), per-speaker colors, beat-snapped timing, filler-word removal
+- 🎞️ **Custom Animations** — keyframe word motion as data; installable via marketplace style packages
+- 🎥 **Zero-React Rendering** — `captioneer render captions.json --audio clip.mp3` (or `--video footage.mp4`) outputs a captioned MP4
 - 📺 **Broadcast QA** — Characters-per-second pacing analysis + profanity filtering (mask/remove/flag)
 - 🎙️ **6 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs
 - 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
@@ -284,13 +285,39 @@ npx captioneer preview
 
 A style package is a small JSON file that layers colors/fonts on top of the 14 built-in animations — share the file (gist, repo raw URL) and anyone can `styles install` it.
 
+### 🎞️ Ship your own motion (custom animations)
+
+Since 1.1, a package can also define a **keyframe word animation** — colors must be hex, numbers are bounded, so packages stay inert data (no code execution):
+
+```json
+{
+  "schemaVersion": 1,
+  "meta": { "id": "pop-in", "name": "Pop In", "description": "Words pop and settle", "version": "1.0.0" },
+  "preset": {
+    "name": "Pop In", "description": "Words pop and settle",
+    "style": "word-highlight", "fontFamily": "Inter, sans-serif", "fontSize": 60,
+    "fontColor": "rgba(255,255,255,0.4)", "highlightColor": "#FE2C55", "position": "bottom",
+    "animation": {
+      "easing": "ease-out",
+      "keyframes": [
+        { "at": 0,   "scale": 0.4, "opacity": 0, "yOffset": 24 },
+        { "at": 0.6, "scale": 1.2, "opacity": 1, "yOffset": -6, "color": "#FE2C55" },
+        { "at": 1,   "scale": 1,   "opacity": 1, "yOffset": 0,  "color": "#FFFFFF" }
+      ]
+    }
+  }
+}
+```
+
+Use it inline too: `<AnimatedCaptions captions={c} animation={popIn} />` (see `examples/15-custom-animation.tsx`), or in the render CLI with `--animation anim.json`.
+
 ---
 
 ## 🧠 Smart Captions
 
 ### Auto-Emphasis
 
-Pro captioners manually flag the "juicy" words so they pop harder. `markEmphasis` does it automatically from word timings — stretched words (dragged-out delivery) and ALL-CAPS words (shouting) get flagged, your manual flags are kept:
+Pro captioners manually flag the "juicy" words so they pop harder. `markEmphasis` does it automatically from word timing and (optionally) audio energy — **stretched** words (dragged-out delivery), **ALL-CAPS** words (shouting), and **loud** words (spoken far above the volume baseline, when you pass `analyzeAudio()` volume frames) get flagged; your manual flags are kept:
 
 ```tsx
 import { AnimatedCaptions, markEmphasis } from "remotion-captioneer";
@@ -304,7 +331,28 @@ const emphasized = markEmphasis(captions); // pure: returns a new CaptionData
 />
 ```
 
-Emphasis rendering is supported by the `word-highlight`, `karaoke`, `bounce`, `pill`, and `glow` styles. Set `word.emphasis = true` yourself for full manual control, and use `detectEmphasis(captions)` to inspect what would be flagged. From the CLI: `npx captioneer emphasize captions.json --in-place`.
+Emphasis rendering is supported by the `word-highlight`, `karaoke`, `bounce`, `pill`, and `glow` styles. Set `word.emphasis = true` yourself for full manual control, and use `detectEmphasis(captions)` to inspect what would be flagged. From the CLI: `npx captioneer emphasize captions.json --in-place`. Loudness detection needs the audio:
+
+```ts
+import { markEmphasis, analyzeAudio } from "remotion-captioneer";
+
+const analysis = await analyzeAudio("./clip.mp3");
+const emphasized = markEmphasis(captions, {
+  audio: { volumeFrames: analysis.volumeFrames, loudFactor: 1.6 },
+});
+```
+
+### Filler-Word Removal
+
+Cut the "um"s and tighten speech — the podcast-clip edit, done from STT timing alone. `filterFillers` removes hesitation sounds and discourse fillers ("you know", "i mean") and optionally shifts following words earlier to close the gaps:
+
+```ts
+import { filterFillers } from "remotion-captioneer";
+
+const { captions: tight, matches } = filterFillers(captions, { closeGaps: true });
+```
+
+"like" is deliberately not in the default list (timing can't tell "I, like, guess" from "I like pizza") — opt in with `extraFillers`. From the CLI: `npx captioneer tighten captions.json --in-place`.
 
 ### Per-Speaker Colors
 
@@ -340,12 +388,19 @@ Not writing a Remotion app? Get a captioned MP4 straight from the CLI — captio
 
 ```bash
 npx captioneer process clip.mp3                    # 1. transcribe → captions.json
-npx captioneer emphasize captions.json --in-place  # 2. (optional) flag the juicy words
+npx captioneer tighten captions.json --in-place    # 2. (optional) cut the "um"s
+npx captioneer emphasize captions.json --in-place  # 3. (optional) flag the juicy words
 npx captioneer render captions.json \
-  --audio clip.mp3 --preset tiktok --out clip-captioned.mp4   # 3. render
+  --audio clip.mp3 --preset tiktok --out clip-captioned.mp4   # 4. render
 ```
 
-Style options mirror the component props (`--style`, `--preset`, `--color`, `--emphasis`, `--fps`, `--width`, `--height`). The first run needs the renderer packages — the CLI tells you if they're missing: `npm i -D @remotion/bundler@4 @remotion/renderer@4`.
+Caption existing footage instead of a bare audio track with `--video`:
+
+```bash
+npx captioneer render captions.json --video footage.mp4 --duration 12 --out captioned.mp4
+```
+
+Style options mirror the component props (`--style`, `--preset`, `--color`, `--emphasis`, `--fps`, `--width`, `--height`, `--animation` for custom keyframe motion). The first run needs the renderer packages — the CLI tells you if they're missing: `npm i -D @remotion/bundler@4 @remotion/renderer@4`.
 
 ---
 
@@ -945,7 +1000,7 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Export formats (SRT, VTT, ASS, TXT, word-level SRT & VTT)
 - [x] Project scaffolder (`npx captioneer init`)
 - [x] 10 working examples covering all features
-- [x] 13 CLI commands (init, process, batch, export, translate, emphasize, clean, pacing, render, preview, presets, providers, styles, demo)
+- [x] 14 CLI commands (init, process, batch, export, translate, emphasize, tighten, clean, pacing, render, preview, presets, providers, styles, demo)
 - [x] GitHub Pages demo with all 14 styles animated
 - [x] GitHub Actions CI/CD (build, test, release to npm, CodeQL)
 - [x] 0 vulnerabilities in npm audit
@@ -956,8 +1011,11 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 - [x] Auto-emphasis detection (`markEmphasis` + `emphasisStyle` rendering; `captioneer emphasize`)
 - [x] Per-speaker caption colors (`speakerHighlight`)
 - [x] Beat-snapped word timing (`snapCaptionsToBeats`)
-- [x] Zero-React MP4 rendering (`captioneer render captions.json --audio clip.mp3`)
+- [x] Zero-React MP4 rendering (`captioneer render captions.json --audio clip.mp3 --video footage.mp4`)
 - [x] Broadcast QA (pacing/CPS analysis `captioneer pacing`; profanity filter `captioneer clean`)
+- [x] Custom keyframe animations as data (`animation` prop, marketplace `preset.animation`, `--animation`)
+- [x] Filler-word removal with gap closing (`filterFillers`; `captioneer tighten`)
+- [x] Loud-word emphasis detection from audio volume (`markEmphasis` with `audio.volumeFrames`)
 - [x] ~~AI-powered auto-emoji~~ (`autoGenerateReactions()` — keyword-based emoji generation from 60+ word→emoji mappings)
 - [x] Multi-language caption support with RTL (OpenAI `translateCaptionData` + `captioneer translate`; `AnimatedCaptions` `textDirection="rtl"`)
 - [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)

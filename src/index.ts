@@ -34,9 +34,28 @@ export {
   detectEmphasis,
   markEmphasis,
   type EmphasisOptions,
+  type EmphasisAudioOptions,
   type EmphasizedWord,
   type EmphasisReason,
 } from "./emphasis.js";
+
+// Filler-word removal
+export {
+  filterFillers,
+  type FillerOptions,
+  type FillerMatch,
+  type FillerResult,
+} from "./fillers.js";
+
+// Custom keyframe animations
+export {
+  validateAnimationSpec,
+  sampleAnimation,
+  type AnimationSpec,
+  type AnimationEasing,
+  type WordKeyframe,
+  type ResolvedKeyframe,
+} from "./animation.js";
 
 // Caption QA
 export {
@@ -75,6 +94,7 @@ export {
   Rainbow,
   Scale,
   Spotlight,
+  Custom,
 } from "./components/index.js";
 
 // Whisper integration (local)

@@ -855,7 +855,10 @@ program
   .command("render")
   .description("Render a captioned MP4 from captions JSON — no React project needed")
   .argument("<caption-file>", "Path to caption JSON file")
-  .requiredOption("--audio <path>", "Audio file to render with the captions")
+  .option("--audio <path>", "Audio file to render with the captions")
+  .option("--video <path>", "Background video to caption (instead of --audio)")
+  .option("--animation <path>", "Custom keyframe animation JSON (overrides --style)")
+  .option("--duration <seconds>", "Output duration override (video longer than captions)")
   .option("--style <style>", "Built-in caption style (word-highlight, karaoke, glow, ...)")
   .option("--preset <preset>", "Built-in preset (tiktok, cinematic-gold, ...)")
   .option("--color <color>", "Highlight color")
@@ -870,10 +873,27 @@ program
       console.error(`❌ File not found: ${filePath}`);
       process.exit(1);
     }
-    const audioPath = resolve(opts.audio!);
-    if (!existsSync(audioPath)) {
-      console.error(`❌ Audio file not found: ${audioPath}`);
+    const mediaPath = opts.video ? resolve(opts.video) : opts.audio ? resolve(opts.audio) : null;
+    if (!mediaPath) {
+      console.error("❌ Provide --audio <file> or --video <file>");
       process.exit(1);
+    }
+    if (opts.video && opts.audio) {
+      console.error("❌ Use either --audio or --video, not both");
+      process.exit(1);
+    }
+    if (!existsSync(mediaPath)) {
+      console.error(`❌ Media file not found: ${mediaPath}`);
+      process.exit(1);
+    }
+    let animationJson: unknown;
+    if (opts.animation) {
+      const animationPath = resolve(opts.animation);
+      if (!existsSync(animationPath)) {
+        console.error(`❌ Animation file not found: ${animationPath}`);
+        process.exit(1);
+      }
+      animationJson = JSON.parse(readFileSync(animationPath, "utf-8"));
     }
 
     let bundleFn: typeof import("@remotion/bundler").bundle;
@@ -898,26 +918,34 @@ program
         await import("./render/pipeline.js");
       assertRenderableCaptions(captions);
 
-      // Remotion serves <Audio src> from the bundle's public dir, so stage
-      // the audio there under a fixed name and reference it via staticFile().
+      // Remotion serves media from the bundle's public dir, so stage the
+      // audio/video there under a fixed name and reference via staticFile().
       const { copyFileSync, mkdtempSync, rmSync } = await import("fs");
       const { tmpdir } = await import("os");
       const { basename: bn, extname: ext } = await import("path");
-      const audioExt = (ext(audioPath).toLowerCase().match(/^\.[a-z0-9]+$/)?.[0] ?? ".mp3");
-      const audioFile = `captioneer-audio${audioExt}`;
+      const mediaExt = (ext(mediaPath).toLowerCase().match(/^\.[a-z0-9]+$/)?.[0] ?? ".mp4");
+      const mediaFile = `captioneer-media${mediaExt}`;
       const publicDir = mkdtempSync(join(tmpdir(), "captioneer-render-"));
-      copyFileSync(audioPath, join(publicDir, audioFile));
+      copyFileSync(mediaPath, join(publicDir, mediaFile));
+
+      let animation: import("./animation.js").AnimationSpec | undefined;
+      if (animationJson !== undefined) {
+        const { validateAnimationSpec } = await import("./animation.js");
+        animation = validateAnimationSpec(animationJson);
+      }
 
       type RenderProps = import("./render/pipeline.js").RenderInputProps;
       const inputProps: RenderProps = {
         captions,
-        audioFile,
+        ...(opts.video ? { videoFile: mediaFile } : { audioFile: mediaFile }),
+        ...(animation ? { animation } : {}),
         ...(opts.style ? { style: opts.style as RenderProps["style"] } : {}),
         ...(opts.preset ? { preset: opts.preset } : {}),
         ...(opts.color ? { highlightColor: opts.color } : {}),
         ...(opts.emphasis
           ? { emphasisStyle: opts.emphasis as RenderProps["emphasisStyle"] }
           : {}),
+        ...(opts.duration ? { durationSeconds: Number(opts.duration) } : {}),
         fps: Number(opts.fps ?? 30),
         width: Number(opts.width ?? 1080),
         height: Number(opts.height ?? 1920),
@@ -956,6 +984,58 @@ program
         rmSync(publicDir, { recursive: true, force: true });
       }
       console.log(`\n✅ Rendered ${outPath} (${bn(outPath)})`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("tighten")
+  .description("Remove filler words (um, uh, you know...) from a captions JSON")
+  .argument("<caption-file>", "Path to caption JSON file")
+  .option("--report", "Report matches without changing the captions")
+  .option("--no-close-gaps", "Keep original word timing instead of shifting words earlier")
+  .option("--extra <words>", "Comma-separated extra fillers (single words or phrases)")
+  .option("--keep <words>", "Comma-separated fillers to keep")
+  .option("--in-place", "Rewrite the file in place (default: print to stdout)")
+  .action(async (captionFile: string, opts: Record<string, string | boolean | undefined>) => {
+    const filePath = resolve(captionFile);
+    if (!existsSync(filePath)) {
+      console.error(`❌ File not found: ${filePath}`);
+      process.exit(1);
+    }
+
+    try {
+      const parsed: unknown = JSON.parse(readFileSync(filePath, "utf-8"));
+      const { assertCaptionDataShape } = await import("./translate.js");
+      const captions = assertCaptionDataShape(parsed);
+      const { filterFillers } = await import("./fillers.js");
+
+      const list = (v: string | boolean | undefined): string[] | undefined =>
+        typeof v === "string" && v.trim().length > 0
+          ? v.split(",").map((w) => w.trim()).filter(Boolean)
+          : undefined;
+
+      const { captions: tightened, matches } = filterFillers(captions, {
+        remove: opts.report !== true,
+        closeGaps: opts.closeGaps !== false,
+        extraFillers: list(opts.extra),
+        keepFillers: list(opts.keep),
+      });
+
+      const savedMs = matches.reduce((acc, m) => acc + m.durationMs, 0);
+      if (opts.inPlace) {
+        writeFileSync(filePath, `${JSON.stringify(tightened, null, 2)}\n`, "utf8");
+        console.log(`✅ Wrote ${filePath}\n`);
+      } else if (opts.report !== true) {
+        process.stdout.write(`${JSON.stringify(tightened, null, 2)}\n`);
+      }
+      console.error(`   ${matches.length} filler(s) removed · ${(savedMs / 1000).toFixed(1)}s tighter`);
+      for (const m of matches.slice(0, 20)) {
+        console.error(`   [seg ${m.segmentIndex}] ${m.words.join(" ")}`);
+      }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`❌ ${message}`);
