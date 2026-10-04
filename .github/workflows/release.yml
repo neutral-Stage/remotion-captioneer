@@ -48,7 +48,14 @@ jobs:
         run: npm run test:e2e
 
       - name: Publish to npm
-        run: npm publish --access public
+        # Idempotent: a manual publish (or an expired NPM_TOKEN) must not
+        # fail the run when the version is already on the registry.
+        run: |
+          if npm view remotion-captioneer@$(node -p "require('./package.json').version") version >/dev/null 2>&1; then
+            echo "Version already published on npm — skipping publish."
+          else
+            npm publish --access public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
