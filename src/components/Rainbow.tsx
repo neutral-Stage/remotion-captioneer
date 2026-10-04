@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -16,6 +17,8 @@ interface RainbowProps extends CaptionStyleLayoutProps {
   readonly fontColor?: string;
   readonly speed?: number;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Rainbow: React.FC<RainbowProps> = ({
@@ -25,6 +28,8 @@ export const Rainbow: React.FC<RainbowProps> = ({
   fontColor = "rgba(255,255,255,0.35)",
   speed = 3,
   position = "bottom",
+  emphasisStyle,
+  emphasisColor,
   maxWidth,
 }) => {
   const frame = useCurrentFrame();
@@ -64,14 +69,18 @@ export const Rainbow: React.FC<RainbowProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor });
 
           // Rainbow hue based on frame + word index
           const hue = (frame * speed + i * 40) % 360;
-          const color = isActive
-            ? `hsl(${hue}, 100%, 65%)`
-            : isPast
-            ? "white"
-            : fontColor;
+          const color = emph.color
+            ? emph.color
+            : isActive
+              ? `hsl(${hue}, 100%, 65%)`
+              : isPast
+              ? "white"
+              : fontColor;
+          const scale = emph.scaleBoost;
 
           return (
             <span
@@ -82,9 +91,12 @@ export const Rainbow: React.FC<RainbowProps> = ({
                 fontWeight: 700,
                 color,
                 display: "inline-block",
-                textShadow: isActive
-                  ? `0 0 15px hsl(${hue}, 100%, 65%)60`
-                  : "0 2px 8px rgba(0,0,0,0.5)",
+                transform: scale !== 1 ? `scale(${scale})` : undefined,
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? `0 0 15px hsl(${hue}, 100%, 65%)60`
+                    : "0 2px 8px rgba(0,0,0,0.5)",
               }}
             >
               {word.word}

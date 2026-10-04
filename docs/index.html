@@ -88,7 +88,11 @@
       <p class="sub">Auto-cycles through all 14 styles — click a style below to lock it, then tune colors, font, and position in the configurator.</p>
     </div>
     <div class="player" role="region" aria-label="Caption style demo player">
-      <div class="scene"><canvas id="bgC" aria-hidden="true"></canvas><div class="cap-layer pos-bottom" id="capLayer"><div class="cap-el" id="cap" aria-live="polite"></div></div></div>
+      <div class="scene">
+        <canvas id="bgC" aria-hidden="true"></canvas>
+        <span class="speaker-chip" id="spChip" aria-hidden="true"></span>
+        <div class="cap-layer pos-bottom" id="capLayer"><div class="cap-el" id="cap" aria-live="polite"></div></div>
+      </div>
       <div class="ctrls">
         <button type="button" class="pb" id="ppb" aria-label="Play">▶</button>
         <div class="pprog" role="slider" aria-label="Playback progress" aria-valuemin="0" aria-valuemax="100"><div class="pfill" id="pf"></div></div>
@@ -96,6 +100,18 @@
         <span class="pst" id="psn">Word Highlight</span>
       </div>
       <div class="wave" id="wv" aria-hidden="true"></div>
+    </div>
+    <div class="smart-row" id="smartRow" role="group" aria-label="Smart caption toggles">
+      <span class="smart-label">Smart captions:</span>
+      <button type="button" class="smart-toggle" id="tgEmphasis" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9Z"/></svg>
+        Auto-emphasis
+      </button>
+      <button type="button" class="smart-toggle" id="tgSpeakers" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c.6-3.4 2.8-5 5.5-5s4.9 1.6 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 15.4c.5-.2 1-.3 1.5-.3 2 0 3.6 1.2 4.3 3.9"/></svg>
+        Per-speaker colors
+      </button>
+      <span class="smart-hint">toggles apply to every style — same props as the library</span>
     </div>
     <div class="side-ctrl" id="sgrid" role="toolbar" aria-label="Caption styles"></div>
     <div class="config-panel" id="configPanel"></div>
@@ -115,7 +131,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
         </div>
         <h4>Smart emphasis</h4>
-        <p>Stretched, shouted, and loud words get flagged from timing and audio energy alone — then pop with scale, color, or glow treatments.</p>
+        <p>Stretched, shouted, and loud words get flagged from timing and audio energy alone — then pop with scale, color, or glow in 12 of 14 styles.</p>
       </div>
       <div class="feat">
         <div class="feat-icon" aria-hidden="true">
@@ -144,6 +160,20 @@
         </div>
         <h4>Custom animations</h4>
         <p>Style packages ship their own keyframe word motion as pure data — bounded numbers and hex colors, no code execution.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12S7 5.5 12 5.5 20.5 12 20.5 12 17 18.5 12 18.5 3.5 12 3.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <h4>Style marketplace</h4>
+        <p>Install third-party style packages from a file or URL, or scaffold your own in one command — validated against a strict schema.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 4 5.6 4 9s-1.5 6.4-4 9c-2.5-2.6-4-5.6-4-9s1.5-6.4 4-9Z"/></svg>
+        </div>
+        <h4>Translation + RTL</h4>
+        <p>Translate caption data with word timing preserved, keep brand terms verbatim with a glossary, and render RTL scripts with one prop.</p>
       </div>
       <div class="feat">
         <div class="feat-icon" aria-hidden="true">
@@ -189,7 +219,7 @@ npx captioneer render captions.json \
     </div>
     <div class="feat-grid" style="margin-top:14px">
       <div class="feat"><h4>SRT · VTT · ASS · TXT</h4><p>Plus word-level SRT and WebVTT, and full <code>@remotion/captions</code> compatibility.</p></div>
-      <div class="feat"><h4>Translation + RTL</h4><p>Translate caption data with preserved word timing; RTL scripts render correctly with one prop.</p></div>
+      <div class="feat"><h4>Translation + glossary</h4><p>Translate with preserved word timing and a glossary that keeps brand terms verbatim; RTL scripts render with one prop.</p></div>
       <div class="feat"><h4>Audio sync hooks</h4><p><code>useBeatPulse</code>, <code>useVolume</code>, <code>useEnergy</code> — frame-accurate reactive animation.</p></div>
     </div>
     <div class="sync-bars" id="syncBars" aria-hidden="true"></div>
@@ -261,12 +291,16 @@ npx captioneer render captions.json \
       <tr><th>Command</th><th>What it does</th></tr>
       <tr><td><code>npx captioneer init my-video</code></td><td>Scaffold a new project</td></tr>
       <tr><td><code>npx captioneer process audio.mp3</code></td><td>Transcribe with any of the 6 STT providers</td></tr>
+      <tr><td><code>npx captioneer batch ./audio/</code></td><td>Process a whole directory</td></tr>
       <tr><td><code>npx captioneer tighten captions.json</code></td><td>Remove filler words and close timing gaps</td></tr>
       <tr><td><code>npx captioneer emphasize captions.json</code></td><td>Auto-flag the words worth popping</td></tr>
       <tr><td><code>npx captioneer pacing captions.json --strict</code></td><td>Broadcast readability gate (CI-ready exit code)</td></tr>
       <tr><td><code>npx captioneer clean captions.json</code></td><td>Mask or remove profanity</td></tr>
+      <tr><td><code>npx captioneer translate captions.json -t es</code></td><td>Translate with word timing preserved; <code>--glossary</code> keeps brand terms verbatim</td></tr>
+      <tr><td><code>npx captioneer export captions.json --format srt</code></td><td>Export SRT · VTT · ASS · TXT · word-level variants</td></tr>
       <tr><td><code>npx captioneer render captions.json --audio clip.mp3</code></td><td>Render a captioned MP4 — or <code>--video</code> for footage</td></tr>
       <tr><td><code>npx captioneer styles create "My Style"</code></td><td>Scaffold a shareable marketplace style package</td></tr>
+      <tr><td><code>npx captioneer styles install &lt;file|url&gt;</code></td><td>Install a style package (list/validate subcommands too)</td></tr>
       <tr><td><code>npx captioneer preview</code></td><td>Live preview editor with the Remotion Player</td></tr>
       <tr><td><code>npx captioneer demo</code></td><td>Open Remotion Studio (all 14 styles)</td></tr>
     </table>

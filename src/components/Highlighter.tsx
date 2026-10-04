@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -17,6 +18,8 @@ interface HighlighterProps extends CaptionStyleLayoutProps {
   readonly highlightColor?: string;
   readonly highlightOpacity?: number;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Highlighter: React.FC<HighlighterProps> = ({
@@ -27,6 +30,8 @@ export const Highlighter: React.FC<HighlighterProps> = ({
   highlightColor = "#FFEB3B",
   highlightOpacity = 0.7,
   position = "bottom",
+  emphasisStyle,
+  emphasisColor,
   maxWidth,
 }) => {
   const frame = useCurrentFrame();
@@ -66,6 +71,8 @@ export const Highlighter: React.FC<HighlighterProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor });
+          const scale = emph.scaleBoost;
 
           return (
             <span
@@ -74,15 +81,32 @@ export const Highlighter: React.FC<HighlighterProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 700,
-                color: isActive ? "#000" : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? "#000"
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
                 backgroundColor: isActive
                   ? `${highlightColor}${Math.round(highlightOpacity * 255).toString(16).padStart(2, "0")}`
                   : "transparent",
                 padding: isActive ? "2px 8px" : "0",
                 borderRadius: "4px",
-                transform: isActive ? "rotate(-1deg)" : "none",
-                textShadow: isActive ? "none" : "0 2px 8px rgba(0,0,0,0.5)",
+                transform:
+                  isActive && scale !== 1
+                    ? `rotate(-1deg) scale(${scale})`
+                    : isActive
+                      ? "rotate(-1deg)"
+                      : scale !== 1
+                        ? `scale(${scale})`
+                        : "none",
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? "none"
+                    : "0 2px 8px rgba(0,0,0,0.5)",
               }}
             >
               {word.word}

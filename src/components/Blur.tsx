@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -17,6 +18,8 @@ interface BlurProps extends CaptionStyleLayoutProps {
   readonly focusColor?: string;
   readonly blurAmount?: number;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Blur: React.FC<BlurProps> = ({
@@ -27,6 +30,8 @@ export const Blur: React.FC<BlurProps> = ({
   focusColor = "#FFFFFF",
   blurAmount = 8,
   position = "bottom",
+  emphasisStyle,
+  emphasisColor,
   maxWidth,
 }) => {
   const frame = useCurrentFrame();
@@ -66,9 +71,13 @@ export const Blur: React.FC<BlurProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: focusColor });
+          const isEmph = Boolean(word.emphasis && emphasisStyle);
 
-          const blur = isActive ? 0 : isPast ? 0 : blurAmount;
-          const opacity = isActive ? 1 : isPast ? 0.9 : 0.3;
+          // Emphasized words stay readable instead of resting blurred.
+          const blur = isActive || isEmph ? 0 : isPast ? 0 : blurAmount;
+          const opacity = isActive ? 1 : isPast || isEmph ? 0.9 : 0.3;
+          const scale = emph.scaleBoost;
 
           return (
             <span
@@ -77,13 +86,22 @@ export const Blur: React.FC<BlurProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 700,
-                color: isActive ? focusColor : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? focusColor
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
                 filter: `blur(${blur}px)`,
                 opacity,
-                textShadow: isActive
-                  ? "0 0 20px rgba(255,255,255,0.3)"
-                  : "0 2px 8px rgba(0,0,0,0.5)",
+                transform: scale !== 1 ? `scale(${scale})` : undefined,
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? "0 0 20px rgba(255,255,255,0.3)"
+                    : "0 2px 8px rgba(0,0,0,0.5)",
               }}
             >
               {word.word}

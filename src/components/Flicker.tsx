@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -16,6 +17,8 @@ interface FlickerProps extends CaptionStyleLayoutProps {
   readonly fontColor?: string;
   readonly flickerColor?: string;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Flicker: React.FC<FlickerProps> = ({
@@ -25,6 +28,8 @@ export const Flicker: React.FC<FlickerProps> = ({
   fontColor = "rgba(255,255,255,0.25)",
   flickerColor = "#FF9500",
   position = "bottom",
+  emphasisStyle,
+  emphasisColor,
   maxWidth,
 }) => {
   const frame = useCurrentFrame();
@@ -64,6 +69,8 @@ export const Flicker: React.FC<FlickerProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: flickerColor });
+          const isEmph = Boolean(word.emphasis && emphasisStyle);
 
           // Flicker effect: rapidly toggle opacity for active word
           let opacity = isPast ? 1 : isActive ? 0.4 : 0.25;
@@ -72,6 +79,9 @@ export const Flicker: React.FC<FlickerProps> = ({
             const flickerFrame = frame % 8;
             opacity = [1, 0.2, 1, 1, 0.3, 1, 1, 0.2][flickerFrame];
           }
+          // Emphasized words never fade into the dim idle state.
+          if (!isActive && !isPast && isEmph) opacity = 0.9;
+          const scale = emph.scaleBoost;
 
           return (
             <span
@@ -80,14 +90,23 @@ export const Flicker: React.FC<FlickerProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 700,
-                color: isActive ? flickerColor : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? flickerColor
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
                 opacity,
-                textShadow: isActive
-                  ? `0 0 10px ${flickerColor}, 0 0 20px ${flickerColor}60`
-                  : isPast
-                  ? "0 2px 8px rgba(0,0,0,0.5)"
-                  : "none",
+                transform: scale !== 1 ? `scale(${scale})` : undefined,
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? `0 0 10px ${flickerColor}, 0 0 20px ${flickerColor}60`
+                    : isPast
+                    ? "0 2px 8px rgba(0,0,0,0.5)"
+                    : "none",
               }}
             >
               {word.word}

@@ -331,7 +331,7 @@ const emphasized = markEmphasis(captions); // pure: returns a new CaptionData
 />
 ```
 
-Emphasis rendering is supported by the `word-highlight`, `karaoke`, `bounce`, `pill`, and `glow` styles. Set `word.emphasis = true` yourself for full manual control, and use `detectEmphasis(captions)` to inspect what would be flagged. From the CLI: `npx captioneer emphasize captions.json --in-place`. Loudness detection needs the audio:
+Emphasis rendering is supported by 12 of the 14 styles — everything except the two typewriter styles, which reveal text as continuous strings. Set `word.emphasis = true` yourself for full manual control, and use `detectEmphasis(captions)` to inspect what would be flagged. From the CLI: `npx captioneer emphasize captions.json --in-place`. Loudness detection needs the audio:
 
 ```ts
 import { markEmphasis, analyzeAudio } from "remotion-captioneer";
@@ -810,6 +810,9 @@ npx captioneer export captions.json --format vtt --output subs.vtt
 # Translate caption JSON (OpenAI; preserves word-level timings)
 npx captioneer translate captions.json --target es
 npx captioneer translate captions.json --target ar -o captions-ar.json
+
+# Translate while keeping brand terms verbatim
+npx captioneer translate captions.json --target es --glossary "Voxily:Voxily,Remotion:Remotion"
 
 # Batch process a directory of audio files
 npx captioneer batch ./audio-files/
