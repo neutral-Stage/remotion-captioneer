@@ -39,8 +39,14 @@ let S = {
   li: 0,
   auto: true,
   accent: "#3b82f6",
+  emphasis: false,
+  speakers: false,
   config: { fontSize: 22, position: "bottom", wordsPerLine: 0, useSmartWrap: false },
 };
+const SPEAKERS = [
+  { id: "S1", label: "Speaker 1", color: "#3b82f6" },
+  { id: "S2", label: "Speaker 2", color: "#f59e0b" },
+];
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 async function init() {
@@ -58,6 +64,7 @@ async function init() {
   buildConfigurator();
   setupCtrl();
   setupExp();
+  setupSmart();
   loadConfig();
   applyUrlParams();
   applyCapPosition();
@@ -488,7 +495,13 @@ function buildSync() {
 function loadLine() {
   const ln = LINES[S.li % LINES.length];
   const w = ln.split(" ");
-  S.caps = w.map((t, i) => ({ text: t, start: i * WD, end: (i + 1) * WD }));
+  S.caps = w.map((t, i) => ({
+    text: t,
+    start: i * WD,
+    end: (i + 1) * WD,
+    // Demo of detectEmphasis(): long words read as the "juicy" ones.
+    emph: t.replace(/[^A-Za-z]/g, "").length >= 8,
+  }));
   S.dur = w.length * WD;
 }
 
@@ -640,10 +653,12 @@ function resetCapStyles(el) {
 
 function renderCap(cap, elapsed) {
   const el = document.getElementById("cap");
-  const bg = S.accent;
+  const speaker = SPEAKERS[S.li % SPEAKERS.length];
+  const bg = S.speakers ? speaker.color : S.accent;
   const p = Math.max(0, Math.min(1, (elapsed - cap.start) / (cap.end - cap.start)));
   const text = cap.text;
   resetCapStyles(el);
+  document.getElementById("wv").style.setProperty("--wb-color", bg);
 
   switch (S.st) {
     case "karaoke": {
@@ -736,6 +751,42 @@ function renderCap(cap, elapsed) {
       el.style.color = bg;
       el.style.textShadow = `0 0 18px ${bg}`;
   }
+  if (S.emphasis && cap.emph) el.classList.add("emph-on");
+}
+
+function setupSmart() {
+  const chip = document.getElementById("spChip");
+  const paintChip = () => {
+    if (!chip) return;
+    if (!S.speakers) {
+      chip.style.display = "none";
+      return;
+    }
+    const speaker = SPEAKERS[S.li % SPEAKERS.length];
+    chip.style.display = "";
+    chip.textContent = speaker.label;
+    chip.style.background = speaker.color;
+  };
+  const wire = (id, key) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.onclick = () => {
+      S[key] = !S[key];
+      btn.setAttribute("aria-pressed", String(S[key]));
+      btn.classList.toggle("on", S[key]);
+      paintChip();
+      if (!S.on) play();
+    };
+  };
+  wire("tgEmphasis", "emphasis");
+  wire("tgSpeakers", "speakers");
+  // Repaint the chip whenever the demo advances to another line.
+  const origLoadLine = loadLine;
+  loadLine = function () {
+    origLoadLine();
+    paintChip();
+  };
+  paintChip();
 }
 
 function setupExp() {

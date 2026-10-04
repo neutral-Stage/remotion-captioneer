@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -17,6 +18,8 @@ interface ScaleProps extends CaptionStyleLayoutProps {
   readonly scaleColor?: string;
   readonly maxScale?: number;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Scale: React.FC<ScaleProps> = ({
@@ -27,6 +30,8 @@ export const Scale: React.FC<ScaleProps> = ({
   scaleColor = "#34D399",
   maxScale = 1.4,
   position = "bottom",
+  emphasisStyle,
+  emphasisColor,
   maxWidth,
 }) => {
   const frame = useCurrentFrame();
@@ -66,8 +71,9 @@ export const Scale: React.FC<ScaleProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: scaleColor });
 
-          const scale = isActive
+          const baseScale = isActive
             ? spring({
                 frame,
                 fps,
@@ -76,6 +82,10 @@ export const Scale: React.FC<ScaleProps> = ({
             : isPast
             ? 1
             : 0.7;
+          // Emphasized idle words rest at full size instead of 0.7.
+          const scale =
+            (!isActive && !isPast && word.emphasis && emphasisStyle ? 1 : baseScale) *
+            emph.scaleBoost;
 
           return (
             <span
@@ -84,12 +94,20 @@ export const Scale: React.FC<ScaleProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 700,
-                color: isActive ? scaleColor : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? scaleColor
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
                 transform: `scale(${scale})`,
-                textShadow: isActive
-                  ? `0 0 15px ${scaleColor}60`
-                  : "0 2px 8px rgba(0,0,0,0.5)",
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? `0 0 15px ${scaleColor}60`
+                    : "0 2px 8px rgba(0,0,0,0.5)",
               }}
             >
               {word.word}

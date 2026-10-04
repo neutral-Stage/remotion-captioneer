@@ -259,6 +259,7 @@ export {
   translateCaptionData,
   assertValidTargetLanguageTag,
   assertCaptionDataShape,
+  formatGlossaryForPrompt,
   type TranslateCaptionsOptions,
 } from "./translate.js";
 

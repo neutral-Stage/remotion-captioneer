@@ -28,7 +28,7 @@ type ProcessOpts = {
 };
 
 type ExportOpts = { format?: string; output?: string };
-type TranslateOpts = { target: string; output?: string; apiKey?: string; model?: string };
+type TranslateOpts = { target: string; output?: string; apiKey?: string; model?: string; glossary?: string };
 type BatchOpts = ProcessOpts & {
   outputDir?: string;
   extensions?: string;
@@ -490,6 +490,7 @@ program
   .option("-o, --output <path>", "Output JSON path")
   .option("-k, --api-key <key>", "OpenAI API key (defaults to OPENAI_API_KEY)")
   .option("-m, --model <model>", "OpenAI chat model", "gpt-4o-mini")
+  .option("--glossary <pairs>", 'Keep terms verbatim: "Voxily:Voxily,New Term:Neuer Begriff"')
   .action(async (captionFile: string, opts: TranslateOpts) => {
     const { resolve: res, basename: bn, extname: ext } = await import("path");
 
@@ -520,10 +521,27 @@ program
       );
       const captions = assertCaptionDataShape(parsed);
 
+      let glossary: Record<string, string> | undefined;
+      if (opts.glossary) {
+        glossary = {};
+        for (const pair of opts.glossary.split(",")) {
+          const separator = pair.indexOf(":");
+          if (separator <= 0 || separator === pair.length - 1) {
+            throw new Error(
+              `Invalid glossary pair "${pair.trim()}" — use "from:to" separated by commas`
+            );
+          }
+          glossary[pair.slice(0, separator).trim()] = pair
+            .slice(separator + 1)
+            .trim();
+        }
+      }
+
       const translated = await translateCaptionData(captions, {
         targetLanguage: opts.target,
         apiKey: opts.apiKey,
         model: opts.model,
+        glossary,
         onProgress: (msg) => console.log(`   ${msg}`),
       });
 

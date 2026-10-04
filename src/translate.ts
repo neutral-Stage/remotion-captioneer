@@ -18,10 +18,54 @@ export type TranslateCaptionsOptions = {
   updateLanguage?: boolean;
   /** Progress callback for batched translation */
   onProgress?: (message: string) => void;
+  /**
+   * Terms that must survive translation verbatim: brand names, product
+   * names, proper nouns. Identity maps ("Voxily": "Voxily") keep the term
+   * untranslated; non-identity maps force an exact replacement spelling.
+   */
+  glossary?: Record<string, string>;
 };
 
 /** Segments per OpenAI request to avoid huge prompts and truncated JSON. */
 const SEGMENT_BATCH_SIZE = 25;
+
+const GLOSSARY_TERM_MAX = 64;
+const GLOSSARY_MAX_ENTRIES = 100;
+// Prompt-injection-safe term charset: word characters, spaces, and common
+// punctuation that cannot break out of the instruction block.
+const GLOSSARY_TERM_PATTERN = /^[\w\s'’.\-&#/()]+$/;
+
+/**
+ * Validate and format a glossary for the system prompt. Terms are restricted
+ * to a safe charset so they cannot inject instructions; the returned string
+ * is embedded verbatim after the rules block.
+ */
+export function formatGlossaryForPrompt(glossary: Record<string, string>): string {
+  const entries = Object.entries(glossary);
+  if (entries.length === 0) {
+    throw new Error("Glossary is empty — pass at least one term");
+  }
+  if (entries.length > GLOSSARY_MAX_ENTRIES) {
+    throw new Error(`Glossary has ${entries.length} entries — max ${GLOSSARY_MAX_ENTRIES}`);
+  }
+  return entries
+    .map(([from, to]) => {
+      for (const term of [from, to]) {
+        const trimmed = term.trim();
+        if (
+          trimmed.length === 0 ||
+          trimmed.length > GLOSSARY_TERM_MAX ||
+          !GLOSSARY_TERM_PATTERN.test(trimmed)
+        ) {
+          throw new Error(
+            `Invalid glossary term "${term}" — use 1–64 chars of letters, digits, spaces, and .-'&()/`
+          );
+        }
+      }
+      return from === to ? `"${from.trim()}"` : `"${from.trim()}" → "${to.trim()}"`;
+    })
+    .join(", ");
+}
 
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
@@ -150,6 +194,11 @@ async function translateWordListsBatch(
   const timeoutMs = opts.timeoutMs ?? 120_000;
 
   // safeTargetLanguage is already validated — safe to embed in instructions.
+  // Glossary terms go through the same validation before touching the prompt.
+  const glossaryLine = opts.glossary
+    ? `- Keep these terms verbatim in the output (do not translate or reword them): ${formatGlossaryForPrompt(opts.glossary)}.`
+    : null;
+
   const payload = {
     model,
     temperature: 0.2,
@@ -165,6 +214,7 @@ async function translateWordListsBatch(
           "- Same number of segments as input, same order.",
           "- Each segment has the same number of words as input, same order.",
           '- Preserve punctuation attached to words (e.g. "hello," stays one token).',
+          ...(glossaryLine ? [glossaryLine] : []),
           "- Do not add explanations.",
         ].join("\n"),
       },
@@ -209,6 +259,8 @@ export async function translateCaptionData(
   opts: TranslateCaptionsOptions
 ): Promise<CaptionData> {
   const safeTargetLanguage = assertValidTargetLanguageTag(opts.targetLanguage);
+  // Fail fast on an unsafe glossary before any network traffic.
+  if (opts.glossary) formatGlossaryForPrompt(opts.glossary);
 
   const input = captionData.segments.map((s) => ({
     words: s.words.map((w) => w.word),

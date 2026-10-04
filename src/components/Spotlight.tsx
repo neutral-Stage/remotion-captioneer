@@ -6,6 +6,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { captionBoxMaxWidth, type CaptionStyleLayoutProps } from "./style-props.js";
+import { emphasisVisual } from "./emphasis.js";
 import type { CaptionData } from "../types.js";
 import { getActiveSegment, getActiveWordIndex } from "../utils.js";
 
@@ -16,6 +17,8 @@ interface SpotlightProps extends CaptionStyleLayoutProps {
   readonly fontColor?: string;
   readonly spotlightColor?: string;
   readonly position?: "top" | "center" | "bottom";
+  readonly emphasisStyle?: "scale" | "color" | "glow";
+  readonly emphasisColor?: string;
 }
 
 export const Spotlight: React.FC<SpotlightProps> = ({
@@ -25,6 +28,8 @@ export const Spotlight: React.FC<SpotlightProps> = ({
   fontColor = "rgba(255,255,255,0.3)",
   spotlightColor = "#FBBF24",
   position = "bottom",
+  emphasisStyle,
+  emphasisColor,
   maxWidth,
 }) => {
   const frame = useCurrentFrame();
@@ -64,6 +69,8 @@ export const Spotlight: React.FC<SpotlightProps> = ({
         {segment.words.map((word, i) => {
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
+          const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: spotlightColor });
+          const scale = emph.scaleBoost;
 
           return (
             <span
@@ -72,7 +79,13 @@ export const Spotlight: React.FC<SpotlightProps> = ({
                 fontFamily,
                 fontSize,
                 fontWeight: 700,
-                color: isActive ? "#000" : isPast ? "white" : fontColor,
+                color: emph.color
+                  ? emph.color
+                  : isActive
+                    ? "#000"
+                    : isPast
+                      ? "white"
+                      : fontColor,
                 display: "inline-block",
                 backgroundColor: isActive ? spotlightColor : "transparent",
                 backgroundImage: isActive
@@ -80,7 +93,12 @@ export const Spotlight: React.FC<SpotlightProps> = ({
                   : "none",
                 padding: isActive ? "4px 16px" : "0",
                 borderRadius: isActive ? "8px" : "0",
-                textShadow: isActive ? "none" : "0 2px 8px rgba(0,0,0,0.5)",
+                transform: scale !== 1 ? `scale(${scale})` : undefined,
+                textShadow: emph.textShadow
+                  ? emph.textShadow
+                  : isActive
+                    ? "none"
+                    : "0 2px 8px rgba(0,0,0,0.5)",
                 boxShadow: isActive
                   ? `0 0 30px ${spotlightColor}80, 0 0 60px ${spotlightColor}40`
                   : "none",
