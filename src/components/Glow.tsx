@@ -65,7 +65,7 @@ export const Glow: React.FC<GlowProps> = ({
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "baseline",
           gap: "8px 14px",
           maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",

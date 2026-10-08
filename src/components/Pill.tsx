@@ -64,7 +64,7 @@ export const Pill: React.FC<PillProps> = ({
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "baseline",
           gap: "6px 10px",
           maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
