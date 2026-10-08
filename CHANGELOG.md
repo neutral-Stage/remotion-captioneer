@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.2.0 — 2026-10-08
+
+The autopilot release: one command from raw audio to a finished, captioned MP4 — plus the AI-agent surface and long-overdue whisper.cpp compatibility fixes.
+
+### 🚀 One-command autopilot
+
+```bash
+npx captioneer autopilot clip.mp3 --preset tiktok
+```
+
+Transcribes → removes filler words → auto-emphasizes → renders the captioned MP4. Local whisper auto-installs on first use (clone + build + tiny model); video input burns captions over its own footage; the processed captions JSON is saved next to the output for reuse. Flags pass through: `--provider`, `--style`/`--preset`/`--color`/`--emphasis`, `--no-tighten`, `--no-emphasize`, `--fps`/`--width`/`--height`.
+
+Verified end-to-end on real speech from a cold machine: whisper built, 21 words transcribed with true per-word timing, 2 fillers removed, 1 word emphasized, 225-frame MP4 rendered.
+
+### 🩺 `captioneer doctor`
+
+Environment health report — Node/runtime, STT keys (with local-whisper fallback noted), renderer packages, whisper config. Warns on optional pieces instead of failing.
+
+### 🤖 AI-agent friendly
+
+- **`llms.txt`** — full API / CLI / data-format cheatsheet in the emerging llms.txt format: install, one-command pipeline, React snippet, every core function, CaptionData + style package + animation schemas, and agent tips (transform order, quality gates). Linked from the landing footer and README.
+- All caption transforms are pure JSON-in/JSON-out with `--in-place` / stdout modes — agent-scriptable by design.
+
+### 🐛 whisper.cpp compatibility (local STT was broken on current builds)
+
+- Binary detection probes `whisper-cli` (upstream renamed from `main`) with legacy fallback; half-installed clones rebuild instead of re-cloning
+- CLI invocation fixed for current builds (`-oj` is a flag; no `"false"` value args — they were parsed as input files)
+- Word-level timing restored: run with `--max-len 1` and parse per-word millisecond `offsets`, re-chunked into readable caption segments; legacy timed-token JSON still parses; special tokens (`[_BEG_]`, `[_TT_*]`) and zero-duration words filtered
+
+### 🎬 Landing page
+
+The live demo now renders real caption lines (past words lit, active word animated per style, future words dim) across all 14 styles — replacing the one-word-at-a-time flash that misrepresented the components. Autopilot leads the pipeline section; the CLI table covers all 16 commands; roadmap reorganized into grouped Completed and an honest Future.
+
 ## 1.1.0 — 2026-10-04
 
 The production-pipeline release: everything between raw audio and a finished, watchable clip.
