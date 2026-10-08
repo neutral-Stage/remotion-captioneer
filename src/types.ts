@@ -101,6 +101,8 @@ export interface WhisperOptions {
   language?: string;
   whisperPath?: string;
   modelPath?: string;
+  /** Initial prompt to bias transcription (brand names, domain terms) */
+  prompt?: string;
 }
 
 /**

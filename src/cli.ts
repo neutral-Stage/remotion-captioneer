@@ -1105,6 +1105,7 @@ program
   .option("-m, --model <model>", "Model name (provider-specific)")
   .option("-k, --api-key <key>", "API key (or use env vars)")
   .option("-l, --language <lang>", "Language code (e.g. en, es, fr)")
+  .option("--prompt <text>", "Bias transcription with brand names/terms (local whisper)")
   .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
   .option("--preset <preset>", "Built-in preset (tiktok, cinematic-gold, ...)")
   .option("--style <style>", "Built-in caption style (overrides the preset's style)")
@@ -1139,9 +1140,10 @@ program
     console.log(`📡 Provider: ${providerName}\n`);
 
     try {
-      // 1. Transcribe (local whisper auto-installs on first use)
+      // 1. Transcribe (local whisper auto-installs on first use). "base" is
+      // the default — meaningfully more accurate than "tiny" for real speech.
       const whisperModel =
-        providerName === "local" ? (typeof opts.model === "string" ? opts.model : "tiny") : undefined;
+        providerName === "local" ? (typeof opts.model === "string" ? opts.model : "base") : undefined;
       if (providerName === "local") {
         const { installWhisper, downloadModel } = await import("./whisper.js");
         await installWhisper(config?.whisperPath);
@@ -1155,6 +1157,7 @@ program
         language: typeof opts.language === "string" ? opts.language : config?.defaultLanguage,
         whisperPath: config?.whisperPath,
         modelPath: config?.modelPath,
+        prompt: typeof opts.prompt === "string" ? opts.prompt : undefined,
         diarize: opts.diarize === true,
       });
       console.log(`🎙️  ${captions.segments.length} segments transcribed`);

@@ -28,6 +28,8 @@ Environment health report — Node/runtime, STT keys (with local-whisper fallbac
 - Binary detection probes `whisper-cli` (upstream renamed from `main`) with legacy fallback; half-installed clones rebuild instead of re-cloning
 - CLI invocation fixed for current builds (`-oj` is a flag; no `"false"` value args — they were parsed as input files)
 - Word-level timing restored: run with `--max-len 1` and parse per-word millisecond `offsets`, re-chunked into readable caption segments; legacy timed-token JSON still parses; special tokens (`[_BEG_]`, `[_TT_*]`) and zero-duration words filtered
+- **Proper word merging**: whisper emits *tokens*, not words — subword continuations ("caption" + "ier"), contraction tails ("let" + "'s"), and standalone punctuation now fold into the preceding word via each token's raw leading-space signal, so captions never show lone commas or split words
+- **Autopilot defaults to the `base` model** (meaningfully better than `tiny` on real speech) and supports **`--prompt "Your Brand Name"`** to bias transcription toward brand names and domain vocabulary
 
 ### 🎬 Landing page
 
