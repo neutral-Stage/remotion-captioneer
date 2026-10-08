@@ -29,6 +29,7 @@ Environment health report — Node/runtime, STT keys (with local-whisper fallbac
 - CLI invocation fixed for current builds (`-oj` is a flag; no `"false"` value args — they were parsed as input files)
 - Word-level timing restored: run with `--max-len 1` and parse per-word millisecond `offsets`, re-chunked into readable caption segments; legacy timed-token JSON still parses; special tokens (`[_BEG_]`, `[_TT_*]`) and zero-duration words filtered
 - **Proper word merging**: whisper emits *tokens*, not words — subword continuations ("caption" + "ier"), contraction tails ("let" + "'s"), and standalone punctuation now fold into the preceding word via each token's raw leading-space signal, so captions never show lone commas or split words
+- **Emphasis no longer squashes word spacing**: the `scale` emphasis mode boosts font size instead of transform scale — transform-only scaling painted glyphs outside their layout box and ate the inter-word gaps (pixel-verified: word gaps restored to 16–20px with multiple emphasized words on a line)
 - **Autopilot defaults to the `base` model** (meaningfully better than `tiny` on real speech) and supports **`--prompt "Your Brand Name"`** to bias transcription toward brand names and domain vocabulary
 
 ### 🎬 Landing page
