@@ -92,6 +92,34 @@ export async function downloadModel(
 }
 
 /**
+ * Fold whisper's token stream into real words. With `--max-len 1` every
+ * token becomes its own segment, but a token's raw text reveals its role:
+ * word-initial tokens carry a leading space, continuation tokens
+ * ("caption" + "ier", "let" + "'s") and punctuation (",") do not.
+ */
+function mergeTokenStream(tokens: Array<{ raw: string; word: Word }>): Word[] {
+  const out: Word[] = [];
+  for (const { raw, word } of tokens) {
+    const isWordInitial = /^\s/.test(raw);
+    const isPunctuation = /^[\p{P}]+$/u.test(word.word);
+    const prev = out[out.length - 1];
+    if (prev && (isPunctuation || !isWordInitial)) {
+      // Continuation token ("caption"+"ier", "let"+"'s") or standalone
+      // punctuation (","): append without a space.
+      out[out.length - 1] = {
+        ...prev,
+        word: prev.word + word.word,
+        endMs: Math.max(prev.endMs, word.endMs),
+      };
+    } else if (!isPunctuation) {
+      out.push({ ...word });
+    }
+    // Punctuation with no preceding word is dropped.
+  }
+  return out;
+}
+
+/**
  * Parse whisper.cpp JSON output into CaptionData.
  *
  * Handles both output generations:
@@ -115,35 +143,43 @@ function parseWhisperOutput(jsonPath: string): CaptionData {
 
   if (legacyTimedTokens) {
     segments = entries.map((seg) => {
-      const words: Word[] = (seg.tokens || [])
+      const tokens = (seg.tokens || [])
         .filter((t) => !isSpecialToken(t.text?.trim() ?? ""))
         .map((t) => ({
-          word: t.text!.trim(),
-          startMs: Math.round(((t.t0 ?? 0) / 100) * 1000),
-          endMs: Math.round(((t.t1 ?? 0) / 100) * 1000),
-          confidence: t.p ?? 1.0,
+          raw: t.text ?? "",
+          word: {
+            word: t.text!.trim(),
+            startMs: Math.round(((t.t0 ?? 0) / 100) * 1000),
+            endMs: Math.round(((t.t1 ?? 0) / 100) * 1000),
+            confidence: t.p ?? 1.0,
+          } as Word,
         }))
-        .filter((w) => w.endMs > w.startMs);
+        .filter((t) => t.word.endMs > t.word.startMs);
       return {
         text: seg.text?.trim() ?? "",
         startMs: Math.round(((seg.t0 ?? 0) / 100) * 1000),
         endMs: Math.round(((seg.t1 ?? 0) / 100) * 1000),
-        words,
+        words: mergeTokenStream(tokens),
       };
     }).filter((s) => s.words.length > 0);
   } else {
-    // whisper-cli with --max-len 1: each segment is a single word with
-    // millisecond offsets.
-    const words: Word[] = [];
+    // whisper-cli with --max-len 1: each segment is a single token with
+    // millisecond offsets. Raw (untrimmed) text carries the leading-space
+    // signal that separates word-initial tokens from continuations.
+    const tokens: Array<{ raw: string; word: Word }> = [];
     for (const seg of entries) {
-      const text = seg.text?.trim() ?? "";
+      const raw = seg.text ?? "";
+      const text = raw.trim();
       if (isSpecialToken(text)) continue;
       const from = seg.offsets?.from ?? 0;
       const to = seg.offsets?.to ?? from;
       if (to <= from) continue;
-      words.push({ word: text, startMs: from, endMs: to, confidence: seg.probability ?? 1.0 });
+      tokens.push({
+        raw,
+        word: { word: text, startMs: from, endMs: to, confidence: seg.probability ?? 1.0 },
+      });
     }
-    segments = chunkWordsIntoSegments(words, 5);
+    segments = chunkWordsIntoSegments(mergeTokenStream(tokens), 5);
   }
 
   const durationMs =
@@ -216,6 +252,11 @@ export async function processAudio(
   ];
   if (options.language) {
     whisperArgs.push("-l", options.language);
+  }
+  if (options.prompt) {
+    // Bias decoding toward brand names / domain vocabulary. Passed as a
+    // single argv element to execFileSync — no shell, no injection.
+    whisperArgs.push("--prompt", options.prompt);
   }
 
   console.log(`🎙️ Transcribing: ${basename(resolvedAudio)}...`);

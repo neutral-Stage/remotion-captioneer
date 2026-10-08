@@ -16,6 +16,8 @@ export type TranscribeMediaOptions = {
   language?: string;
   whisperPath?: string;
   modelPath?: string;
+  /** Initial prompt to bias local whisper transcription (brand names) */
+  prompt?: string;
   /** Enable speaker diarization (AssemblyAI, ElevenLabs) */
   diarize?: boolean;
   /** Expected speaker count hint */
@@ -75,6 +77,7 @@ export async function transcribeMediaFile(
       language: options.language ?? config?.defaultLanguage,
       whisperPath: options.whisperPath ?? config?.whisperPath,
       modelPath: options.modelPath ?? config?.modelPath,
+      prompt: options.prompt,
     });
   }
 
