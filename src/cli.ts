@@ -1110,7 +1110,7 @@ program
   .option("--preset <preset>", "Built-in preset (tiktok, cinematic-gold, ...)")
   .option("--style <style>", "Built-in caption style (overrides the preset's style)")
   .option("--color <color>", "Highlight color")
-  .option("--emphasis <mode>", "Emphasis rendering: scale | color | glow", "scale")
+  .option("--emphasis <mode>", "Emphasis rendering: scale | color | glow", "color")
   .option("--no-tighten", "Skip filler-word removal")
   .option("--no-emphasize", "Skip auto-emphasis")
   .option("--fps <n>", "Frames per second", "30")
