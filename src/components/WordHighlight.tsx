@@ -89,6 +89,7 @@ export const WordHighlight: React.FC<WordHighlightProps> = ({
               display: "flex",
               flexWrap: "wrap",
               justifyContent: "center",
+              alignItems: "baseline",
               gap: "8px 12px",
             }}
           >

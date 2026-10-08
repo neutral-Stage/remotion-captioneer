@@ -62,7 +62,7 @@ export const Blur: React.FC<BlurProps> = ({
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "baseline",
           gap: "8px 12px",
           maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",

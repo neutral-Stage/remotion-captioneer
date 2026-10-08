@@ -67,6 +67,7 @@ export const Custom: React.FC<CustomProps> = ({
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
+          alignItems: "baseline",
           gap: "8px 12px",
           maxWidth: captionBoxMaxWidth(maxWidth),
           padding: "16px 24px",
