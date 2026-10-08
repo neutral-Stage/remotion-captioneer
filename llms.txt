@@ -1,0 +1,91 @@
+# remotion-captioneer
+
+> Word-perfect animated captions for Remotion — audio in, captioned MP4 out.
+> MIT, TypeScript, 14 styles, 6 STT providers, zero-React rendering.
+
+Docs: https://github.com/neutral-Stage/remotion-captioneer#readme
+Live demo: https://neutral-stage.github.io/remotion-captioneer/
+npm: https://www.npmjs.com/package/remotion-captioneer
+
+## Install
+
+    npm install remotion-captioneer
+    # CLI renderer (optional, for `captioneer render`):
+    npm install -D @remotion/bundler@4 @remotion/renderer@4
+
+## One-command pipeline (no React needed)
+
+    npx captioneer autopilot clip.mp3 --preset tiktok --out clip-captioned.mp4
+    # = transcribe → remove fillers → auto-emphasize → render MP4
+
+Individual steps:
+
+    npx captioneer process clip.mp3 --provider groq          # transcribe → captions.json
+    npx captioneer tighten captions.json --in-place          # cut "um"/"uh", close gaps
+    npx captioneer emphasize captions.json --in-place        # flag juicy words
+    npx captioneer render captions.json --audio clip.mp3 --preset tiktok --out out.mp4
+    npx captioneer render captions.json --video footage.mp4 --duration 12 --out out.mp4
+    npx captioneer pacing captions.json --strict             # CPS readability gate (CI exit code)
+    npx captioneer clean captions.json --mode mask --in-place
+    npx captioneer translate captions.json -t es --glossary "Voxily:Voxily"
+    npx captioneer export captions.json --format srt
+    npx captioneer doctor                                    # environment health check
+
+Other commands: init, batch, preview (web editor), demo (Remotion Studio), presets, providers, styles (create/validate/install/list).
+
+## React API (inside Remotion compositions)
+
+    import { AnimatedCaptions, applyPreset, markEmphasis } from "remotion-captioneer";
+
+    const emphasized = markEmphasis(captions);
+
+    <AnimatedCaptions
+      captions={emphasized}
+      {...applyPreset("tiktok")}     // 23 presets, 10 categories
+      emphasisStyle="scale"          // "scale" | "color" | "glow"
+      speakerHighlight               // per-speaker colors (diarized captions)
+    />
+
+Key props: style (14 built-ins), highlightColor, fontSize, fontFamily, position ("top"|"center"|"bottom"), maxWidth, wordsPerLine, useSmartWrap, textDirection ("rtl"), showSpeakerLabels, speakerColors, emphasisStyle, emphasisColor, animation (custom keyframes).
+
+## Core functions
+
+- processAudio / createProvider(name) — transcribe (providers: openai, groq, deepgram, assemblyai, elevenlabs, local whisper)
+- markEmphasis(captions, { audio?: { volumeFrames } }) / detectEmphasis — flag stretched / ALL-CAPS / loud words (pure)
+- filterFillers(captions, { remove, closeGaps, extraFillers }) — remove "um"/"uh"/"you know" (pure)
+- filterProfanity(captions, { mode: "mask"|"remove"|"flag" }) — conservative matching (pure)
+- analyzePacing(captions, { fastCps: 17, maxCps: 20 }) — CPS/WPM/readabilityScore (pure)
+- snapCaptionsToBeats(captions, analysis.beats) — land word pops on beats (pure)
+- analyzeAudio(path) → { beats, volumeFrames, ... } — beat/volume analysis
+- translateCaptionData(captions, { targetLanguage, glossary }) — preserves word timing
+- toSRT / toVTT / toASS / toTXT (from remotion-captioneer/node)
+- validateAnimationSpec / sampleAnimation — custom keyframe animations
+- All caption transforms are pure: input never mutated, untouched segments shared.
+
+## Data formats
+
+Captions JSON (CaptionData):
+
+    { "segments": [ { "text": "...", "startMs": 0, "endMs": 1200, "speaker": "S1",
+        "words": [ { "word": "hello", "startMs": 0, "endMs": 400, "confidence": 1, "emphasis": false } ] } ],
+      "language": "en", "durationMs": 12000 }
+
+Style package (marketplace JSON; `styles create` scaffolds it):
+
+    { "schemaVersion": 1, "meta": { "id": "my-style", "name": "My Style", "description": "...", "version": "1.0.0" },
+      "preset": { "name": "...", "description": "...", "style": "glow", "fontFamily": "Inter, sans-serif",
+        "fontSize": 60, "fontColor": "rgba(255,255,255,0.4)", "highlightColor": "#00FF88", "position": "bottom",
+        "animation": { "easing": "ease-out", "keyframes": [ { "at": 0, "scale": 0.4, "opacity": 0 } ] } } }
+
+Animation keyframes: at (0–1 word progress, ascending), scale (0.05–10), opacity (0–1), yOffset (−500–500 px), color (#RRGGBB[AA] only). Max 32 keyframes. Pure data — no code execution.
+
+## Environment
+
+STT keys (pick one): OPENAI_API_KEY, GROQ_API_KEY, DEEPGRAM_API_KEY, ASSEMBLYAI_API_KEY, ELEVENLABS_API_KEY. No key → local whisper.cpp (auto-installed). Run `npx captioneer doctor` to verify setup.
+
+## Agent tips
+
+- Prefer the CLI over writing Remotion code when the user just wants a captioned video.
+- Chain transforms in this order: process → tighten → clean → emphasize → (translate) → render.
+- Every transform prints a summary; JSON-in/JSON-out commands accept `--in-place` or stdout.
+- `pacing --strict` makes a good final quality gate before rendering.

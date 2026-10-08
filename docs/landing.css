@@ -262,6 +262,27 @@ h2 {
 }
 .wave .wb { background: var(--wb-color, var(--color-accent)); }
 
+/* Line-level caption rendering (mirrors the real components) */
+.cap-line {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 4px 14px;
+  max-width: 92%;
+  font-weight: 700;
+  text-align: center;
+}
+.cap-line .cw {
+  display: inline-block;
+  line-height: 1.25;
+}
+.cap-line .cw.emph-on {
+  color: #f59e0b !important;
+  font-size: 1.28em !important;
+  text-shadow: 0 0 16px rgba(245, 158, 11, 0.85), 0 0 34px rgba(245, 158, 11, 0.45) !important;
+}
+
 /* ─── Styles grid ─── */
 .style-card { border-radius: 10px; }
 .style-card:hover, .style-card:focus-visible { border-color: rgba(254, 44, 85, 0.5); }

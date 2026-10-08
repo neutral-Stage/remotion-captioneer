@@ -102,8 +102,10 @@ Active word bounces up with spring physics.
 
 - 🧠 **Smart Captions** — Auto-emphasis (stretched / caps / loud), per-speaker colors, beat-snapped timing, filler-word removal
 - 🎞️ **Custom Animations** — keyframe word motion as data; installable via marketplace style packages
+- 🚀 **One-Command Autopilot** — `captioneer autopilot clip.mp3 --preset tiktok` transcribes, cuts fillers, emphasizes, and renders the MP4
 - 🎥 **Zero-React Rendering** — `captioneer render captions.json --audio clip.mp3` (or `--video footage.mp4`) outputs a captioned MP4
 - 📺 **Broadcast QA** — Characters-per-second pacing analysis + profanity filtering (mask/remove/flag)
+- 🤖 **AI-Agent Friendly** — `llms.txt` cheatsheet, pure JSON transforms, `captioneer doctor` environment check
 - 🎙️ **6 STT Providers** — Local Whisper, OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs
 - 🎨 **14 Caption Styles** — Word Highlight, Karaoke, Typewriter, Bounce, Wave, Glow, Erase, Pill, Flicker, Highlighter, Blur, Rainbow, Scale, Spotlight
 - 🎭 **23 Presets** — TikTok, Instagram, YouTube, Podcast, Cinematic, Music, Tutorial, Minimal, Gaming, News, Education, Fun
@@ -112,7 +114,7 @@ Active word bounces up with spring physics.
 - 🧱 **Layout Primitives** — Stack, Row, Columns, Grid, Center, FadeIn, SlideUp
 - 📤 **7 Export Formats** — SRT, VTT, ASS, TXT, word-level SRT & VTT
 - ⚡ **Drop-in Components** — `<AnimatedCaptions>` works out of the box
-- 🔧 **CLI Tool** — process, batch, export, translate, emphasize, preview, presets, providers, styles, init, demo
+- 🔧 **CLI Tool** — autopilot, process, batch, export, translate, emphasize, tighten, clean, pacing, render, doctor, preview, presets, providers, styles, init, demo
 - 📐 **Zero Config** — Works with sensible defaults, customizable everything
 - 🔷 **TypeScript** — Full type definitions included
 - 🐳 **Docker** — `Dockerfile` for headless preview (see repo root)
@@ -384,7 +386,15 @@ const snapped = snapCaptionsToBeats(captions, analysis.beats, { toleranceMs: 120
 
 ## 🎥 Render Without React
 
-Not writing a Remotion app? Get a captioned MP4 straight from the CLI — captions JSON plus an audio file is all it takes:
+Not writing a Remotion app? The autopilot does the whole pipeline in one command:
+
+```bash
+npx captioneer autopilot clip.mp3 --preset tiktok
+# transcribe → cut fillers → auto-emphasize → captioned MP4
+# (video input burns the captions over its own footage)
+```
+
+Or run the steps individually and keep full control:
 
 ```bash
 npx captioneer process clip.mp3                    # 1. transcribe → captions.json
@@ -989,43 +999,59 @@ See the [`examples/`](https://github.com/neutral-Stage/remotion-captioneer/tree/
 
 ### ✅ Completed
 
+**Core engine**
 - [x] 14 caption styles (word-highlight, karaoke, typewriter, bounce, wave, glow, typewriter-erase, pill, flicker, highlighter, blur, rainbow, scale, spotlight)
 - [x] 23 caption presets across 10 categories
 - [x] Multi-line auto-wrapping with smart breaks (`smartWrap()`)
-- [x] Word-level emoji reactions (`EmojiReactions` + `autoGenerateReactions()`)
-- [x] Real-time preview server (`npx captioneer preview`)
-- [x] Batch processing mode (`npx captioneer batch ./audio/`)
-- [x] Multi-provider STT (OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs, Local Whisper)
+- [x] Custom keyframe animations as data (`animation` prop, marketplace `preset.animation`, `--animation`)
 - [x] @remotion/captions compatibility layer
-- [x] Audio-video sync (beat detection, volume hooks, timeline keyframes)
-- [x] Template system for data-driven videos
 - [x] Layout primitives (Stack, Row, Columns, Grid, FadeIn, SlideUp, etc.)
+- [x] Template system for data-driven videos
+- [x] Word-level emoji reactions (`EmojiReactions` + `autoGenerateReactions()`)
+
+**Speech-to-text**
+- [x] Multi-provider STT (OpenAI, Groq, Deepgram, AssemblyAI, ElevenLabs, Local Whisper)
+- [x] Speaker diarization (`--diarize` on AssemblyAI & ElevenLabs; `speaker` on segments)
+- [x] Caption translation with word timing preserved (`translateCaptionData`, `captioneer translate`)
+- [x] Translation glossary — brand terms stay verbatim (`--glossary`)
+- [x] Multi-language caption support with RTL (`AnimatedCaptions` `textDirection="rtl"`)
+
+**Smart captions**
+- [x] Auto-emphasis detection — stretched, ALL-CAPS, and loud words (`markEmphasis` + `emphasisStyle` in 12 of 14 styles; `captioneer emphasize`)
+- [x] Loud-word emphasis detection from audio volume (`markEmphasis` with `audio.volumeFrames`)
+- [x] Per-speaker caption colors (`speakerHighlight`)
+- [x] Beat-snapped word timing (`snapCaptionsToBeats`)
+- [x] Filler-word removal with gap closing (`filterFillers`; `captioneer tighten`)
+
+**Production pipeline**
+- [x] Zero-React MP4 rendering (`captioneer render captions.json --audio clip.mp3 --video footage.mp4`)
+- [x] One-command autopilot — transcribe → tighten → emphasize → render (`captioneer autopilot`)
+- [x] Broadcast QA (pacing/CPS analysis `captioneer pacing --strict`; profanity filter `captioneer clean`)
+- [x] Environment health check (`captioneer doctor`)
 - [x] Export formats (SRT, VTT, ASS, TXT, word-level SRT & VTT)
+- [x] Batch processing mode (`npx captioneer batch ./audio/`)
+- [x] Style marketplace (JSON packages, create/validate/install/list, preview preset picker)
+
+**Platform**
+- [x] Real-time preview editor (`npx captioneer preview` — playback controls, progress bar, style selector, URL import)
+- [x] Audio-video sync (beat detection, volume hooks, timeline keyframes)
 - [x] Project scaffolder (`npx captioneer init`)
-- [x] 10 working examples covering all features
-- [x] 14 CLI commands (init, process, batch, export, translate, emphasize, tighten, clean, pacing, render, preview, presets, providers, styles, demo)
-- [x] GitHub Pages demo with all 14 styles animated
+- [x] 15 working examples covering all features
+- [x] 16 CLI commands (init, autopilot, process, batch, export, translate, emphasize, tighten, clean, pacing, render, doctor, preview, presets, providers, styles, demo)
+- [x] AI-agent guide (`llms.txt`) — full API/CLI cheatsheet for coding agents
+- [x] GitHub Pages demo with all 14 styles animated + live smart-caption toggles
 - [x] GitHub Actions CI/CD (build, test, release to npm, CodeQL)
 - [x] 0 vulnerabilities in npm audit
 
 ### 🔮 Future
 
-- [x] Caption style marketplace (JSON packages, create/validate/install/list, preview preset picker)
-- [x] Auto-emphasis detection (`markEmphasis` + `emphasisStyle` rendering; `captioneer emphasize`)
-- [x] Per-speaker caption colors (`speakerHighlight`)
-- [x] Beat-snapped word timing (`snapCaptionsToBeats`)
-- [x] Zero-React MP4 rendering (`captioneer render captions.json --audio clip.mp3 --video footage.mp4`)
-- [x] Broadcast QA (pacing/CPS analysis `captioneer pacing`; profanity filter `captioneer clean`)
-- [x] Custom keyframe animations as data (`animation` prop, marketplace `preset.animation`, `--animation`)
-- [x] Filler-word removal with gap closing (`filterFillers`; `captioneer tighten`)
-- [x] Loud-word emphasis detection from audio volume (`markEmphasis` with `audio.volumeFrames`)
-- [x] ~~AI-powered auto-emoji~~ (`autoGenerateReactions()` — keyword-based emoji generation from 60+ word→emoji mappings)
-- [x] Multi-language caption support with RTL (OpenAI `translateCaptionData` + `captioneer translate`; `AnimatedCaptions` `textDirection="rtl"`)
-- [x] ~~Caption editor with visual timeline~~ (Preview server with playback controls, progress bar, beat markers, style selector)
-- [x] Video hosting APIs (YouTube/Vimeo resolve — CLI + preview URL import UI)
-- [x] ~~Real-time caption rendering in browser~~ (`npx captioneer preview` — live browser-based caption rendering with audio sync)
-- [x] Caption translation utilities (`translateCaptionData`, `captioneer translate`)
-- [x] Speaker diarization (`--diarize` on AssemblyAI & ElevenLabs; `speaker` on segments)
+- [ ] In-browser rendering via WebCodecs (zero-server MP4 export from the preview editor)
+- [ ] MCP server so AI agents can drive the full pipeline conversationally
+- [ ] Curated marketplace gallery — community styles featured on the docs site
+- [ ] More community styles and animations (bring your own via `styles create`)
+- [ ] Burn-in mode for non-Remotion users (`captioneer burn video.mp4 + captions.json` via ffmpeg)
+- [ ] Runtime support for bun/deno in the CLI
+- [ ] Docs translations (i18n)
 
 ---
 
