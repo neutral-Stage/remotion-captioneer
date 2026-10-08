@@ -914,94 +914,26 @@ program
       animationJson = JSON.parse(readFileSync(animationPath, "utf-8"));
     }
 
-    let bundleFn: typeof import("@remotion/bundler").bundle;
-    let renderer: typeof import("@remotion/renderer");
-    try {
-      ({ bundle: bundleFn } = await import("@remotion/bundler"));
-      renderer = await import("@remotion/renderer");
-    } catch {
-      console.error(
-        "❌ captioneer render needs the Remotion renderer packages.\n" +
-          "   Install them next to remotion-captioneer:\n" +
-          "   npm i -D @remotion/bundler@4 @remotion/renderer@4"
-      );
-      process.exit(1);
-    }
-
     try {
       const parsed: unknown = JSON.parse(readFileSync(filePath, "utf-8"));
       const { assertCaptionDataShape } = await import("./translate.js");
       const captions = assertCaptionDataShape(parsed);
-      const { assertRenderableCaptions, computeRenderMetadata, RENDER_COMPOSITION_ID } =
-        await import("./render/pipeline.js");
-      assertRenderableCaptions(captions);
 
-      // Remotion serves media from the bundle's public dir, so stage the
-      // audio/video there under a fixed name and reference via staticFile().
-      const { copyFileSync, mkdtempSync, rmSync } = await import("fs");
-      const { tmpdir } = await import("os");
-      const { basename: bn, extname: ext } = await import("path");
-      const mediaExt = (ext(mediaPath).toLowerCase().match(/^\.[a-z0-9]+$/)?.[0] ?? ".mp4");
-      const mediaFile = `captioneer-media${mediaExt}`;
-      const publicDir = mkdtempSync(join(tmpdir(), "captioneer-render-"));
-      copyFileSync(mediaPath, join(publicDir, mediaFile));
-
-      let animation: import("./animation.js").AnimationSpec | undefined;
-      if (animationJson !== undefined) {
-        const { validateAnimationSpec } = await import("./animation.js");
-        animation = validateAnimationSpec(animationJson);
-      }
-
-      type RenderProps = import("./render/pipeline.js").RenderInputProps;
-      const inputProps: RenderProps = {
+      await runRenderPipeline({
         captions,
-        ...(opts.video ? { videoFile: mediaFile } : { audioFile: mediaFile }),
-        ...(animation ? { animation } : {}),
-        ...(opts.style ? { style: opts.style as RenderProps["style"] } : {}),
-        ...(opts.preset ? { preset: opts.preset } : {}),
-        ...(opts.color ? { highlightColor: opts.color } : {}),
-        ...(opts.emphasis
-          ? { emphasisStyle: opts.emphasis as RenderProps["emphasisStyle"] }
-          : {}),
-        ...(opts.duration ? { durationSeconds: Number(opts.duration) } : {}),
+        mediaPath,
+        mediaKind: opts.video ? "video" : "audio",
+        outPath: resolve(opts.out ?? "captioneer-output.mp4"),
+        style: opts.style,
+        preset: opts.preset,
+        color: opts.color,
+        emphasis: opts.emphasis,
+        animationJson,
+        durationSeconds: opts.duration ? Number(opts.duration) : undefined,
         fps: Number(opts.fps ?? 30),
         width: Number(opts.width ?? 1080),
         height: Number(opts.height ?? 1920),
-      };
-      // Fail fast on invalid fps/resolution before the slow bundling step.
-      computeRenderMetadata(inputProps);
-
-      const entryPoint = join(__dirname, "render", "render-entry.js");
-      console.log("🎬 Bundling render entry...");
-      const serveUrl = await bundleFn({
-        entryPoint,
-        publicDir,
-        onProgress: (progress: number) => {
-          if (progress % 25 === 0) process.stderr.write(`   bundle ${progress}%\n`);
-        },
       });
-
-      console.log("🎞  Selecting composition...");
-      const composition = await renderer.selectComposition({
-        serveUrl,
-        id: RENDER_COMPOSITION_ID,
-        inputProps,
-      });
-
-      const outPath = resolve(opts.out ?? "captioneer-output.mp4");
-      console.log(`🎥 Rendering ${composition.durationInFrames} frames → ${outPath}`);
-      try {
-        await renderer.renderMedia({
-          composition,
-          serveUrl,
-          codec: "h264",
-          outputLocation: outPath,
-          inputProps,
-        });
-      } finally {
-        rmSync(publicDir, { recursive: true, force: true });
-      }
-      console.log(`\n✅ Rendered ${outPath} (${bn(outPath)})`);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`❌ ${message}`);
@@ -1059,6 +991,295 @@ program
       console.error(`❌ ${message}`);
       process.exit(1);
     }
+  });
+
+/**
+ * Shared render pipeline used by `captioneer render` and `captioneer autopilot`:
+ * stages the media into the bundle public dir, bundles the render entry, and
+ * renders the composition to an MP4.
+ */
+interface RenderPipelineOptions {
+  captions: import("./types.js").CaptionData;
+  mediaPath: string;
+  mediaKind: "audio" | "video";
+  outPath: string;
+  style?: string;
+  preset?: string;
+  color?: string;
+  emphasis?: string;
+  animationJson?: unknown;
+  durationSeconds?: number;
+  fps: number;
+  width: number;
+  height: number;
+}
+
+async function runRenderPipeline(o: RenderPipelineOptions): Promise<void> {
+  let bundleFn: typeof import("@remotion/bundler").bundle;
+  let renderer: typeof import("@remotion/renderer");
+  try {
+    ({ bundle: bundleFn } = await import("@remotion/bundler"));
+    renderer = await import("@remotion/renderer");
+  } catch {
+    throw new Error(
+      "captioneer render needs the Remotion renderer packages.\n" +
+        "   Install them next to remotion-captioneer:\n" +
+        "   npm i -D @remotion/bundler@4 @remotion/renderer@4"
+    );
+  }
+
+  const { assertRenderableCaptions, computeRenderMetadata, RENDER_COMPOSITION_ID } =
+    await import("./render/pipeline.js");
+  assertRenderableCaptions(o.captions);
+
+  // Remotion serves media from the bundle's public dir, so stage the
+  // audio/video there under a fixed name and reference via staticFile().
+  const { copyFileSync, mkdtempSync, rmSync } = await import("fs");
+  const { tmpdir } = await import("os");
+  const { basename: bn, extname: ext } = await import("path");
+  const mediaExt = ext(o.mediaPath).toLowerCase().match(/^\.[a-z0-9]+$/)?.[0] ?? ".mp4";
+  const mediaFile = `captioneer-media${mediaExt}`;
+  const publicDir = mkdtempSync(join(tmpdir(), "captioneer-render-"));
+  copyFileSync(o.mediaPath, join(publicDir, mediaFile));
+
+  let animation: import("./animation.js").AnimationSpec | undefined;
+  if (o.animationJson !== undefined) {
+    const { validateAnimationSpec } = await import("./animation.js");
+    animation = validateAnimationSpec(o.animationJson);
+  }
+
+  type RenderProps = import("./render/pipeline.js").RenderInputProps;
+  const inputProps: RenderProps = {
+    captions: o.captions,
+    ...(o.mediaKind === "video" ? { videoFile: mediaFile } : { audioFile: mediaFile }),
+    ...(animation ? { animation } : {}),
+    ...(o.style ? { style: o.style as RenderProps["style"] } : {}),
+    ...(o.preset ? { preset: o.preset } : {}),
+    ...(o.color ? { highlightColor: o.color } : {}),
+    ...(o.emphasis ? { emphasisStyle: o.emphasis as RenderProps["emphasisStyle"] } : {}),
+    ...(o.durationSeconds ? { durationSeconds: o.durationSeconds } : {}),
+    fps: o.fps,
+    width: o.width,
+    height: o.height,
+  };
+  // Fail fast on invalid fps/resolution before the slow bundling step.
+  computeRenderMetadata(inputProps);
+
+  const entryPoint = join(__dirname, "render", "render-entry.js");
+  console.log("🎬 Bundling render entry...");
+  const serveUrl = await bundleFn({
+    entryPoint,
+    publicDir,
+    onProgress: (progress: number) => {
+      if (progress % 25 === 0) process.stderr.write(`   bundle ${progress}%\n`);
+    },
+  });
+
+  console.log("🎞  Selecting composition...");
+  const composition = await renderer.selectComposition({
+    serveUrl,
+    id: RENDER_COMPOSITION_ID,
+    inputProps,
+  });
+
+  console.log(`🎥 Rendering ${composition.durationInFrames} frames → ${o.outPath}`);
+  try {
+    await renderer.renderMedia({
+      composition,
+      serveUrl,
+      codec: "h264",
+      outputLocation: o.outPath,
+      inputProps,
+    });
+  } finally {
+    rmSync(publicDir, { recursive: true, force: true });
+  }
+  console.log(`\n✅ Rendered ${o.outPath} (${bn(o.outPath)})`);
+}
+
+program
+  .command("autopilot")
+  .description("Audio to captioned MP4 in one command: transcribe → tighten → emphasize → render")
+  .argument("<audio>", "Path to audio or video file")
+  .option("-p, --provider <provider>", "STT provider: local, openai, groq, deepgram, assemblyai, elevenlabs")
+  .option("-m, --model <model>", "Model name (provider-specific)")
+  .option("-k, --api-key <key>", "API key (or use env vars)")
+  .option("-l, --language <lang>", "Language code (e.g. en, es, fr)")
+  .option("--diarize", "Enable speaker diarization (AssemblyAI, ElevenLabs)", false)
+  .option("--preset <preset>", "Built-in preset (tiktok, cinematic-gold, ...)")
+  .option("--style <style>", "Built-in caption style (overrides the preset's style)")
+  .option("--color <color>", "Highlight color")
+  .option("--emphasis <mode>", "Emphasis rendering: scale | color | glow", "scale")
+  .option("--no-tighten", "Skip filler-word removal")
+  .option("--no-emphasize", "Skip auto-emphasis")
+  .option("--fps <n>", "Frames per second", "30")
+  .option("--width <n>", "Output width", "1080")
+  .option("--height <n>", "Output height", "1920")
+  .option("-o, --out <path>", "Output MP4 path", "captioneer-autopilot.mp4")
+  .action(async (audioPath: string, opts: Record<string, string | boolean | undefined>) => {
+    const resolved = resolve(audioPath);
+    if (!existsSync(resolved)) {
+      console.error(`❌ File not found: ${resolved}`);
+      process.exit(1);
+    }
+    const { loadConfig } = await import("./config.js");
+    const config = await loadConfig();
+    const providerName =
+      (typeof opts.provider === "string" && opts.provider) ??
+      config?.defaultProvider ??
+      detectDefaultProvider();
+    if (!providerName) {
+      console.error("❌ No STT provider available.");
+      console.error("   Set one of: OPENAI_API_KEY, GROQ_API_KEY, DEEPGRAM_API_KEY, ASSEMBLYAI_API_KEY, ELEVENLABS_API_KEY");
+      console.error("   Or use --provider local with whisper.cpp installed");
+      process.exit(1);
+    }
+
+    console.log(`🚀 Autopilot: ${basename(resolved)}`);
+    console.log(`📡 Provider: ${providerName}\n`);
+
+    try {
+      // 1. Transcribe (local whisper auto-installs on first use)
+      const whisperModel =
+        providerName === "local" ? (typeof opts.model === "string" ? opts.model : "tiny") : undefined;
+      if (providerName === "local") {
+        const { installWhisper, downloadModel } = await import("./whisper.js");
+        await installWhisper(config?.whisperPath);
+        await downloadModel(whisperModel ?? "tiny", config?.whisperPath);
+      }
+      const { transcribeMediaFile } = await import("./transcribe-media.js");
+      let captions = await transcribeMediaFile(resolved, {
+        provider: providerName,
+        model: whisperModel ?? (typeof opts.model === "string" ? opts.model : undefined),
+        apiKey: typeof opts.apiKey === "string" ? opts.apiKey : getApiKeyForProvider(providerName),
+        language: typeof opts.language === "string" ? opts.language : config?.defaultLanguage,
+        whisperPath: config?.whisperPath,
+        modelPath: config?.modelPath,
+        diarize: opts.diarize === true,
+      });
+      console.log(`🎙️  ${captions.segments.length} segments transcribed`);
+
+      // 2. Tighten (filler removal)
+      if (opts.tighten !== false) {
+        const { filterFillers } = await import("./fillers.js");
+        const tightened = filterFillers(captions, { remove: true, closeGaps: true });
+        const savedMs = tightened.matches.reduce((acc, m) => acc + m.durationMs, 0);
+        captions = tightened.captions;
+        console.log(
+          `🧹 ${tightened.matches.length} filler(s) removed · ${(savedMs / 1000).toFixed(1)}s tighter`
+        );
+      }
+
+      // 3. Emphasize
+      if (opts.emphasize !== false) {
+        const { markEmphasis, detectEmphasis } = await import("./emphasis.js");
+        const detected = detectEmphasis(captions);
+        captions = markEmphasis(captions);
+        console.log(`⚡ ${detected.length} word(s) emphasized`);
+      }
+
+      // 4. Persist the processed captions for inspection / reuse
+      const outPath = resolve(typeof opts.out === "string" ? opts.out : "captioneer-autopilot.mp4");
+      const captionsPath = `${outPath}.captions.json`;
+      writeFileSync(captionsPath, `${JSON.stringify(captions, null, 2)}\n`, "utf8");
+      console.log(`📝 Captions saved to: ${captionsPath}\n`);
+
+      // 5. Render — video input burns captions over its own footage
+      const isVideo = /\.(mp4|mov|webm|mkv|m4v)$/i.test(resolved);
+      await runRenderPipeline({
+        captions,
+        mediaPath: resolved,
+        mediaKind: isVideo ? "video" : "audio",
+        outPath,
+        style: typeof opts.style === "string" ? opts.style : undefined,
+        preset: typeof opts.preset === "string" ? opts.preset : undefined,
+        color: typeof opts.color === "string" ? opts.color : undefined,
+        emphasis: typeof opts.emphasis === "string" && opts.emphasize !== false ? opts.emphasis : undefined,
+        fps: Number(opts.fps ?? 30),
+        width: Number(opts.width ?? 1080),
+        height: Number(opts.height ?? 1920),
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("doctor")
+  .description("Check your environment: STT keys, renderer packages, runtime")
+  .action(async () => {
+    const rows: Array<{ ok: boolean; warn?: boolean; label: string; detail: string }> = [];
+
+    const [major] = process.versions.node.split(".").map(Number);
+    rows.push({
+      ok: major >= 18,
+      label: "Node.js",
+      detail: `v${process.versions.node}${major >= 18 ? "" : " — captioneer needs 18+"}`,
+    });
+
+    rows.push({
+      ok: true,
+      label: "remotion-captioneer",
+      detail: `v${pkgVersion}`,
+    });
+
+    const providerKeys = [
+      "OPENAI_API_KEY",
+      "GROQ_API_KEY",
+      "DEEPGRAM_API_KEY",
+      "ASSEMBLYAI_API_KEY",
+      "ELEVENLABS_API_KEY",
+    ].filter((k) => Boolean(process.env[k]));
+    rows.push({
+      ok: providerKeys.length > 0,
+      warn: providerKeys.length === 0,
+      label: "Cloud STT key",
+      detail:
+        providerKeys.length > 0
+          ? providerKeys.join(", ")
+          : "none — local whisper.cpp will be used (auto-downloads)",
+    });
+
+    let rendererOk = false;
+    try {
+      await import("@remotion/bundler");
+      await import("@remotion/renderer");
+      rendererOk = true;
+    } catch {
+      rendererOk = false;
+    }
+    rows.push({
+      ok: rendererOk,
+      warn: !rendererOk,
+      label: "Renderer packages",
+      detail: rendererOk
+        ? "@remotion/bundler + @remotion/renderer ready (ffmpeg bundled)"
+        : "missing — `captioneer render` needs: npm i -D @remotion/bundler@4 @remotion/renderer@4",
+    });
+
+    const { loadConfig } = await import("./config.js");
+    const config = await loadConfig();
+    rows.push({
+      ok: true,
+      label: "Local whisper.cpp",
+      detail: config?.whisperPath
+        ? `configured (${config.whisperPath})`
+        : "auto-downloads on first --provider local run",
+    });
+
+    console.log("\n🩺 captioneer doctor\n");
+    for (const r of rows) {
+      const icon = r.warn ? "⚠️ " : r.ok ? "✅" : "❌";
+      console.log(`  ${icon} ${r.label.padEnd(22)} ${r.detail}`);
+    }
+    const blocking = rows.filter((r) => !r.ok && !r.warn).length;
+    console.log(
+      blocking === 0
+        ? "\n   All checks passed — cloud STT and rendering are optional.\n"
+        : `\n   ${blocking} issue(s) need attention.\n`
+    );
   });
 
 program.parse();

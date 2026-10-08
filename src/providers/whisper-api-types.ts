@@ -48,9 +48,14 @@ export interface WhisperCppToken {
 
 export interface WhisperCppSegment {
   text?: string;
+  /** Legacy `main` binary: segment timing in centiseconds */
   t0?: number;
   t1?: number;
   tokens?: WhisperCppToken[];
+  /** Current `whisper-cli` json output: segment timing in milliseconds */
+  offsets?: { from?: number; to?: number };
+  timestamps?: { from?: string; to?: string };
+  probability?: number;
 }
 
 export interface WhisperCppOutput {

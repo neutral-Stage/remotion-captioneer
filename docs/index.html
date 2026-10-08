@@ -190,13 +190,22 @@
   <div class="w">
     <div class="sec-head">
       <span class="eyebrow">Pipeline</span>
-      <h2>From audio to captioned MP4 in four commands</h2>
-      <p class="sub">The same primitives work in your own Remotion compositions — or skip React entirely.</p>
+      <h2>From audio to captioned MP4</h2>
+      <p class="sub">One command with autopilot — or the same primitives step by step, in your own Remotion compositions.</p>
     </div>
     <div class="code-cols">
       <div class="code-window">
+        <div class="code-titlebar"><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-name">terminal</span></div>
+        <div class="code"><span class="cm"># One command: transcribe → tighten → emphasize → render</span>
+npx captioneer autopilot clip.mp3 \
+  --preset tiktok --out clip-captioned.mp4
+
+<span class="cm"># Video input? Captions burn over its own footage</span>
+npx captioneer autopilot footage.mp4 --style glow</div>
+      </div>
+      <div class="code-window">
         <div class="code-titlebar"><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-name">CaptionedClip.tsx</span></div>
-        <div class="code"><span class="cm">// In your Remotion composition</span>
+        <div class="code"><span class="cm">// Or in your own Remotion composition</span>
 <span class="kw">import</span> { AnimatedCaptions, applyPreset, markEmphasis } <span class="kw">from</span> <span class="st">'remotion-captioneer'</span>;
 
 <span class="kw">const</span> emphasized = markEmphasis(captions);
@@ -206,15 +215,6 @@
   {...applyPreset(<span class="st">'tiktok'</span>)}
   emphasisStyle=<span class="st">"scale"</span>
 /&gt;</div>
-      </div>
-      <div class="code-window">
-        <div class="code-titlebar"><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-dot" aria-hidden="true"></span><span class="tb-name">terminal</span></div>
-        <div class="code"><span class="cm"># No React project needed</span>
-npx captioneer process clip.mp3
-npx captioneer tighten captions.json --in-place
-npx captioneer emphasize captions.json --in-place
-npx captioneer render captions.json \
-  --audio clip.mp3 --preset tiktok --out clip.mp4</div>
       </div>
     </div>
     <div class="feat-grid" style="margin-top:14px">
@@ -290,6 +290,7 @@ npx captioneer render captions.json \
     <table class="cli-table">
       <tr><th>Command</th><th>What it does</th></tr>
       <tr><td><code>npx captioneer init my-video</code></td><td>Scaffold a new project</td></tr>
+      <tr><td><code>npx captioneer autopilot clip.mp3 --preset tiktok</code></td><td>Transcribe → tighten → emphasize → render, one command</td></tr>
       <tr><td><code>npx captioneer process audio.mp3</code></td><td>Transcribe with any of the 6 STT providers</td></tr>
       <tr><td><code>npx captioneer batch ./audio/</code></td><td>Process a whole directory</td></tr>
       <tr><td><code>npx captioneer tighten captions.json</code></td><td>Remove filler words and close timing gaps</td></tr>
@@ -301,6 +302,7 @@ npx captioneer render captions.json \
       <tr><td><code>npx captioneer render captions.json --audio clip.mp3</code></td><td>Render a captioned MP4 — or <code>--video</code> for footage</td></tr>
       <tr><td><code>npx captioneer styles create "My Style"</code></td><td>Scaffold a shareable marketplace style package</td></tr>
       <tr><td><code>npx captioneer styles install &lt;file|url&gt;</code></td><td>Install a style package (list/validate subcommands too)</td></tr>
+      <tr><td><code>npx captioneer doctor</code></td><td>Environment health check — STT keys, renderer, runtime</td></tr>
       <tr><td><code>npx captioneer preview</code></td><td>Live preview editor with the Remotion Player</td></tr>
       <tr><td><code>npx captioneer demo</code></td><td>Open Remotion Studio (all 14 styles)</td></tr>
     </table>
@@ -352,6 +354,7 @@ npx captioneer render captions.json \
       <h5>Package</h5>
       <a href="https://www.npmjs.com/package/remotion-captioneer">npm</a>
       <a href="https://github.com/neutral-Stage/remotion-captioneer#readme">Documentation</a>
+      <a href="https://github.com/neutral-Stage/remotion-captioneer/blob/main/llms.txt">llms.txt (for AI agents)</a>
       <a href="https://github.com/neutral-Stage/remotion-captioneer/blob/main/CONTRIBUTING.md">Contributing</a>
     </div>
   </div>

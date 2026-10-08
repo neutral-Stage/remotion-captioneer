@@ -531,7 +531,6 @@ function stop() {
   if (S.raf) cancelAnimationFrame(S.raf);
   document.getElementById("ppb").textContent = "▶";
   document.getElementById("ppb").setAttribute("aria-label", "Play");
-  document.getElementById("cap").replaceChildren();
   document.getElementById("pf").style.width = "0";
 }
 
@@ -544,9 +543,7 @@ function tick() {
   const prog = document.querySelector(".pprog");
   if (prog) prog.setAttribute("aria-valuenow", String(Math.round(p * 100)));
   document.getElementById("pt").textContent = ft(el) + " / " + ft(S.dur);
-  const c = S.caps.find((c) => el >= c.start && el < c.end);
-  if (c) renderCap(c, el);
-  else document.getElementById("cap").replaceChildren();
+  renderLine(el);
   if (!reducedMotion) {
     updateWave(el);
     drawBg(el);
@@ -604,10 +601,7 @@ function seekTo(seconds) {
   document.getElementById("pf").style.width = p * 100 + "%";
   document.querySelector(".pprog")?.setAttribute("aria-valuenow", String(Math.round(p * 100)));
   document.getElementById("pt").textContent = ft(seconds) + " / " + ft(S.dur);
-  const c = S.caps.find((cap) => seconds >= cap.start && seconds < cap.end);
-  const capEl = document.getElementById("cap");
-  if (c) renderCap(c, seconds);
-  else capEl.replaceChildren();
+  renderLine(seconds);
   if (S.on && S.raf) cancelAnimationFrame(S.raf);
   if (S.on) S.raf = requestAnimationFrame(tick);
 }
@@ -640,118 +634,166 @@ function updateWave(t) {
   });
 }
 
-function resetCapStyles(el) {
+function buildLine() {
+  const el = document.getElementById("cap");
+  el.className = "cap-el cap-line";
   el.style.cssText = "";
-  el.className = "cap-el";
   el.style.fontSize = S.config.fontSize + "px";
-  el.style.color = "#fff";
-  el.style.fontWeight = "700";
-  el.style.textAlign = "center";
-  el.style.maxWidth = "88%";
-  el.style.padding = "6px 14px";
+  el.replaceChildren();
+  for (const w of S.caps) {
+    const span = document.createElement("span");
+    span.className = "cw";
+    span.textContent = w.text;
+    el.appendChild(span);
+  }
 }
 
-function renderCap(cap, elapsed) {
+/**
+ * Render the whole caption line each frame — past words stay lit, the
+ * active word gets the style treatment, future words rest dim. Mirrors how
+ * the real AnimatedCaptions components render.
+ */
+function renderLine(elapsed) {
   const el = document.getElementById("cap");
+  if (el.children.length !== S.caps.length) buildLine();
+  el.style.fontSize = S.config.fontSize + "px";
   const speaker = SPEAKERS[S.li % SPEAKERS.length];
   const bg = S.speakers ? speaker.color : S.accent;
-  const p = Math.max(0, Math.min(1, (elapsed - cap.start) / (cap.end - cap.start)));
-  const text = cap.text;
-  resetCapStyles(el);
   document.getElementById("wv").style.setProperty("--wb-color", bg);
+
+  const spans = el.children;
+  S.caps.forEach((word, i) => {
+    const span = spans[i];
+    const state =
+      elapsed >= word.end ? "past" : elapsed >= word.start ? "active" : "future";
+    const p = Math.max(
+      0,
+      Math.min(1, (elapsed - word.start) / (word.end - word.start))
+    );
+    styleWord(span, word, state, p, i, elapsed, bg);
+    span.classList.toggle("emph-on", Boolean(S.emphasis && word.emph));
+  });
+}
+
+function styleWord(span, word, state, p, i, elapsed, bg) {
+  span.style.cssText = "";
+  span.textContent = word.text;
+  span.style.color = state === "past" ? "#fff" : "rgba(255,255,255,0.4)";
 
   switch (S.st) {
     case "karaoke": {
-      const pct = Math.min(p * 100, 100);
-      el.textContent = text;
-      el.style.background = `linear-gradient(90deg,${bg} ${pct}%,#fff ${pct}%)`;
-      el.style.webkitBackgroundClip = "text";
-      el.style.backgroundClip = "text";
-      el.style.webkitTextFillColor = "transparent";
+      if (state === "active") {
+        const pct = Math.round(p * 100);
+        span.style.background = `linear-gradient(90deg,${bg} ${pct}%,rgba(255,255,255,0.4) ${pct}%)`;
+        span.style.webkitBackgroundClip = "text";
+        span.style.backgroundClip = "text";
+        span.style.webkitTextFillColor = "transparent";
+        span.style.color = "transparent";
+      } else if (state === "past") {
+        span.style.color = bg;
+      }
       break;
     }
     case "typewriter": {
-      const n = Math.max(1, Math.floor(p * text.length));
-      el.textContent = text.substring(0, n);
+      if (state === "future") span.style.visibility = "hidden";
+      else if (state === "active")
+        span.textContent = word.text.substring(
+          0,
+          Math.max(1, Math.floor(p * word.text.length))
+        );
       break;
     }
     case "typewriter-erase": {
-      const cycle = p < 0.5 ? p * 2 : 1 - (p - 0.5) * 2;
-      const n = Math.max(1, Math.floor(cycle * text.length));
-      el.textContent = text.substring(0, n);
+      if (state === "future") span.style.visibility = "hidden";
+      else if (state === "active") {
+        const n =
+          p < 0.5
+            ? Math.floor(p * 2 * word.text.length)
+            : Math.floor((1 - p) * 2 * word.text.length);
+        span.textContent = word.text.substring(0, Math.max(1, n));
+      }
       break;
     }
     case "bounce":
-      el.textContent = text;
-      el.style.transform = reducedMotion ? "none" : `scaleY(${1 + Math.sin(p * Math.PI) * 0.25})`;
-      el.style.textShadow = `0 0 14px ${bg}`;
+      if (state === "active") {
+        span.style.color = bg;
+        span.style.transform = reducedMotion
+          ? "none"
+          : `translateY(${-Math.sin(p * Math.PI) * 10}px) scale(1.15)`;
+        span.style.textShadow = `0 0 14px ${bg}`;
+      }
       break;
     case "wave": {
-      el.replaceChildren();
-      for (let i = 0; i < text.length; i++) {
-        const span = document.createElement("span");
-        span.className = "wave-char";
-        span.textContent = text[i];
-        if (!reducedMotion) {
-          span.style.transform = `translateY(${Math.sin(elapsed * 4 + i * 0.5) * 6}px)`;
-        }
-        el.appendChild(span);
+      if (!reducedMotion) {
+        const y = Math.sin(elapsed * 4 + i * 0.5) * (state === "active" ? 8 : 4);
+        span.style.transform = `translateY(${y}px)`;
+      }
+      if (state === "active") {
+        span.style.color = bg;
+        span.style.textShadow = `0 0 15px ${bg}60`;
       }
       break;
     }
     case "glow":
-      el.textContent = text;
-      el.style.color = bg;
-      el.style.textShadow = reducedMotion
-        ? `0 0 12px ${bg}`
-        : `0 0 ${8 + Math.sin(elapsed * 2) * 8}px ${bg}`;
-      break;
-    case "pill":
-      el.textContent = text;
-      el.style.background = bg + "33";
-      el.style.borderRadius = "999px";
-      el.style.fontSize = Math.max(14, S.config.fontSize - 4) + "px";
-      break;
-    case "flicker":
-      el.textContent = text;
-      el.style.color = "#fdcb6e";
-      el.style.opacity = reducedMotion ? "1" : String(0.5 + Math.random() * 0.5);
-      break;
-    case "highlighter":
-      el.textContent = text;
-      el.style.background = `linear-gradient(transparent 60%, rgba(253,203,110,${0.3 * Math.min(1, p * 1.5)}) 60%)`;
-      break;
-    case "blur":
-      el.textContent = text;
-      if (!reducedMotion) {
-        const b = Math.abs(Math.sin(elapsed)) * 4;
-        el.style.filter = `blur(${b}px)`;
+      if (state === "active") {
+        span.style.color = bg;
+        span.style.textShadow = reducedMotion
+          ? `0 0 12px ${bg}`
+          : `0 0 ${8 + Math.sin(elapsed * 2) * 8}px ${bg}`;
       }
       break;
+    case "pill":
+      if (state === "active") {
+        span.style.color = "#fff";
+        span.style.background = bg;
+        span.style.padding = "2px 12px";
+        span.style.borderRadius = "999px";
+      }
+      break;
+    case "flicker":
+      if (state === "active") {
+        span.style.color = "#fdcb6e";
+        span.style.opacity = reducedMotion ? "1" : String(0.5 + Math.random() * 0.5);
+      }
+      break;
+    case "highlighter":
+      if (state === "active") {
+        span.style.background = `linear-gradient(transparent 55%, rgba(253,203,110,${0.3 + 0.4 * p}) 55%)`;
+        span.style.padding = "0 4px";
+        span.style.color = "#fff";
+      }
+      break;
+    case "blur":
+      if (state === "future" && !reducedMotion) span.style.filter = "blur(4px)";
+      if (state === "active") span.style.color = bg;
+      break;
     case "rainbow": {
-      const hue = reducedMotion ? 200 : (elapsed * 60) % 360;
-      el.textContent = text;
-      el.style.color = `hsl(${hue},80%,65%)`;
+      const hue = reducedMotion ? 200 + i * 20 : (elapsed * 60 + i * 40) % 360;
+      if (state !== "future") span.style.color = `hsl(${hue},80%,65%)`;
       break;
     }
     case "scale":
-      el.textContent = text;
-      if (!reducedMotion) {
-        const sc = 0.8 + Math.abs(Math.sin(elapsed * 2)) * 0.4;
-        el.style.transform = `scale(${sc})`;
+      if (state === "active") {
+        span.style.color = bg;
+        if (!reducedMotion)
+          span.style.transform = `scale(${0.9 + Math.abs(Math.sin(elapsed * 3)) * 0.3})`;
+      } else if (state === "future") {
+        span.style.opacity = "0.6";
       }
       break;
     case "spotlight":
-      el.textContent = text;
-      el.style.textShadow = `0 0 24px rgba(255,255,255,0.9), 0 0 48px ${bg}`;
+      if (state === "active") {
+        span.style.textShadow = `0 0 24px rgba(255,255,255,0.9), 0 0 48px ${bg}`;
+        span.style.color = "#fff";
+      }
       break;
     case "word-highlight":
     default:
-      el.textContent = text;
-      el.style.color = bg;
-      el.style.textShadow = `0 0 18px ${bg}`;
+      if (state === "active") {
+        span.style.color = bg;
+        span.style.textShadow = `0 0 18px ${bg}`;
+      }
   }
-  if (S.emphasis && cap.emph) el.classList.add("emph-on");
 }
 
 function setupSmart() {
@@ -814,14 +856,14 @@ function exportCaps(f) {
 
 function fs(s) {
   const h = Math.floor(s / 3600),
-    m = Math.floor((s % 3600) / 60),
+    m = Math.floor(s / 60) % 60,
     sc = Math.floor(s % 60),
     ms = Math.floor((s % 1) * 1000);
   return `${p(h)}:${p(m)}:${p(sc)},${String(ms).padStart(3, "0")}`;
 }
 function fa(s) {
   const h = Math.floor(s / 3600),
-    m = Math.floor((s % 3600) / 60),
+    m = Math.floor(s / 60) % 60,
     sc = Math.floor(s % 60),
     cs = Math.floor((s % 1) * 100);
   return `${p(h)}:${p(m)}:${p(sc)}.${String(cs).padStart(2, "0")}`;
