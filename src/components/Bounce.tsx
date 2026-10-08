@@ -92,14 +92,17 @@ export const Bounce: React.FC<BounceProps> = ({
             : 0;
 
           const yOffset = isActive ? -bounceHeight * Math.sin(bounce * Math.PI) : 0;
-          const scale = (isActive ? 1 + 0.15 * Math.sin(bounce * Math.PI) : 1) * emph.scaleBoost;
+          const scale = isActive ? 1 + 0.15 * Math.sin(bounce * Math.PI) : 1;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color

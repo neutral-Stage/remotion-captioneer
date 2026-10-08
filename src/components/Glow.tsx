@@ -77,14 +77,16 @@ export const Glow: React.FC<GlowProps> = ({
           const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: glowColor });
 
           const glowAmount = isActive ? glowIntensity * pulse : 0;
-          const scale = emph.scaleBoost;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color
@@ -100,7 +102,6 @@ export const Glow: React.FC<GlowProps> = ({
                     ? `0 0 ${glowAmount}px ${glowColor}, 0 0 ${glowAmount * 2}px ${glowColor}80, 0 0 ${glowAmount * 3}px ${glowColor}40`
                     : "0 2px 8px rgba(0,0,0,0.5)",
                 filter: isActive ? `brightness(${1 + pulse * 0.3})` : "none",
-                ...(scale !== 1 ? { transform: `scale(${scale})` } : {}),
               }}
             >
               {word.word}

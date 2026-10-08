@@ -80,18 +80,19 @@ export const Rainbow: React.FC<RainbowProps> = ({
               : isPast
               ? "white"
               : fontColor;
-          const scale = emph.scaleBoost;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color,
                 display: "inline-block",
-                transform: scale !== 1 ? `scale(${scale})` : undefined,
                 textShadow: emph.textShadow
                   ? emph.textShadow
                   : isActive

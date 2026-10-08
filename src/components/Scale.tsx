@@ -83,16 +83,19 @@ export const Scale: React.FC<ScaleProps> = ({
             ? 1
             : 0.7;
           // Emphasized idle words rest at full size instead of 0.7.
-          const scale =
-            (!isActive && !isPast && word.emphasis && emphasisStyle ? 1 : baseScale) *
-            emph.scaleBoost;
+          const scale = !isActive && !isPast && word.emphasis && emphasisStyle
+            ? 1
+            : baseScale;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color

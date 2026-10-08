@@ -32,7 +32,9 @@ const KaraokeWord: React.FC<{
   readonly emphasis: EmphasisStyleProps;
 }> = ({ word, isActive, progress, fontFamily, fontSize, fillColor, baseColor, emphasis }) => {
   const emph = emphasisVisual(word, emphasis);
-  const scale = emph.scaleBoost === 1 ? undefined : `scale(${emph.scaleBoost})`;
+  const emphFontSize = emph.fontBoost
+    ? Math.round(fontSize * emph.fontBoost)
+    : fontSize;
 
   if (!isActive) {
     const isPast = progress >= 1;
@@ -40,12 +42,11 @@ const KaraokeWord: React.FC<{
       <span
         style={{
           fontFamily,
-          fontSize,
+          fontSize: emphFontSize,
           fontWeight: 700,
           color: emph.color ?? (isPast ? fillColor : baseColor),
           display: "inline-block",
           textShadow: emph.textShadow ?? "0 2px 8px rgba(0,0,0,0.5)",
-          ...(scale ? { transform: scale } : {}),
         }}
       >
         {word.word}
@@ -60,7 +61,7 @@ const KaraokeWord: React.FC<{
     <span
       style={{
         fontFamily,
-        fontSize,
+        fontSize: emphFontSize,
         fontWeight: 700,
         display: "inline-block",
         background: `linear-gradient(90deg, ${emphFill} ${fillPercent}%, ${baseColor} ${fillPercent}%)`,
@@ -70,7 +71,6 @@ const KaraokeWord: React.FC<{
         filter: emph.textShadow
           ? `drop-shadow(0 0 12px ${emphFill})`
           : `drop-shadow(0 0 8px ${emphFill}60)`,
-        ...(scale ? { transform: scale } : {}),
       }}
     >
       {word.word}

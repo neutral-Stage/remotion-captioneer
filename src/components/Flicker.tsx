@@ -81,14 +81,16 @@ export const Flicker: React.FC<FlickerProps> = ({
           }
           // Emphasized words never fade into the dim idle state.
           if (!isActive && !isPast && isEmph) opacity = 0.9;
-          const scale = emph.scaleBoost;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color
@@ -99,7 +101,6 @@ export const Flicker: React.FC<FlickerProps> = ({
                       : fontColor,
                 display: "inline-block",
                 opacity,
-                transform: scale !== 1 ? `scale(${scale})` : undefined,
                 textShadow: emph.textShadow
                   ? emph.textShadow
                   : isActive

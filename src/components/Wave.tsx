@@ -83,14 +83,16 @@ export const Wave: React.FC<WaveProps> = ({
               : isPast
               ? -5
               : 0;
-          const scale = emph.scaleBoost;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color
@@ -100,10 +102,7 @@ export const Wave: React.FC<WaveProps> = ({
                       ? "white"
                       : fontColor,
                 display: "inline-block",
-                transform:
-                  scale !== 1
-                    ? `translateY(${waveY}px) scale(${scale})`
-                    : `translateY(${waveY}px)`,
+                transform: `translateY(${waveY}px)`,
                 textShadow: emph.textShadow
                   ? emph.textShadow
                   : isActive
