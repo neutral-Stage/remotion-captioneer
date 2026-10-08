@@ -98,20 +98,23 @@ export const WordHighlight: React.FC<WordHighlightProps> = ({
               const isPast = i < activeWordIndex;
               const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor });
 
-              const scale = (isActive
+              const scale = isActive
                 ? spring({
                     frame,
                     fps,
                     config: { damping: 10, stiffness: 200 },
                   })
-                : 1) * emph.scaleBoost;
+                : 1;
+              const emphFontSize = emph.fontBoost
+                ? Math.round(fontSize * emph.fontBoost)
+                : fontSize;
 
               return (
                 <span
                   key={`${word.startMs}-${i}`}
                   style={{
                     fontFamily,
-                    fontSize,
+                    fontSize: emphFontSize,
                     fontWeight: 700,
                     color: emph.color
                       ? emph.color

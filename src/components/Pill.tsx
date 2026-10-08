@@ -75,16 +75,19 @@ export const Pill: React.FC<PillProps> = ({
           const isPast = i < activeWordIndex;
           const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: pillColor });
 
-          const scale = (isActive
+          const scale = isActive
             ? spring({ frame, fps, config: { damping: 10, stiffness: 200 } })
-            : 1) * emph.scaleBoost;
+            : 1;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 600,
                 color: emph.color
                   ? emph.color

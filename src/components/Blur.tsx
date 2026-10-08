@@ -77,14 +77,16 @@ export const Blur: React.FC<BlurProps> = ({
           // Emphasized words stay readable instead of resting blurred.
           const blur = isActive || isEmph ? 0 : isPast ? 0 : blurAmount;
           const opacity = isActive ? 1 : isPast || isEmph ? 0.9 : 0.3;
-          const scale = emph.scaleBoost;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color
@@ -96,7 +98,6 @@ export const Blur: React.FC<BlurProps> = ({
                 display: "inline-block",
                 filter: `blur(${blur}px)`,
                 opacity,
-                transform: scale !== 1 ? `scale(${scale})` : undefined,
                 textShadow: emph.textShadow
                   ? emph.textShadow
                   : isActive

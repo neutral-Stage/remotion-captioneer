@@ -15,6 +15,12 @@ export interface EmphasisVisual {
   textShadow?: string;
   /** Multiplier merged into the component's scale computation (1 = none) */
   scaleBoost: number;
+  /**
+   * Font-size multiplier for emphasized words. Used instead of transform
+   * scaling so the layout box grows with the glyphs — transform-only
+   * scaling paints outside the box and eats the inter-word gaps.
+   */
+  fontBoost?: number;
 }
 
 export interface EmphasisStyleProps {
@@ -40,7 +46,9 @@ export function emphasisVisual(
         scaleBoost: 1,
       };
     case "scale":
-      return { scaleBoost: 1.15 };
+      // Font-size, not transform: the layout box grows with the glyphs so
+      // neighboring word gaps are preserved.
+      return { scaleBoost: 1, fontBoost: 1.15 };
     default:
       return NO_EMPHASIS;
   }

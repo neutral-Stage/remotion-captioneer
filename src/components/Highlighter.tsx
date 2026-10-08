@@ -72,14 +72,16 @@ export const Highlighter: React.FC<HighlighterProps> = ({
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
           const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor });
-          const scale = emph.scaleBoost;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color
@@ -94,14 +96,7 @@ export const Highlighter: React.FC<HighlighterProps> = ({
                   : "transparent",
                 padding: isActive ? "2px 8px" : "0",
                 borderRadius: "4px",
-                transform:
-                  isActive && scale !== 1
-                    ? `rotate(-1deg) scale(${scale})`
-                    : isActive
-                      ? "rotate(-1deg)"
-                      : scale !== 1
-                        ? `scale(${scale})`
-                        : "none",
+                transform: isActive ? "rotate(-1deg)" : "none",
                 textShadow: emph.textShadow
                   ? emph.textShadow
                   : isActive

@@ -28,9 +28,12 @@ describe("emphasisVisual", () => {
     expect(v.textShadow).toContain("#A855F7");
   });
 
-  it("scale mode boosts scale only", () => {
+  it("scale mode boosts font size, not transform", () => {
     const v = emphasisVisual({ emphasis: true }, { emphasisStyle: "scale" });
-    expect(v.scaleBoost).toBeGreaterThan(1);
+    // Font-size boost participates in layout so inter-word gaps survive;
+    // transform scaling would paint outside the box and squash the gaps.
+    expect(v.fontBoost).toBeGreaterThan(1);
+    expect(v.scaleBoost).toBe(1);
     expect(v.color).toBeUndefined();
     expect(v.textShadow).toBeUndefined();
   });

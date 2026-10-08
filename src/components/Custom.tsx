@@ -85,14 +85,17 @@ export const Custom: React.FC<CustomProps> = ({
                 ? getWordProgress(word, currentTimeMs)
                 : 0;
           const state = sampleAnimation(animation, progress);
-          const scale = state.scale * emph.scaleBoost;
+          const { scale } = state;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight,
                 color: emph.color ?? state.color ?? fontColor,
                 opacity: state.opacity,

@@ -70,14 +70,16 @@ export const Spotlight: React.FC<SpotlightProps> = ({
           const isActive = i === activeWordIndex;
           const isPast = i < activeWordIndex;
           const emph = emphasisVisual(word, { emphasisStyle, emphasisColor, highlightColor: spotlightColor });
-          const scale = emph.scaleBoost;
+          const emphFontSize = emph.fontBoost
+            ? Math.round(fontSize * emph.fontBoost)
+            : fontSize;
 
           return (
             <span
               key={`${word.startMs}-${i}`}
               style={{
                 fontFamily,
-                fontSize,
+                fontSize: emphFontSize,
                 fontWeight: 700,
                 color: emph.color
                   ? emph.color
@@ -93,7 +95,6 @@ export const Spotlight: React.FC<SpotlightProps> = ({
                   : "none",
                 padding: isActive ? "4px 16px" : "0",
                 borderRadius: isActive ? "8px" : "0",
-                transform: scale !== 1 ? `scale(${scale})` : undefined,
                 textShadow: emph.textShadow
                   ? emph.textShadow
                   : isActive
